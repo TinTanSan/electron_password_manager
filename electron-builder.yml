@@ -1,0 +1,11 @@
+appId: com.example.nextron
+productName: Simple Password Manager
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app
+publish: null
