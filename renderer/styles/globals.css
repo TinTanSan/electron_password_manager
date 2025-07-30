@@ -1,26 +1,59 @@
 @import 'tailwindcss';
 
 @theme {
-    --color-base-100: oklch(100% 0 0);
+  --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
   --color-base-300: oklch(93.268% 0.016 262.751);
   --color-base-content: oklch(41.886% 0.053 255.824);
   --color-primary: oklch(56.86% 0.255 257.57);
-  --color-primary-content: oklch(91.372% 0.051 257.57);
+  --color-primary-darken: oklch(56.86% 0.45 257.57);
+  --color-primary-content: oklch(91.372% 0.025 257.57);
+
   --color-secondary: oklch(42.551% 0.161 282.339);
+  --color-secondary-darken: color-mix(in oklab, var(--color-secondary) 80%, black);
   --color-secondary-content: oklch(88.51% 0.032 282.339);
+  
   --color-accent: oklch(59.939% 0.191 335.171);
   --color-accent-content: oklch(11.988% 0.038 335.171);
+  --color-accent-darken: color-mix(in oklab, var(--color-accent) 80%, black);
+  
+  
   --color-neutral: oklch(19.616% 0.063 257.651);
   --color-neutral-content: oklch(83.923% 0.012 257.651);
+  --color-neutral-darken: color-mix(in oklab, var(--color-neutral) 80%, black);
+
   --color-info: oklch(88.127% 0.085 214.515);
   --color-info-content: oklch(17.625% 0.017 214.515);
+  --color-info-darken: color-mix(in oklab, var(--color-info) 80%, black);
+  
   --color-success: oklch(80.494% 0.077 197.823);
   --color-success-content: oklch(16.098% 0.015 197.823);
-  --color-warning: oklch(89.172% 0.045 71.47);
+  --color-success-darken: color-mix(in oklab, var(--color-success) 80%, black);
+  
+  --color-warning: oklch(89.172% 0.095 70);
   --color-warning-content: oklch(17.834% 0.009 71.47);
-  --color-error: oklch(73.092% 0.11 20.076);
+  --color-warning-darken: color-mix(in oklab, var(--color-warning) 90%, black);
+  
+  --color-error: oklch(73.092% 0.15 20.050);
   --color-error-content: oklch(14.618% 0.022 20.076);
+  --color-error-darken: color-mix(in oklab, var(--color-error) 90%, black);
+  --animate-slide-in: slide-in ease-in 0.25s;
+}
+
+@keyframes slide-in{
+  0% {
+    
+    transform: translateX(100%)
+  }
+  60% {
+    transform: translateX(-15%)
+  }
+  80% {
+    transform: translateX(5%)
+  }
+  85% {
+    transform: translateX(0)
+  }
 }
 
 /*
