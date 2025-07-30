@@ -40,7 +40,6 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.handle('message', async (event, arg) => {
-  console.log(arg)
   return "hello "+arg
 })
 
@@ -52,12 +51,13 @@ ipcMain.handle('openFileDialog', async()=>{
     handleAddRecent(fileOpened);
     return fileContents
   }
-  return ""
+  return undefined
   
 })  
 
 ipcMain.handle('openFile', async(event, args)=>{
   if (fs.existsSync(args)){
+    handleAddRecent(args);
     return await fs.promises.readFile(args, 'utf-8');
   }else{
     return undefined;
@@ -75,16 +75,14 @@ ipcMain.handle('createFileDialog', async()=>{
   if (!fileDialog.canceled){
     const filePath = fileDialog.filePath;
     // we expect this to error because the file doesn't exist yet, so this call will actually only cerate the file
-    fs.open(filePath,'w+', (err)=>{
-      console.log(err)
+    fs.open(filePath,'w+', (_)=>{
     })
     return filePath;
   }
-  return "";
+  return undefined;
 })
 
 ipcMain.handle("getRecent", ()=>{
-    console.log(data_path)
     if (fs.existsSync(data_path + "/recents.json")){
       // read file 
       return JSON.parse(fs.readFileSync(data_path + "/recents.json").toString());
