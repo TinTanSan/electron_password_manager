@@ -1,7 +1,13 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 
 const handler = {
-  sayHello: (name:string)=>ipcRenderer.invoke('message',name)
+  sayHello: (name:string)=>ipcRenderer.invoke('message',name),
+  openFilePicker: ()=>ipcRenderer.invoke('openFileDialog'),
+  openCreateFile: ()=>ipcRenderer.invoke('createFileDialog'),
+  openFile: (filePath:string)=>ipcRenderer.invoke('openFile', filePath),
+  handleHome: ()=>ipcRenderer.send('home'),
+  getRecents: ()=>ipcRenderer.invoke('getRecent'),
+  addRecent: (filePath:string)=>ipcRenderer.send('addRecent', filePath),
 }
 
 contextBridge.exposeInMainWorld('ipc', handler)
