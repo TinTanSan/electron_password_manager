@@ -47,20 +47,23 @@ ipcMain.handle('openFileDialog', async()=>{
   const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
   const fileOpened = ( fileDialog).filePaths[0];
   if (!fileDialog.canceled){    
+    if (!fileOpened.endsWith(".vlt")){
+      return {fileContents:"INVALIDFILE", filePath:fileOpened, status:"INVALIDEXT"};
+    }
     const fileContents =await fs.promises.readFile(fileOpened, 'utf-8');
     handleAddRecent(fileOpened);
-    return fileContents
+    return {fileContents,filePath:fileOpened, status:"OK"}
   }
-  return undefined
+  return {fileContents:undefined, filePath:fileOpened, status:"CANCELLED"}
   
 })  
 
 ipcMain.handle('openFile', async(event, args)=>{
   if (fs.existsSync(args)){
     handleAddRecent(args);
-    return await fs.promises.readFile(args, 'utf-8');
+    return {fileContents:await fs.promises.readFile(args, 'utf-8'), filePath: args, status:"OK"};
   }else{
-    return undefined;
+    return {fileContents:undefined, filePath:args, status:"NOTFOUND"};
   }
   
   
@@ -85,7 +88,15 @@ ipcMain.handle('createFileDialog', async()=>{
 ipcMain.handle("getRecent", ()=>{
     if (fs.existsSync(data_path + "/recents.json")){
       // read file 
-      return JSON.parse(fs.readFileSync(data_path + "/recents.json").toString());
+      const recentVaults = JSON.parse(fs.readFileSync(data_path + "/recents.json").toString());
+      const existingVaults = recentVaults.filter((x:string)=>fs.existsSync(x))
+      // make sure that if for some reason the vaults were deleted in between sessions, then we are able to 
+      // update recents to exlude those vaults
+      if (existingVaults.length != existingVaults ){
+        fs.writeFileSync(data_path + "/recents.json", JSON.stringify(existingVaults));
+      }
+      return existingVaults;
+      
     }else{
       // create the file and return empty array
       fs.writeFileSync(data_path + "/recents.json", "[]");
@@ -104,15 +115,14 @@ const handleAddRecent = (filePath:string)=>{
     fs.writeFileSync(data_path+"/recents.json", "[]");
     content = [];
   }else{
-    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString())
+    // ensure no duplicates are in the recents
+    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString()).filter((x:string)=>x!==filePath)
   }
   // only allow 10 entries
   if (content.length >= 10){
     content.pop();
   }
   // only add file if we can't find it
-  if (content.findIndex(x=>x === filePath) === -1){
-    content.unshift(filePath);
-  }
+  content.unshift(filePath);
   fs.writeFileSync(data_path+"/recents.json", JSON.stringify(content));
 }
