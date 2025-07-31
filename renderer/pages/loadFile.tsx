@@ -25,23 +25,27 @@ export default function loadFile() {
         // filepath is undefined if the user clicked on open vault, but the filepath will be defined and a valid path
         // if they picked from the recent vaults
         if (filepath === undefined){
-            window.ipc.openFilePicker().then((content)=>{
-                if (content !== undefined){
-                    window.ipc.getRecents().then((recents)=>{
-                        setRecent(recents)
-                        vaultContext.setVault(content);
-                        addBanner(banners, "Vault Opened successfully", 'success')
+            window.ipc.openFilePicker().then(({fileContents, filePath, status}:{fileContents:string, filePath:string, status:string})=>{
+                if (status ==="OK"){
+                    window.ipc.getRecents().then((recents:Array<string>)=>{
+                        setRecent(recents);
+                        vaultContext.setVault({fileContents, filePath})
+                        const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
+                        // vaultContext.setVault({});
+                        addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
                     })
-                }else{
+                }else if (status==="CANCELLED"){
                     addBanner(banners, "No vault chosen", 'warning')
+                }else{
+                    addBanner(banners, "Extension not valid for a vault", "error")
                 }
-                
-
             })
         }else{
-            window.ipc.openFile(filepath).then((content)=>{
-                if (content !== undefined){
-                    vaultContext.setVault(content);
+            window.ipc.openFile(filepath).then((content:{fileContents:string, filePath:string, status:string})=>{
+                // we don't handle the case where a vault is not of the correct extension because the vault will only be added into
+                // the recents if the extension is okay and the vault was opened successfully.s
+                if (content.status === "OK"){
+                    vaultContext.setVault({fileContents:content.fileContents ,filePath:content.filePath});
                     console.log("content set")
                     addBanner(banners, "Vault Opened successfully", 'success')
                 }else{
