@@ -31,7 +31,7 @@ export default function loadFile() {
                         setRecent(recents);
                         vaultContext.setVault({fileContents, filePath})
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
-                        // vaultContext.setVault({});
+                        navigate.push('/home')
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
                     })
                 }else if (status==="CANCELLED"){
@@ -48,6 +48,7 @@ export default function loadFile() {
                     vaultContext.setVault({fileContents:content.fileContents ,filePath:content.filePath});
                     console.log("content set")
                     addBanner(banners, "Vault Opened successfully", 'success')
+                    navigate.push('/home')
                 }else{
                     // this is different to the undefined in the above if branch because when we directly call openFile we are
                     // using an filesystem read to open the filepath, and undefined means something went wrong finding that file
