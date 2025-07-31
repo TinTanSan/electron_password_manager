@@ -26,7 +26,7 @@
   --color-info-content: oklch(17.625% 0.017 214.515);
   --color-info-darken: color-mix(in oklab, var(--color-info) 80%, black);
   
-  --color-success: oklch(80.494% 0.077 197.823);
+  --color-success: oklch(80.494% 0.077 150.823);
   --color-success-content: oklch(16.098% 0.015 197.823);
   --color-success-darken: color-mix(in oklab, var(--color-success) 80%, black);
   
