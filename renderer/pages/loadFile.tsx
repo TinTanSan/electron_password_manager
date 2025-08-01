@@ -13,10 +13,9 @@ export default function loadFile() {
         window.ipc.openCreateFile().then((filePath)=>{
             if (filePath! == ''){
                 // since its a new file, the file content will be empty anyways
-                vaultContext.setVault({filePath, fileContents:""});
+                vaultContext.setVault({filePath, fileContents:"", isUnlocked:false, kek:undefined});
                 window.ipc.addRecent(filePath);
                 navigate.push("/home")
-
             }
         })
     }
@@ -29,7 +28,7 @@ export default function loadFile() {
                 if (status ==="OK"){
                     window.ipc.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
-                        vaultContext.setVault({fileContents, filePath})
+                        vaultContext.setVault({fileContents, filePath, isUnlocked:false, kek:undefined})
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
                         navigate.push('/home')
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
@@ -45,7 +44,7 @@ export default function loadFile() {
                 // we don't handle the case where a vault is not of the correct extension because the vault will only be added into
                 // the recents if the extension is okay and the vault was opened successfully.s
                 if (content.status === "OK"){
-                    vaultContext.setVault({fileContents:content.fileContents ,filePath:content.filePath});
+                    vaultContext.setVault({fileContents:content.fileContents ,filePath:content.filePath, isUnlocked:false, kek:undefined});
                     console.log("content set")
                     addBanner(banners, "Vault Opened successfully", 'success')
                     navigate.push('/home')
@@ -83,7 +82,7 @@ export default function loadFile() {
         
         <div className="grid grid-flow-row-dense gap-5 row-span-1 justify-center">
             <div className='grid grid-flow-row-dense row-span-1 justify-center text-wrap shrink flex-wrap'>
-                To load an existing vault click Load vaul, otherwise create a new vault using the create vault button.
+                To load an existing vault click Load vault, otherwise create a new vault using the create vault button.
             </div>
             <div className='grid grid-flow-row-dense lg:grid-flow-col-dense  gap-5 row-span-1 justify-center'>
                 <button onClick={()=>{handleOpenFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
