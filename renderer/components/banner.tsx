@@ -24,7 +24,7 @@ export default function Banner({bannerDetails}:{bannerDetails:BannerDetails}) {
     }
 
   return (
-    <div className={`flex animate-slide-in border-2 justify-between p-2 gap-2 rounded-lg h-20 max-h-fit ${handleColour()} w-full opacity-90`}>
+    <div className={`flex animate-slide-in border-2 justify-between p-2 gap-2 rounded-lg h-fit ${handleColour()} w-full opacity-90`}>
         <div className='flex w-full h-full items-center text-lg'>{bannerDetails.text}</div>
         <button className='flex text-xl' onClick={()=>{banners.setBanners(prev=>prev.filter(x=>x.id !== bannerDetails.id))}}>&#x2716;</button>
     </div>
