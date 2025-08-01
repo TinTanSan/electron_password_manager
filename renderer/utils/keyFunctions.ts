@@ -28,7 +28,7 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
         const kek = await window.crypto.subtle.deriveKey({
                 name:"PBKDF2", 
                 salt,   
-                iterations: 600_000,
+                iterations: 1_000_000,
                 hash : 'SHA-256'
             },
             passwordKey,
@@ -39,13 +39,14 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
             true,
             ['wrapKey', 'unwrapKey']
         )
-        return {kek, salt:Buffer.from(salt).toString('base64')};
+        const kekDigest = await window.crypto.subtle.digest('SHA-256',await crypto.subtle.exportKey('raw', kek));
+        return {kek, salt:Buffer.from(salt).toString('base64'), digest: Buffer.from(kekDigest).toString('base64')};
     }
     throw new Error("Unable to generate a new key, browser mode not detected")
 }
 
 // derive the KEK from a password and hash string, password can be plain text utf-8 while salt must be base64encoded string
-export async function deriveKEK(password:string, salt:string):Promise<KEKParts>{ 
+export async function deriveKEK(password:string, salt:string,digest:string):Promise<{kek:KEKParts | undefined, status:string}>{ 
     const encoder = new TextEncoder();
     const passwordKey = await crypto.subtle.importKey(
         'raw',
@@ -59,7 +60,7 @@ export async function deriveKEK(password:string, salt:string):Promise<KEKParts>{
         {
         name: 'PBKDF2',
         salt: Buffer.from(salt, 'base64'),
-        iterations: 600_000,
+        iterations: 1_000_000,
         hash: 'SHA-256',
         },
         passwordKey,
@@ -70,7 +71,12 @@ export async function deriveKEK(password:string, salt:string):Promise<KEKParts>{
         true,
         ['wrapKey', 'unwrapKey']
     );
-    return {kek, salt}
+    
+    const kekDigest = await window.crypto.subtle.digest('SHA-256',await crypto.subtle.exportKey('raw', kek));
+    if (Buffer.from(kekDigest).toString('base64') !== digest){
+        return {kek:undefined, status:"INCORRECTPASS"};
+    }
+    return {kek:{kek, salt, digest}, status:"OK"};
 }
 
 // create entirely new DEK, this is to be used per entry
@@ -81,7 +87,7 @@ export async function makeNewDEK():Promise<CryptoKey>{
                 name:"AES-GCM",
                 length: 256
             },
-            true,
+            true, // this should only be the case for only this time, 
             ['encrypt', 'decrypt']
         )
     }
@@ -96,7 +102,7 @@ export async function unwrapDEK(kek:KEKParts, wrappedKey:string){
             kek.kek,           // KEK used for unwrapping
             'AES-KW',      // algorithm used for wrapping
             { name: 'AES-GCM', length: 256 }, // expected algorithm of unwrapped key
-            true,          // extractable
+            false,          // extractable should not be true this time because we have already stored the key
             ['encrypt', 'decrypt']
         );
 }
