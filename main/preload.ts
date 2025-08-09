@@ -8,6 +8,7 @@ const handler = {
   handleHome: ()=>ipcRenderer.send('home'),
   getRecents: ()=>ipcRenderer.invoke('getRecent'),
   addRecent: (filePath:string)=>ipcRenderer.send('addRecent', filePath),
+  writeFile: (filePath:string, toWrite:string)=>ipcRenderer.invoke('writeFile', ({filePath, toWrite}))
 }
 
 contextBridge.exposeInMainWorld('ipc', handler)
