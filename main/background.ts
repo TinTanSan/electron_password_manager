@@ -61,13 +61,26 @@ ipcMain.handle('openFileDialog', async()=>{
 ipcMain.handle('openFile', async(event, args)=>{
   if (fs.existsSync(args)){
     handleAddRecent(args);
-    return {fileContents:await fs.promises.readFile(args, 'utf-8'), filePath: args, status:"OK"};
+    
+    return {fileContents:fs.readFileSync(args).toString(), filePath: args, status:"OK"};
   }else{
     return {fileContents:undefined, filePath:args, status:"NOTFOUND"};
   }
   
   
 })
+
+ipcMain.handle('writeFile', async(event, args)=>{
+  const {filePath, toWrite} = args;
+  if (fs.existsSync(filePath)){
+    fs.writeFileSync(filePath, toWrite);
+    return "OK";
+  }else{
+    return "NOTFOUND"
+  }
+
+})
+
 
 ipcMain.handle('createFileDialog', async()=>{
   const fileDialog = await dialog.showSaveDialog({title:"Create new file"
