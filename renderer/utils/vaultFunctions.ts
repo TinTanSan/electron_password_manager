@@ -6,12 +6,15 @@ import { makeNewDEK } from "./keyFunctions";
 
 // this function is to do with commiting a KEK whenever the master password changes, it will commit a salt,
 // and a sanity check value to the first line of the vault file
-export async function commitKEK(fileContents:string,kek:KEKParts){
-    
+export async function commitKEK(filePath:string,fileContents:string,kek:KEKParts){
+    // remove the first line, which contains important content retaining to the KEK
     const content = fileContents.split("\n").splice(0,1);
+    const firstLine = kek.salt + "|"+kek.digest;
+    if (typeof window !== "undefined"){
+        window.ipc.writeFile(filePath,firstLine+"\n"+content);
+    }
     const dek = await makeNewDEK();
 }
-
 
 export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:string, kek:KEKParts ){
     if (typeof window !=="undefined"){
