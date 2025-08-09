@@ -5,7 +5,8 @@ import { useRouter } from 'next/router';
 import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
 import { isStrongPassword } from '../utils/commons';
-import { makeNewKEK } from '../utils/keyFunctions';
+import { makeNewKEK, validateKEK } from '../utils/keyFunctions';
+import { commitKEK } from '../utils/vaultFunctions';
 // this component will handle the initial create of the vault KEK and subsequent unlocks
 export default function UnlockVaultPrompt() {
     const vaultContext = useContext(VaultContext);
@@ -19,17 +20,28 @@ export default function UnlockVaultPrompt() {
     // by default we want to check initial requirement, if this is false then we can run a extra function
   
     const initialiseRequired= vaultContext.vault.fileContents==="";
-
+    console.log(vaultContext.vault.fileContents);
     const handleEnter = (e:FormEvent)=>{
       e.preventDefault();
       if (initialiseRequired){
+        if (password === ""){
+          addBanner(bannerContext, "Password cannot be empty", "warning")
+          return;
+        }
         if (password === confirmPassword){
           const passMessage = isStrongPassword(password)
           if(passMessage.length === 0){
               makeNewKEK(password).then((x:KEKParts)=>{
-                vaultContext.setVault(prev=>({...prev, kek:x}))
+                vaultContext.setVault(prev=>({...prev, kek:x}));
+                
+                commitKEK(vaultContext.vault.filePath, vaultContext.vault.fileContents, x);
+                addBanner(bannerContext, "Vault unlocked", 'success')
+                // set vault to be unlocked
+                vaultContext.setVault(prev=>({...prev, isUnlocked:true}));
+                
               });
           }else{
+            // give the user a warning about unsafe master pass
             addBanner(bannerContext,passMessage, 'warning' )
           }
         }else{
@@ -37,6 +49,17 @@ export default function UnlockVaultPrompt() {
         }
       }else{
         // simple unlock
+        if(password !==""){
+          validateKEK(vaultContext.vault.fileContents, password).then((response)=>{
+            if (response === undefined){
+              addBanner(bannerContext, "Incorrect password", 'error')
+            }else{
+              vaultContext.setVault(prev=>({...prev, kek:response, isUnlocked:true}))
+            }
+          })
+        }else{
+          addBanner(bannerContext, "Password cannot be empty", "warning")
+        }
 
       }
       
