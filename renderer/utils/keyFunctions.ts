@@ -46,7 +46,7 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
 }
 
 // derive the KEK from a password and hash string, password can be plain text utf-8 while salt must be base64encoded string
-export async function deriveKEK(password:string, salt:string,digest:string):Promise<{kek:KEKParts | undefined, status:string}>{ 
+async function deriveKEK(password:string, salt:string,digest:string):Promise<{kek:KEKParts | undefined, status:string}>{ 
     const encoder = new TextEncoder();
     const passwordKey = await crypto.subtle.importKey(
         'raw',
@@ -77,6 +77,15 @@ export async function deriveKEK(password:string, salt:string,digest:string):Prom
         return {kek:undefined, status:"INCORRECTPASS"};
     }
     return {kek:{kek, salt, digest}, status:"OK"};
+}
+
+
+// given filecontents of a vault that is being opened, and a password, validate and return kek
+export async function validateKEK(fileContents:string, password): Promise<KEKParts | undefined>{
+    const [salt, kekDigest] = fileContents.split("\n")[0].split("|");
+    const kek = await deriveKEK(password, salt, kekDigest);
+    console.log(kek.status, kek)
+    return kek.status === "OK"? kek.kek: undefined
 }
 
 // create entirely new DEK, this is to be used per entry
