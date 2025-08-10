@@ -3,36 +3,30 @@
 import {Entry } from "../interfaces/Entry"
 import { makeNewDEK } from "./keyFunctions"
 
-
-export async function decryptEntryPass(encryptedEntry:Entry){
+export async function decryptEntryPass(encryptedEntry:Entry, kek:KEKParts){
     if (typeof window !== 'undefined'){
-        console.log('enc len: ',encryptedEntry.password.length)
-        const password = Buffer.from(encryptedEntry.password.substring(0, encryptedEntry.password.length-16),'base64')
-        const iv = Buffer.from(encryptedEntry.password.substring(encryptedEntry.password.length-16), 'base64');
-        console.log('decrypt',password)
-        console.log('decrypt iv:', iv)
-        return  new TextDecoder().decode(await window.crypto.subtle.decrypt({name:'AES-GCM', iv}, encryptedEntry.dek, password))
+        const iv = Buffer.from(encryptedEntry.password.subarray(encryptedEntry.password.length-12))
+        const dek = await window.crypto.subtle.unwrapKey('raw', Buffer.from(encryptedEntry.dek), kek.kek, {name:"AES-KW"}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
+        return  new TextDecoder().decode(await window.crypto.subtle.decrypt({name:'AES-GCM', iv}, dek , Buffer.from(encryptedEntry.password.subarray(0,encryptedEntry.password.length-12))))
     }
     throw new Error("Window is not defined, cannot decrypt")
 }
 
-export async function createEntry(title:string, username:string, password:string, notes:string=""):Promise<Entry>{
+
+export async function createEntry(title:string, username:string, password:string, notes:string="", kek:KEKParts):Promise<Entry>{
     const encoder = new TextEncoder();
     
-    const dek = await makeNewDEK()
+    const dek = await makeNewDEK();
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
     const encryptedPass = await window.crypto.subtle.encrypt({name:'AES-GCM', iv}, dek, encoder.encode(password))
-    console.log('create entry: ',encryptedPass)
-    console.log('create entry iv: ', iv)
-    console.log('individual len' ,encryptedPass.byteLength + iv.byteLength)
-    const encryptedStoredPassword = Buffer.from(encryptedPass).toString('base64') +  Buffer.from(iv).toString('base64');
-    console.log(encryptedStoredPassword)
+    const encryptedStoredPassword = Buffer.concat([Buffer.from(encryptedPass), iv]);
+    const dek_buf = Buffer.from(await window.crypto.subtle.wrapKey('raw', dek, kek.kek, {name:"AES-KW"}));
     return {
         title,
         username,
         password: encryptedStoredPassword,
         notes,
-        dek,
+        dek:dek_buf ,
         metadata:{
             createDate: new Date(),
             lastEditedDate : new Date()
