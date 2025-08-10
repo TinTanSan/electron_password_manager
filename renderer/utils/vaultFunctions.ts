@@ -1,6 +1,7 @@
 // this file contains functions to do with vault to file transitions i.e. opening a file and converting
 // to a vault, type and handling splitting of file contents into entries etc. and vice versa
 
+import { error } from "console";
 import { Entry } from "../interfaces/Entry";
 import { makeNewDEK } from "./keyFunctions";
 
@@ -9,11 +10,16 @@ import { makeNewDEK } from "./keyFunctions";
 export async function commitKEK(filePath:string,fileContents:string,kek:KEKParts){
     // remove the first line, which contains important content retaining to the KEK
     const content = fileContents.split("\n").splice(0,1);
-    const firstLine = kek.salt + "|"+kek.digest;
+    let firstLine = kek.salt + "|"+kek.digest + "|";
     if (typeof window !== "undefined"){
+        const dek = await makeNewDEK()
+        window.crypto.subtle.wrapKey('raw', dek, kek.kek, {name:'AES-KW'});
+
+        firstLine += Buffer.from(await window.crypto.subtle.exportKey("raw", dek)).toString('base64')
         window.ipc.writeFile(filePath,firstLine+"\n"+content);
+    }else{
+        throw new Error('window object was underfined')
     }
-    const dek = await makeNewDEK();
 }
 
 export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:string, kek:KEKParts ){
@@ -30,6 +36,23 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:string, 
     }
 }
 
-export async function vaultLevelDecrypt(fileContents:string){
+export async function vaultLevelDecrypt(fileContents:string, kek:KEKParts){
+    const [_salt,_digest,vk_raw] = fileContents.split("\n")[0].split("|")
+    const entries = fileContents.substring(fileContents.indexOf("\n") + 1);
+    const iv = entries.substring(entries.lastIndexOf("\n")+1);
+    if (typeof window !== "undefined"){
+        const vk_bytes = Buffer.from(vk_raw, 'base64');
+        const vk = await window.crypto.subtle.unwrapKey(
+            'raw',
+            vk_bytes,
+            kek.kek, 
+            {name:"AES-KW"},
+            {name:"AES-GCM"}, 
+            false, 
+            ['encrypt', 'decrypt']
+        );
 
+        window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv, 'base64')},vk, Buffer.from(entries, 'base64'))
+    }
+    throw new Error("Window object was undefined")
 }
