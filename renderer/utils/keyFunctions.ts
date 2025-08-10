@@ -16,7 +16,7 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
         const crypto = window.crypto;
         const encoder = new TextEncoder();
 
-        const salt = new Uint8Array(16)
+        const salt = new Uint8Array(16);
         crypto.getRandomValues(salt);
         const passwordKey = await crypto.subtle.importKey(
             'raw',
@@ -88,7 +88,7 @@ export async function validateKEK(fileContents:string, password): Promise<KEKPar
     return kek.status === "OK"? kek.kek: undefined
 }
 
-// create entirely new DEK, this is to be used per entry
+// create entirely new DEK, this is to be used per entry can also be used to generate a VK 
 export async function makeNewDEK():Promise<CryptoKey>{
     if (typeof window !=='undefined'){
         return await window.crypto.subtle.generateKey(
@@ -96,7 +96,7 @@ export async function makeNewDEK():Promise<CryptoKey>{
                 name:"AES-GCM",
                 length: 256
             },
-            true, // this should only be the case for only this time, 
+            true,
             ['encrypt', 'decrypt']
         )
     }
