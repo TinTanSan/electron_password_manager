@@ -13,14 +13,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
-    console.log("vault contents changed", vault)
-    if(vault === undefined){navigate.push('loadFile')
+    if(vault === undefined){
+      navigate.push('loadFile')
     }
   }, [vault])
   return (
     <VaultContext.Provider value={{vault, setVault}}>
       <BannerContext.Provider value={{banners, setBanners}}>
         <Notifications />
+        <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
         <Component {...pageProps} />
       </BannerContext.Provider>
     </VaultContext.Provider>
