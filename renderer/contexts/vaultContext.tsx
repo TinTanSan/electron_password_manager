@@ -2,8 +2,9 @@ import { createContext } from "react";
 
 export type VaultType = {
     filePath:string, 
-    fileContents:string
+    fileContents:Buffer
     isUnlocked:boolean,
+    wrappedVK: Buffer,
     kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
 }
 
