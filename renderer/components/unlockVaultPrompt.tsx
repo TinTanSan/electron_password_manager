@@ -19,8 +19,7 @@ export default function UnlockVaultPrompt() {
     // 2 cases when we would want to show the initialisation prompt, 1. acutal initialisation of the vault, 2. Master password changes
     // by default we want to check initial requirement, if this is false then we can run a extra function
   
-    const initialiseRequired= vaultContext.vault.fileContents==="";
-    console.log(vaultContext.vault.fileContents);
+    const initialiseRequired= vaultContext.vault.fileContents.length === 0;
     const handleEnter = (e:FormEvent)=>{
       e.preventDefault();
       if (initialiseRequired){
@@ -31,13 +30,14 @@ export default function UnlockVaultPrompt() {
         if (password === confirmPassword){
           const passMessage = isStrongPassword(password)
           if(passMessage.length === 0){
-              makeNewKEK(password).then((x:KEKParts)=>{
-                vaultContext.setVault(prev=>({...prev, kek:x}));
+              makeNewKEK(password).then((x:KEKParts)=>{ 
+                commitKEK(vaultContext.vault.filePath, vaultContext.vault.fileContents, x).then((wrappedVK)=>{
+                  vaultContext.setVault(prev=>({...prev, wrappedVK, kek:x}))
+                  addBanner(bannerContext, "Vault unlocked", 'success');
+                  // set vault to be unlocked
+                  vaultContext.setVault(prev=>({...prev, isUnlocked:true}));
+                })
                 
-                commitKEK(vaultContext.vault.filePath, vaultContext.vault.fileContents, x);
-                addBanner(bannerContext, "Vault unlocked", 'success')
-                // set vault to be unlocked
-                vaultContext.setVault(prev=>({...prev, isUnlocked:true}));
                 
               });
           }else{
@@ -54,7 +54,7 @@ export default function UnlockVaultPrompt() {
             if (response === undefined){
               addBanner(bannerContext, "Incorrect password", 'error')
             }else{
-              vaultContext.setVault(prev=>({...prev, kek:response, isUnlocked:true}))
+              vaultContext.setVault(prev=>({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,57), isUnlocked:true}))
             }
           })
         }else{
