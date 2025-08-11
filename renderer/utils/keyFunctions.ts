@@ -36,17 +36,16 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
                 name: "AES-KW",
                 length: 256
             },
-            true,
+            false,
             ['wrapKey', 'unwrapKey']
         )
-        const kekDigest = await window.crypto.subtle.digest('SHA-256',await crypto.subtle.exportKey('raw', kek));
-        return {kek, salt:Buffer.from(salt).toString('base64'), digest: Buffer.from(kekDigest).toString('base64')};
+        return {kek, salt:Buffer.from(salt)};
     }
     throw new Error("Unable to generate a new key, browser mode not detected")
 }
 
-// derive the KEK from a password and hash string, password can be plain text utf-8 while salt must be base64encoded string
-async function deriveKEK(password:string, salt:string,digest:string):Promise<{kek:KEKParts | undefined, status:string}>{ 
+// derive the KEK from a password and test wrapped DEK
+async function deriveKEK(password:string, salt:Buffer,digest:Buffer):Promise<{kek:KEKParts | undefined, status:string}>{ 
     const encoder = new TextEncoder();
     const passwordKey = await crypto.subtle.importKey(
         'raw',
@@ -59,7 +58,7 @@ async function deriveKEK(password:string, salt:string,digest:string):Promise<{ke
     const kek = await crypto.subtle.deriveKey(
         {
         name: 'PBKDF2',
-        salt: Buffer.from(salt, 'base64'),
+        salt: Buffer.from(salt),
         iterations: 1_000_000,
         hash: 'SHA-256',
         },
@@ -68,23 +67,26 @@ async function deriveKEK(password:string, salt:string,digest:string):Promise<{ke
         name: 'AES-KW',
         length: 256,
         },
-        true,
+        false,
         ['wrapKey', 'unwrapKey']
     );
-    
-    const kekDigest = await window.crypto.subtle.digest('SHA-256',await crypto.subtle.exportKey('raw', kek));
-    if (Buffer.from(kekDigest).toString('base64') !== digest){
-        return {kek:undefined, status:"INCORRECTPASS"};
+    try{
+        await crypto.subtle.unwrapKey('raw',Buffer.from(digest), kek, {name:'AES-KW'}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
+        return {kek:{kek, salt}, status:"OK"};
+    }catch(error){
+        return {kek:undefined, status:"INCORRECTPASSASS"}
     }
-    return {kek:{kek, salt, digest}, status:"OK"};
+    
+
+    
 }
 
 
 // given filecontents of a vault that is being opened, and a password, validate and return kek
-export async function validateKEK(fileContents:string, password): Promise<KEKParts | undefined>{
-    const [salt, kekDigest] = fileContents.split("\n")[0].split("|");
+export async function validateKEK(fileContents:Buffer, password:string): Promise<KEKParts | undefined>{
+    const salt = fileContents.subarray(0,16);
+    const kekDigest = fileContents.subarray(16,57);
     const kek = await deriveKEK(password, salt, kekDigest);
-    console.log(kek.status, kek)
     return kek.status === "OK"? kek.kek: undefined
 }
 
