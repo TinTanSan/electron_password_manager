@@ -62,7 +62,7 @@ ipcMain.handle('openFile', async(event, args)=>{
   if (fs.existsSync(args)){
     handleAddRecent(args);
     
-    return {fileContents:fs.readFileSync(args).toString(), filePath: args, status:"OK"};
+    return {fileContents:Buffer.from(fs.readFileSync(args)), filePath: args, status:"OK"};
   }else{
     return {fileContents:undefined, filePath:args, status:"NOTFOUND"};
   }
