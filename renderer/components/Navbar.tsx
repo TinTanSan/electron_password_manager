@@ -10,17 +10,18 @@ type props = {
 }
 
 export default function Navbar({search, setSearch}:props) {
-    const vaultContext = useContext(VaultContext);
+    const {vault,setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
 
     const handleClose = ()=>{
         addBanner(bannerContext, "Vault Closed successfully", 'info')
-        vaultContext.setVault(undefined);
+        setVault(undefined);
     }
 
     const handleLock = ()=>{
-        addBanner(bannerContext, "Vault locked successfully", 'info')
-        vaultContext.setVault(prev=>({...prev, isUnlocked:false}));
+        window.ipc.openFile(vault.filePath).then((content)=>{
+            setVault(prev=>({...prev, fileContents:content.fileContents, isUnlocked:false}))
+        })
     }
 
 
