@@ -13,7 +13,7 @@ export default function loadFile() {
         window.ipc.openCreateFile().then((filePath)=>{
             if (filePath! == ''){
                 // since its a new file, the file content will be empty anyways
-                vaultContext.setVault({filePath, fileContents:Buffer.from(""), wrappedVK:Buffer.from(""), isUnlocked:false, kek:undefined});
+                vaultContext.setVault({filePath, fileContents:Buffer.from(""), wrappedVK:Buffer.from(""), isUnlocked:false, kek:undefined, entries:[]});
                 window.ipc.addRecent(filePath);
                 navigate.push("/home")
             }
@@ -28,7 +28,7 @@ export default function loadFile() {
                 if (status ==="OK"){
                     window.ipc.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
-                        vaultContext.setVault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,57)), filePath, isUnlocked:false, kek:undefined})
+                        vaultContext.setVault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,57)), filePath, isUnlocked:false, kek:undefined, entries:[]})
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
                         navigate.push('/home')
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
@@ -44,7 +44,14 @@ export default function loadFile() {
                 // we don't handle the case where a vault is not of the correct extension because the vault will only be added into
                 // the recents if the extension is okay and the vault was opened successfully.s
                 if (content.status === "OK"){
-                    vaultContext.setVault({fileContents:content.fileContents, wrappedVK:Buffer.from(content.fileContents.subarray(16,57)) ,filePath:content.filePath, isUnlocked:false, kek:undefined});
+                    vaultContext.setVault({
+                        fileContents:content.fileContents, 
+                        wrappedVK:Buffer.from(content.fileContents.subarray(16,57)) ,
+                        filePath:content.filePath, 
+                        isUnlocked:false, 
+                        kek:undefined, 
+                        entries:[]
+                    });
                     addBanner(banners, "Vault Opened successfully", 'success')
                     navigate.push('/home')
                 }else{

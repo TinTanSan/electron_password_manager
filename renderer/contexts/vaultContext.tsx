@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import { Entry } from "../interfaces/Entry";
 
 export type VaultType = {
     filePath:string, 
@@ -6,6 +7,7 @@ export type VaultType = {
     isUnlocked:boolean,
     wrappedVK: Buffer,
     kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
+    entries: Array<Entry>,
 }
 
 type VaultCxtType = {
