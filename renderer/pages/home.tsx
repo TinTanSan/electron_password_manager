@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import { createEntry, decryptEntryPass } from '../utils/entryFunctions';
 import { vaultLevelDecrypt, vaultLevelEncrypt, writeEntriesToFile } from '../utils/vaultFunctions';
+import { addBanner } from '../interfaces/Banner';
 
 
 export default function HomePage() {
@@ -21,18 +22,27 @@ export default function HomePage() {
     if(vault !== undefined && vault.kek !== undefined){
       // only perform the vault level decrypt if when the file contents are split by a new line, there is 2 distinct
       // lines
-      console.log("run")
-      let e = [];
       createEntry('hello', 'a','badpass','c',vault.kek).then((ent)=>{
-        e.push(ent)
-        vaultLevelEncrypt(e, vault.wrappedVK, vault.kek).then((response)=>{ 
-          vaultLevelDecrypt(Buffer.from(response), vault.kek).then((destructed)=>{
-            console.log(destructed)
-          })
+        setEntries(prev=>[...prev, ent])
+      })
+    }
+  },[])
+  useEffect(()=>{
+    if(vault !== undefined && vault.kek !== undefined){
+      console.log("writing entries to file")
+      vaultLevelEncrypt(entries, vault.wrappedVK, vault.kek).then((response)=>{     
+        setVault(prev=>({...prev, fileContents:response}))
+        window.ipc.writeFile(vault.filePath, response).then((writeResponse)=>{
+          if (writeResponse === "OK"){
+            console.log('ok,', vault.fileContents)
+            vaultLevelDecrypt(vault.fileContents, vault.kek);
+          }else{
+            addBanner(bannerContext, "Unable to write entry to file", 'error');
+          }
         })
       })
     }
-  },[vault])
+  },[entries])
 
 
   useEffect(()=>{
