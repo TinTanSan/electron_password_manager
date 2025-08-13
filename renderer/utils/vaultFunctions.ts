@@ -1,10 +1,7 @@
 // this file contains functions to do with vault to file transitions i.e. opening a file and converting
 // to a vault, type and handling splitting of file contents into entries etc. and vice versa
-
-import { error } from "console";
 import { Entry } from "../interfaces/Entry";
 import { makeNewDEK } from "./keyFunctions";
-import { decryptEntryPass } from "./entryFunctions";
 
 // this function is to do with commiting a KEK whenever the master password changes, it will commit a salt,
 // and a sanity check value to the first line of the vault file
@@ -55,6 +52,7 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
                 Buffer.from(await crypto.encrypt({name:"AES-GCM", iv: Buffer.from(iv)},  VK,  Buffer.from(content))), // actual ciphertext
                 iv //  associated iv
         ]);
+        console.log(wrappedVK, iv)
         console.log(enc)
         return enc
     }
@@ -71,6 +69,7 @@ export async function writeEntriesToFile(entries:Array<Entry>, filePath:string, 
 
 export async function vaultLevelDecrypt(fileContents:Buffer, kek:KEKParts){
     const wrappedVK = fileContents.subarray(16,56);
+    console.log('filecontents is now: ',fileContents)
     const iv = fileContents.subarray(fileContents.length-12);
     if (typeof window !== "undefined"){
         const vk = await window.crypto.subtle.unwrapKey(
@@ -82,6 +81,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, kek:KEKParts){
             false, 
             ['encrypt', 'decrypt']
         );
+        console.log(wrappedVK, iv)
         const encContents = Buffer.from(fileContents.subarray(56,fileContents.length-12));
         const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
         let entries_raw = [];
