@@ -43,8 +43,8 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
                                                  //  improperly delimit the encrypted text, which would have serious implications when decrypting
              x.notes + "|"+ 
             x.metadata.createDate.toISOString()+ "|" + 
-            x.metadata.lastEditedDate.toISOString()).join("$") 
-        + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
+            x.metadata.lastEditedDate.toISOString()
+        ).join("$") + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
         
         const enc = Buffer.concat([
                 kek.salt,
@@ -109,9 +109,6 @@ export async function vaultLevelDecrypt(fileContents:Buffer, kek:KEKParts){
             }
             return entry
         });
-
-
-
         return entries
     }
     throw new Error("Window object was undefined")
