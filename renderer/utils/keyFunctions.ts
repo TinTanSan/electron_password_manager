@@ -85,7 +85,7 @@ async function deriveKEK(password:string, salt:Buffer,digest:Buffer):Promise<{ke
 // given filecontents of a vault that is being opened, and a password, validate and return kek
 export async function validateKEK(fileContents:Buffer, password:string): Promise<KEKParts | undefined>{
     const salt = fileContents.subarray(0,16);
-    const kekDigest = fileContents.subarray(16,57);
+    const kekDigest = fileContents.subarray(16,56);
     const kek = await deriveKEK(password, salt, kekDigest);
     return kek.status === "OK"? kek.kek: undefined
 }
