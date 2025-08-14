@@ -119,11 +119,11 @@ export async function unwrapDEK(kek:KEKParts, wrappedKey:string){
 }
 
 // wrap existing DEK for rest and storage
-export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<string>{
+export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<Buffer>{
     return Buffer.from(await crypto.subtle.wrapKey(
         'raw',
         dek,
         kek.kek,
         'AES-KW',
-    )).toString('base64')
+    ))
 }
