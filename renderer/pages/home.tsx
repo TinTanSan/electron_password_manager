@@ -27,7 +27,7 @@ export default function HomePage() {
   },[])
 
   return (
-    <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2'>
+    <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2 relative'>
       {(vault !== undefined && !vault.isUnlocked) && <UnlockVaultPrompt />}
       { (vault !== undefined && vault.isUnlocked) && 
         <div className='flex flex-col w-full h-full items-center gap-2'>
