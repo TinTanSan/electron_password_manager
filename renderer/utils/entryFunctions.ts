@@ -12,7 +12,25 @@ export async function decryptEntryPass(encryptedEntry:Entry, kek:KEKParts){
     throw new Error("Window is not defined, cannot decrypt")
 }
 
+// encrypt only pass of an entry given the pass, wrappedDEK, and kek
+export async function encryptPass(pass:String, wrappedDEK: Buffer, {kek}:KEKParts):Promise<Buffer>{
+    if (typeof window !== 'undefined'){
+        const dek = await window.crypto.subtle.unwrapKey('raw', Buffer.from(wrappedDEK), kek, {name:"AES-KW"}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const enc = await window.crypto.subtle.encrypt(
+            {name:'AES-GCM',
+                iv
+            },
+            dek,
+            Buffer.from(pass)
+        )
+        return Buffer.concat([Buffer.from(enc), iv]);
 
+    }
+    throw new Error("window is not defined")
+}
+
+// create entry from scratch, this function is more so for testing
 export async function createEntry(title:string, username:string, password:string, notes:string="", kek:KEKParts):Promise<Entry>{
     const encoder = new TextEncoder();
     
