@@ -27,7 +27,7 @@ if (isProd) {
 
   mainWindow.maximize();
   if (isProd) {
-    await mainWindow.loadURL('app://./loadFile')
+    await mainWindow.loadURL('app://loadFile')
   } else {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/loadFile`)
