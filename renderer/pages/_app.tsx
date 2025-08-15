@@ -13,7 +13,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
-    if(vault === undefined){
+    if(vault === undefined && navigate.pathname !=="/loadFile"){
+      
       navigate.push('loadFile')
     }
   }, [vault])
