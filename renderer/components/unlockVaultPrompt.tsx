@@ -37,8 +37,6 @@ export default function UnlockVaultPrompt() {
                   // set vault to be unlocked
                   vaultContext.setVault(prev=>({...prev, isUnlocked:true}));
                 })
-                
-                
               });
           }else{
             // give the user a warning about unsafe master pass
