@@ -6,6 +6,7 @@ import { BannerContext } from '../contexts/bannerContext'
 import Image from 'next/image'
 import { makeNewDEK, wrapDEK } from '../utils/keyFunctions'
 import { encryptPass } from '../utils/entryFunctions'
+import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -14,19 +15,45 @@ type RandomPassGeneratorSettings={
     length:number,
     allowCapitals:boolean, 
     allowNumbers:boolean, 
-    allowSpecChars:boolean
+    allowSpecChars:boolean,
+    excludedChars: string,
 }
 
-export const generateRandomPass = (settings:RandomPassGeneratorSettings) =>{
-    const lowerCaseLetters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-    const upperCaseLetters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-    const digits = ["0","1","2","3","4","5","6","7","8","9"];
-    const asciiSafeSpecialChars = ["!","\"","#","$","%","&","'","(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|", "}", "~"];
-    
-    const upperCaseLettersToUse = settings.allowCapitals? Math.random()*settings.length/4 : 0;
-    const digitsToUse = settings.allowNumbers? Math.random()*settings.length/4 : 0;
-    const specCharsToUse = settings.allowSpecChars? Math.random()*settings.length/4 : 0;
-    const normalCharsToUse = settings.length - Math.floor(upperCaseLettersToUse)- Math.floor(digitsToUse) - Math.floor(specCharsToUse)
+export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
+    /*
+
+    */
+    let upperCaseLettersToUse = settings.allowCapitals?Math.ceil(Math.random()*settings.length/4) : 0;
+    let digitsToUse = settings.allowNumbers?Math.ceil(Math.random()*settings.length/4) : 0;
+    let specCharsToUse = settings.allowSpecChars?Math.ceil(Math.random()*settings.length/4) : 0;
+    let normalCharsToUse = settings.length - Math.floor(upperCaseLettersToUse)- Math.floor(digitsToUse) - Math.floor(specCharsToUse)
+    let ret = "";
+    const excludC = settings.excludedChars ? settings.excludedChars.split(""): [];
+    const allowedLowercaseLetters = excludC.length > 0? lowerCaseLetters.filter(x=>!excludC.includes(x)) : lowerCaseLetters;
+    const allowedUpperCaseLetters = excludC.length > 0? upperCaseLetters.filter(x=>!excludC.includes(x)): upperCaseLetters;
+    const allowedNumbers = excludC.length > 0? digits.filter(x=>!excludC.includes(x)): digits;
+    const allowedSpecChars = excludC.length > 0? asciiSafeSpecialChars.filter(x=>!excludC.includes(x)): asciiSafeSpecialChars;
+    while (ret.length < settings.length){
+        // decide what to use:
+        let charType = Math.floor(Math.random()*4)
+        if (charType == 0 && normalCharsToUse > 0){
+            ret += allowedLowercaseLetters[Math.floor(Math.random()*allowedLowercaseLetters.length)];
+            normalCharsToUse -=1;
+        }
+        if (charType == 1 && upperCaseLettersToUse > 0){
+            ret += allowedUpperCaseLetters[Math.floor(Math.random()*allowedUpperCaseLetters.length)];
+            upperCaseLettersToUse -=1
+        }
+        if (charType == 2 && digitsToUse > 0){
+            ret += allowedNumbers[Math.floor(Math.random()*allowedNumbers.length)];
+            digitsToUse -=1
+        }
+        if (charType == 3 && specCharsToUse > 0){
+            ret += allowedSpecChars[Math.floor(Math.random()*allowedSpecChars.length)];
+            specCharsToUse-=1
+        }
+    }
+    return ret;
 
 }
 
@@ -39,7 +66,7 @@ export default function NewEntryForm({setShowForm}:props) {
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [randomPass, setRandomPass] = useState("");
     // settings for the random pass
-    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:12,allowCapitals:false, allowNumbers:false, allowSpecChars:false});
+    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:12,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
     const [entry, setEntry] = useState<Entry>({
         title:"",
         username:"",
@@ -51,6 +78,7 @@ export default function NewEntryForm({setShowForm}:props) {
             lastEditedDate: new Date()
         }
     })
+    
     useEffect(()=>{
         // initailise and wrap dek
         makeNewDEK().then((val)=>{
@@ -60,7 +88,19 @@ export default function NewEntryForm({setShowForm}:props) {
                 setEntry(prev=>({...prev, dek:dek}))
             })    
         })
+        setRandomSettings(()=>({
+                length:12,
+                allowNumbers: true,
+                allowCapitals: true,
+                allowSpecChars: true ,
+                excludedChars: ""}))
     },[])
+
+    useEffect(()=>{
+        if (!Number.isNaN(length)){
+            setRandomPass(generateRandomPass(randomSettings))
+        }
+    },[randomSettings])
     
     const handleChange = (e:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'title'){
@@ -76,9 +116,31 @@ export default function NewEntryForm({setShowForm}:props) {
         }
 
     }
-    const handleAdd = (e:React.FormEvent)=>{
-        if (vault !== undefined){
 
+    const handleRandomPassSettingChange =(settingtoChange:string, val?:string)=>{
+        if (settingtoChange === "length"){
+            let length = parseInt(val);
+            if (!Number.isNaN(length)){
+                if (length <= 0){
+                    length = 8;
+                }
+                if (length >50){
+                    length = 50;
+                }    
+            }
+            setRandomSettings((prev)=>({...prev, length}))
+        }else if (settingtoChange === "allowCapitals") {
+            setRandomSettings((prev)=>({...prev, allowCapitals:!prev.allowCapitals}))
+        }else if (settingtoChange === "allowNumbers") {
+            setRandomSettings((prev)=>({...prev, allowNumbers:!prev.allowNumbers}))
+        }else if (settingtoChange === "allowSpecChars") {
+            setRandomSettings((prev)=>({...prev, allowSpecChars:!prev.allowSpecChars}))
+        }
+    }
+
+    const handleAdd = (e:React.FormEvent)=>{
+        e.preventDefault()
+        if (vault !== undefined){
             // go ahead
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
@@ -87,7 +149,7 @@ export default function NewEntryForm({setShowForm}:props) {
   
     return (
         <div className='backdrop-blur-lg z-20 fixed w-screen h-screen top-0 left-0 flex flex-col justify-center items-center'>
-            <form className='flex flex-col relative w-1/2 h-[80vh] border-2 gap-5 border-base-300 bg-base-100 z-10 shadow-lg rounded-xl p-2 items-center'>
+            <form onSubmit={handleAdd} className='flex flex-col relative w-1/2 h-[80vh] border-2 gap-5 border-base-300 bg-base-100 z-10 shadow-lg rounded-xl p-2 items-center'>
                 <div className='flex relative w-full h-fit justify-end items-center'>
                     <div className='flex w-full justify-center absolute text-xl'>
                         Create new entry
@@ -118,26 +180,42 @@ export default function NewEntryForm({setShowForm}:props) {
                     <textarea onChange={handleChange} id='notes' maxLength={512} placeholder='a note, can be something like directions on the website, warning: you should not put security questions here. max length 512 characters.' className='flex w-full h-full border-2 rounded-lg resize-none shrink p-1 text-sm'/>
                    </div>
                 </div>
-                <button className='bg-primary hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
+                <button type='submit' className='bg-primary hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
             </form>
             {
                 showRandomPassModal &&
-                <div className='flex flex-col z-50 absolute border-2 text-base-content bg-base-200 border-base-300 w-[45%] h-1/3 shadow-xl rounded-lg p-2'>
+                <div className='flex flex-col z-50 absolute border-2 text-base-content bg-base-200 border-base-300 w-[55%] h-1/2 lg:h-1/3 shadow-xl rounded-lg p-2'>
                     <div className='flex w-full justify-center'>
                         Generate random password
                     </div>
-                    <div className='flex w-full h-full flex-col'>
-                        <div className='flex w-full border-2 px-1 rounded-lg gap-2'>
-                            <input id='password' type={showPass?'text':'password'} className=' flex w-full h-8 rounded-lg shrink outline-0'/>
-                            <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
+                    <div className='flex w-full h-full flex-col gap-5'>
+                        <div className='flex w-full px-1 gap-2'>
+                            <div className='flex w-full border-2 px-1 rounded-lg gap-2'>
+                                <input value={randomPass} onChange={(e)=>{setRandomPass(e.target.value)}} id='password' type={showPass?'text':'password'} className=' flex w-full h-8 rounded-lg shrink outline-0'/>
+                                <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
+                            </div>
+                            <Image onClick={()=>{setRandomPass(generateRandomPass(randomSettings))}} src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto' />
                         </div>
-                        {/* below are the random characters choices */}
-                        {/* include Capitals */}
-
+                        <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-5 border-2 items-center justify-center'>
+                            <button onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowCapitals&& 'bg-neutral text-neutral-content'}`}>
+                                capital letters
+                            </button>
+                            <button onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowNumbers&& 'bg-neutral text-neutral-content'}`}>
+                                numbers
+                            </button>
+                            <button onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-neutral text-neutral-content'}`}>
+                                special characters
+                            </button>
+                        </div>
+                        {/* length slider + input box */}
+                        <div className='flex w-full h-fit gap-2 justify-start'>
+                            <input id='length' type='range' step={1} min={8} max={50} value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-full'/>
+                            <input value={randomSettings.length} type='number' onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-12 outline-none h-8 rounded-lg border-2 px-1'/>
+                        </div>
                     </div>
-                    <div>
-                        <button onClick={()=>{}}>Cancel</button>
-                        <button onClick={()=>{setEntry((prev)=>({...prev, password:Buffer.from(randomPass)}))}}>Confirm</button>
+                    <div className='flex justify-between'>
+                        <button className='flex rounded-lg w-24 h-8 justify-center items-center bg-accent hover:bg-accent-darken text-accent-content' onClick={()=>{setShowRandomPassModal(false)}}>Cancel</button>
+                        <button className='flex rounded-lg w-24 h-8 justify-center items-center bg-primary hover:bg-primary-darken text-primary-content' onClick={()=>{setEntry((prev)=>({...prev, password:Buffer.from(randomPass)})); setShowRandomPassModal(false)}}>Confirm</button>
                     </div>
                 </div>
 
