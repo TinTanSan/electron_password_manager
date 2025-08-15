@@ -14,12 +14,10 @@ import EntryComponent from '../components/EntryComponent';
 
 export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
-  const bannerContext = useContext(BannerContext);
-  const naviagte = useRouter();
 
   const [searchFilter, setSearchFilter] = useState("");
   useEffect(()=>{
-    if(vault !== undefined && vault.kek !== undefined){
+    if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked){
       vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
         setVault(prev=>({...prev, entries:decryptedEntries}))
       })
