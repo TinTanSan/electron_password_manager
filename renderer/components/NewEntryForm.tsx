@@ -5,7 +5,7 @@ import { addBanner } from '../interfaces/Banner'
 import { BannerContext } from '../contexts/bannerContext'
 import Image from 'next/image'
 import { makeNewDEK, wrapDEK } from '../utils/keyFunctions'
-import { encryptPass } from '../utils/entryFunctions'
+import { createEntry, encryptPass } from '../utils/entryFunctions'
 import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
@@ -71,31 +71,14 @@ export default function NewEntryForm({setShowForm}:props) {
         title:"",
         username:"",
         password:Buffer.from(""),
-        dek: Buffer.from(""),
+        dek: Buffer.from(""), // not going to be used
         notes:"",
         metadata:{
             createDate:new Date(),
             lastEditedDate: new Date()
-        }
+        } // not going to be used
     })
     
-    useEffect(()=>{
-        // initailise and wrap dek
-        makeNewDEK().then((val)=>{
-            wrapDEK(val, vault.kek).then((dek)=>{
-                // make val (the original DEK) unreadable
-                val = undefined;
-                setEntry(prev=>({...prev, dek:dek}))
-            })    
-        })
-        setRandomSettings(()=>({
-                length:12,
-                allowNumbers: true,
-                allowCapitals: true,
-                allowSpecChars: true ,
-                excludedChars: ""}))
-    },[])
-
     useEffect(()=>{
         if (!Number.isNaN(length)){
             setRandomPass(generateRandomPass(randomSettings))
@@ -142,6 +125,10 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
+            createEntry(entry.title, entry.username, entry.password.toString(), entry.notes, vault.kek).then((createdEntry)=>{
+                setVault((prev)=>({...prev, entries:[...prev.entries, createdEntry]}))
+            })
+            setShowForm(false)
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
         }
