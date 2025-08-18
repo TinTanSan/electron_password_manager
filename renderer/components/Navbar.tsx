@@ -4,13 +4,16 @@ import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import FancyInput from './fancyInput';
 import NewEntryForm from './NewEntryForm';
+import SearchBar, { SearchSettings } from './searchBar';
 
 type props = {
     search:string,
-    setSearch: React.Dispatch<React.SetStateAction<string>>
+    setSearch: React.Dispatch<React.SetStateAction<string>>,
+    searchSettings: SearchSettings,
+    setSearchSettings:React.Dispatch<React.SetStateAction<SearchSettings>>
 }
 
-export default function Navbar({search, setSearch}:props) {
+export default function Navbar({search, setSearch, searchSettings, setSearchSettings}:props) {
     const {vault,setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [showEntryForm, setShowEntryForm] = useState(false)
@@ -33,7 +36,7 @@ export default function Navbar({search, setSearch}:props) {
             {showEntryForm && <NewEntryForm setShowForm={setShowEntryForm}/>}
             <button onClick={()=>{setShowEntryForm(true)}} className='flex bg-primary hover:bg-primary-darken text-primary-content w-32 shrink-0 h-8 justify-center items-center rounded-lg text-nowrap'>New Entry</button>
             <div className='flex justify-center w-full px-5 text-xl shrink grow'>
-                <FancyInput value={search} setValue={setSearch} placeHolder='search for an entry' type='text'  />
+                <SearchBar value={search} setValue={setSearch} settings={searchSettings} setSearchSettings={setSearchSettings}/>
             </div>
             <div className='flex w-fit gap-2 ' >
                 <button onClick={handleLock} className='flex bg-accent hover:bg-accent-darken shrink-0 text-accent-content w-24 justify-center items-center rounded-lg h-8' title='locking will send you back to the unlock page'>Lock</button>
