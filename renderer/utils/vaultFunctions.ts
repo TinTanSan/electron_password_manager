@@ -52,38 +52,38 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
                 Buffer.from(await crypto.encrypt({name:"AES-GCM", iv: Buffer.from(iv)},  VK,  Buffer.from(content))), // actual ciphertext
                 iv //  associated iv
         ]);
-        console.log(wrappedVK, iv)
-        console.log(enc)
         return enc
     }
 }
 
 export async function writeEntriesToFile(entries:Array<Entry>, filePath:string, wrappedVK:Buffer, kek:KEKParts){
     if (typeof window !=="undefined"){
-        const content = Buffer.concat([kek.salt,wrappedVK, Buffer.from(await vaultLevelEncrypt(entries, wrappedVK,kek))]);
+        const content = Buffer.from(await vaultLevelEncrypt(entries, wrappedVK,kek));
         const result = await window.ipc.writeFile(filePath, content);
         return result === "OK" ? {content, status:result} : {content:undefined, status:result};
     }
     
 }
 
-export async function vaultLevelDecrypt(fileContents:Buffer, kek:KEKParts){
-    const wrappedVK = fileContents.subarray(16,56);
-    console.log('filecontents is now: ',fileContents)
-    const iv = fileContents.subarray(fileContents.length-12);
+export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
+    
     if (typeof window !== "undefined"){
+        const wrappedVK = fileContents.subarray(16,56);
+        const iv = fileContents.subarray(fileContents.length-12);
         const vk = await window.crypto.subtle.unwrapKey(
             'raw',
             Buffer.from(wrappedVK),
-            kek.kek, 
+            kek,
             {name:"AES-KW"},
-            {name:"AES-GCM"}, 
+            {name:"AES-GCM", length:256}, 
             false, 
             ['encrypt', 'decrypt']
         );
-        console.log(wrappedVK, iv)
         const encContents = Buffer.from(fileContents.subarray(56,fileContents.length-12));
+        console.log(encContents)
         const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
+        console.log(decryptedItems)
+
         let entries_raw = [];
         let curEntry = [];
         for (let i = 0; i<decryptedItems.length; i++){
@@ -109,6 +109,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, kek:KEKParts){
             }
             return entry
         });
+        
         return entries
     }
     throw new Error("Window object was undefined")
