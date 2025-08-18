@@ -8,7 +8,6 @@ import { makeNewDEK } from "./keyFunctions";
 export async function commitKEK(filePath:string,fileContents:Buffer,kek:KEKParts){
     // remove the first line, which contains important content retaining to the KEK
     const content = fileContents.subarray(48);
-    console.log(content.length)
     if (typeof window !== "undefined"){
         const VK = await makeNewDEK()
         const wrappedVK = Buffer.from(await window.crypto.subtle.wrapKey('raw', VK, kek.kek, {name:'AES-KW'}));
@@ -80,9 +79,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
             ['encrypt', 'decrypt']
         );
         const encContents = Buffer.from(fileContents.subarray(56,fileContents.length-12));
-        console.log(encContents)
         const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
-        console.log(decryptedItems)
 
         let entries_raw = [];
         let curEntry = [];
