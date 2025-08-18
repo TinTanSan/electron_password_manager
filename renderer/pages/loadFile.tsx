@@ -28,7 +28,7 @@ export default function loadFile() {
                 if (status ==="OK"){
                     window.ipc.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
-                        vaultContext.setVault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,57)), filePath, isUnlocked:false, kek:undefined, entries:[]})
+                        vaultContext.setVault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,56)), filePath, isUnlocked:false, kek:undefined, entries:[]})
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
                         navigate.push('/home')
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
@@ -46,7 +46,7 @@ export default function loadFile() {
                 if (content.status === "OK"){
                     vaultContext.setVault({
                         fileContents:content.fileContents, 
-                        wrappedVK:Buffer.from(content.fileContents.subarray(16,57)) ,
+                        wrappedVK:Buffer.from(content.fileContents.subarray(16,56)) ,
                         filePath:content.filePath, 
                         isUnlocked:false, 
                         kek:undefined, 
