@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { makeNewDEK, wrapDEK } from '../utils/keyFunctions'
 import { createEntry, encryptPass } from '../utils/entryFunctions'
 import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
+import { writeEntriesToFile } from '../utils/vaultFunctions'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -126,7 +127,15 @@ export default function NewEntryForm({setShowForm}:props) {
         if (vault !== undefined){
             // go ahead
             createEntry(entry.title, entry.username, entry.password.toString(), entry.notes, vault.kek).then((createdEntry)=>{
-                setVault((prev)=>({...prev, entries:[...prev.entries, createdEntry]}))
+                const newEntries = [...vault.entries, createdEntry];
+                
+                writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek).then(({content, status})=>{
+                    if (status === "OK"){
+                        setVault((prev)=>({...prev, entries:newEntries, fileContents:content}))
+                    }else{
+                        addBanner(bannerContext, 'unable to add entry, writing to file failed', 'error');
+                    }
+                })
             })
             setShowForm(false)
         }else{
