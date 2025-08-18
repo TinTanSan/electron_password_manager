@@ -39,6 +39,7 @@
   --color-error-content: oklch(14.618% 0.022 20.076);
   --color-error-darken: color-mix(in oklab, var(--color-error) 90%, black);
   --animate-slide-in: slide-in ease-in 0.25s;
+  --text-md: 1 rem;
 }
 
 @keyframes slide-in{
