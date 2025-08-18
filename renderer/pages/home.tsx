@@ -17,12 +17,13 @@ export default function HomePage() {
 
   const [searchFilter, setSearchFilter] = useState("");
   useEffect(()=>{
-    if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked){
+    // 56 is the length of the salt + wrapped VK i.e. 16 bytes for salt and 40 bytes for wrappedVK
+    if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
       vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
         setVault(prev=>({...prev, entries:decryptedEntries}))
       })
     }
-  },[])
+  },[vault?.isUnlocked])
 
   return (
     <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2 relative'>
