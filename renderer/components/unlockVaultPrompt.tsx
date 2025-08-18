@@ -52,7 +52,7 @@ export default function UnlockVaultPrompt() {
             if (response === undefined){
               addBanner(bannerContext, "Incorrect password", 'error')
             }else{
-              vaultContext.setVault(prev=>({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,57), isUnlocked:true}))
+              vaultContext.setVault(prev=>({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
             }
           })
         }else{
