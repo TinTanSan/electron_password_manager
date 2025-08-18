@@ -14,16 +14,29 @@ import EntryComponent from '../components/EntryComponent';
 
 export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
-
+  const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
   const [searchFilter, setSearchFilter] = useState("");
   useEffect(()=>{
     // 56 is the length of the salt + wrapped VK i.e. 16 bytes for salt and 40 bytes for wrappedVK
     if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
       vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
-        setVault(prev=>({...prev, entries:decryptedEntries}))
+        setVault(prev=>({...prev, entries:decryptedEntries}));
+        setShownEntires(decryptedEntries)
       })
     }
   },[vault?.isUnlocked])
+
+  useEffect(()=>{
+    if (vault !== undefined && vault.isUnlocked){
+      const sf = searchFilter.toLowerCase();
+      setShownEntires(
+        sf !== "" ?
+        vault.entries.filter((x)=>x.username.toLowerCase().includes(sf) || x.title.toLowerCase().includes(sf) || x.notes.toLowerCase().includes(sf))
+        :
+        vault.entries
+      )
+    }
+  }, [searchFilter])
 
   return (
     <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2 relative'>
@@ -33,7 +46,7 @@ export default function HomePage() {
           <Navbar search={searchFilter} setSearch={setSearchFilter} />
           <div className='flex w-full h-full overflow-y-auto gap-3 rounded-lg flex-row flex-wrap'>
             {
-              vault.entries.map((x, i)=><EntryComponent key={i} entry={x}/>)
+              shownEntries.map((x, i)=><EntryComponent key={i} entry={x}/>)
             }
           </div>
         </div>
