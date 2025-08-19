@@ -51,7 +51,7 @@ export default function HomePage() {
         vault.entries
       )
     }
-  }, [searchFilter, searchSettings])
+  }, [searchFilter, searchSettings, vault?.entries])
 
   return (
     <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2 relative'>
