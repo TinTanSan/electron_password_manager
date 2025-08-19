@@ -8,7 +8,8 @@ const handler = {
   handleHome: ()=>ipcRenderer.send('home'),
   getRecents: ()=>ipcRenderer.invoke('getRecent'),
   addRecent: (filePath:string)=>ipcRenderer.send('addRecent', filePath),
-  writeFile: (filePath:string, toWrite:Buffer)=>ipcRenderer.invoke('writeFile', ({filePath, toWrite}))
+  writeFile: (filePath:string, toWrite:Buffer)=>ipcRenderer.invoke('writeFile', ({filePath, toWrite})),
+  clearClipboard: ()=>ipcRenderer.invoke('removeClipboard')
 }
 
 contextBridge.exposeInMainWorld('ipc', handler)

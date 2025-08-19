@@ -1,5 +1,5 @@
 import path from 'path'
-import { app, dialog, ipcMain, Menu } from 'electron'
+import { app, clipboard, dialog, ipcMain, Menu } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import fs from 'fs';
@@ -119,6 +119,12 @@ ipcMain.handle("getRecent", ()=>{
 
 ipcMain.on('addRecent', (event,filepath)=>{
     handleAddRecent(filepath);
+})
+
+ipcMain.handle('removeClipboard', ()=>{
+  console.log(clipboard.read('ascii'))
+  clipboard.clear();
+  console.log('clipboard cleared')
 })
 
 
