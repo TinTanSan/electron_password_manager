@@ -47,7 +47,8 @@ export async function createEntry(title:string, username:string, password:string
         dek:dek_buf ,
         metadata:{
             createDate: new Date(),
-            lastEditedDate : new Date()
+            lastEditedDate : new Date(),
+            uuid: window.crypto.randomUUID()
         }
     }
 }
