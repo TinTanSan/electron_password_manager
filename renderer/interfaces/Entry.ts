@@ -10,4 +10,5 @@ export interface Entry{
 interface MetaData{
     createDate:Date,
     lastEditedDate:Date,
-}
+    uuid: string
+} 
