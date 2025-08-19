@@ -76,7 +76,8 @@ export default function NewEntryForm({setShowForm}:props) {
         notes:"",
         metadata:{
             createDate:new Date(),
-            lastEditedDate: new Date()
+            lastEditedDate: new Date(),
+            uuid: window.crypto.randomUUID()
         } // not going to be used
     })
     
