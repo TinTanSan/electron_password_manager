@@ -19,10 +19,13 @@ export class Entry{
                 })
             })
         }
-        if (!init.metadata.createDate){
-            this.metadata.createDate = new Date();
-            this.metadata.lastEditedDate = new Date();
-            this.metadata.uuid = Entry.createUUID();
+        if (!init.metadata){
+            const now = new Date();
+            this.metadata = {
+                createDate: now,
+                lastEditedDate: now,
+                uuid: Entry.createUUID()
+            }
         }
     }
     
