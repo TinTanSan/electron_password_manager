@@ -26,11 +26,6 @@ export default function NewEntryForm({setShowForm}:props) {
         username:"",
         password:Buffer.from(""),
         notes:"",
-        metadata:{
-            createDate:new Date(),
-            lastEditedDate: new Date(),
-            uuid: window.crypto.randomUUID()
-        }
     }, vault.kek))
     
     
