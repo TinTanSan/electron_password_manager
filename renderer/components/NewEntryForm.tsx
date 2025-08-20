@@ -4,18 +4,13 @@ import { VaultContext } from '../contexts/vaultContext'
 import { addBanner } from '../interfaces/Banner'
 import { BannerContext } from '../contexts/bannerContext'
 import Image from 'next/image'
-import { makeNewDEK, wrapDEK } from '../utils/keyFunctions'
-import { createEntry, encryptPass } from '../utils/entryFunctions'
+import { makeNewDEK, wrapDEK } from '../utils/keyFunctions';
 import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
 import { writeEntriesToFile } from '../utils/vaultFunctions'
 import RandomPassModal from './RandomPassModal'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
-
-
-
-
 
 export default function NewEntryForm({setShowForm}:props) {
     const {vault, setVault} = useContext(VaultContext);
@@ -24,34 +19,28 @@ export default function NewEntryForm({setShowForm}:props) {
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     
-    // settings for the random pass
     
-    const [entry, setEntry] = useState<Entry>({
+    
+    const [entry, setEntry] = useState<Entry>(new Entry({
         title:"",
         username:"",
         password:Buffer.from(""),
-        dek: Buffer.from(""), // not going to be used
         notes:"",
         metadata:{
             createDate:new Date(),
             lastEditedDate: new Date(),
             uuid: window.crypto.randomUUID()
-        } // not going to be used
-    })
+        }
+    }, vault.kek))
     
     
     
     const handleChange = (e:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
-        if (e.target.id === 'title'){
-            setEntry((prev)=>({...prev, title:e.target.value}));
-        }
-        else if (e.target.id === "username"){
-            setEntry((prev)=>({...prev, username:e.target.value}));
-        }
-        else if (e.target.id === "password"){
-            setEntry((prev)=>({...prev, password:Buffer.from(e.target.value)}));
-        }else if (e.target.id === "notes"){
-            setEntry((prev)=>({...prev, notes:e.target.value}));
+
+        setEntry((prev)=>prev.update(e.target.id, e.target.value));
+        if (e.target.id === "password"){
+            setEntry((prev)=>prev.update('password',Buffer.from(e.target.value)));
+            return;
         }
 
     }
@@ -62,9 +51,8 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
-            createEntry(entry.title, entry.username, entry.password.toString(), entry.notes, vault.kek).then((createdEntry)=>{
-                const newEntries = [...vault.entries, createdEntry];
-                
+            entry.encryptPass(vault.kek).then((encryptedPass)=>{
+                const newEntries = [...vault.entries, entry.update('password', encryptedPass)];    
                 writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek).then(({content, status})=>{
                     if (status === "OK"){
                         setVault((prev)=>({...prev, entries:newEntries, fileContents:content}))
@@ -72,8 +60,12 @@ export default function NewEntryForm({setShowForm}:props) {
                         addBanner(bannerContext, 'unable to add entry, writing to file failed', 'error');
                     }
                 })
+                setShowForm(false)
             })
-            setShowForm(false)
+            
+
+
+            
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
         }
