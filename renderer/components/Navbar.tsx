@@ -26,7 +26,7 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
 
     const handleLock = ()=>{
         window.ipc.openFile(vault.filePath).then((content)=>{
-            setVault(prev=>({...prev, fileContents:content.fileContents, isUnlocked:false}))
+            setVault(prev=>({...prev, fileContents:content.fileContents, isUnlocked:false, entries:prev.entries}))
         })
     }
 
