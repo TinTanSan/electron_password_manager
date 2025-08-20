@@ -33,11 +33,8 @@ export default function EntryComponent({entry}:props) {
                 addBanner(bannerContext, 'password copied to clipboard', 'success')
                 setTimeout(() => {
                     window.ipc.clearClipboard();
-                    console.log('clear called')
-                    // navigator.clipboard.writeText("").catch((reason)=>{
-                    //     addBanner(bannerContext, 'unable to clear item from clipboard '+reason, 'error');
-                    // })
-                }, 2000);
+                    addBanner(bannerContext, 'password removed from clipboard','info');
+                }, 5000);
             })
         })
     }
@@ -54,7 +51,7 @@ export default function EntryComponent({entry}:props) {
                 <div className='flex'>Password:</div>
                 <div className='flex w-full rounded-md px-1 pt-1 items-end border-2 align-text-bottom'>{decryptedPass===undefined?'*'.repeat(Math.max(8,Math.floor(Math.random()*15))): decryptedPass}</div>
                 <Image src={decryptedPass===undefined?"/images/showPass.svg":"/images/hidePass.svg"} alt={decryptedPass===undefined?"show":"hide"} width={20} height={30} className='flex h-auto cursor-pointer' onClick={()=>{handleShowPass()}} />
-                <Image onClick={()=>{handleCopy()}} src={"/images/copy.svg"} alt='copy' height={20} width={20} className='flex w-auto cursor-pointer' />
+                <Image onClick={()=>{handleCopy()}} src={"/images/copy.svg"} alt='copy' height={20} width={20} className='flex h-auto cursor-pointer' />
             </div>
             <div className='flex h-full rounded-lg p-1 border-2 shrink w-full'>{entry.notes}</div>
         </div>
