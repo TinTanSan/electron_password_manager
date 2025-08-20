@@ -1,10 +1,11 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext'
 import { Entry } from '../interfaces/Entry';
-import { decryptEntryPass } from '../utils/entryFunctions';
+import { decryptEntryPass, encryptPass } from '../utils/entryFunctions';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
+import RandomPassModal from './RandomPassModal';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -15,47 +16,29 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [showPass, setShowPass] = useState(false);
-    const [decryptedPass, setDecryptedPass] = useState<undefined | string>(undefined);
+    const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    const handleCopyPass = ()=>{
-        decryptEntryPass(entry, vault.kek).then((pass)=>{
-            navigator.clipboard.writeText(pass).then(()=>{
-                setTimeout(() => {
-                    // set clipboard to be empty after 10 seconds
-                    window.ipc.clearClipboard().then((x)=>{
-                        addBanner(bannerContext, 'password cleared from clipboard', 'info');
-                    })
-                }, 10000);
-                addBanner(bannerContext, 'password copied to clipboard', 'success');
-            }).catch((reason)=>{
-                addBanner(
-                    bannerContext, 'password decrypted, but could not copy, please click show pass and manually copy over the password', 'error'
-                )
-            });
-            
-        }).catch((error)=>{
-            addBanner(bannerContext, 'failed to decrypt password '+error, 'error' )
+    useEffect(()=>{
+        decryptEntryPass(entry, vault.kek).then((x)=>{
+            setEntry((prev)=>({...prev, password:Buffer.from(x)}))
         })
-    }
+    },[])
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
+        if (e.target.id === 'password'){
+            setEntry((prev)=>({...prev, password:Buffer.from(e.target.value)}))
+            return;
+        }
         setEntry((prev)=>({...prev, [e.target.id]:e.target.value}))
     }
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
+        encryptPass(entry.password.toString('utf-8'), entry.dek, vault.kek).then((passBuf)=>{
+            setEntry((prev)=>({...prev, password:passBuf, metadata:{...prev.metadata,  lastEditedDate: new Date()}}))
+        })
     }
 
-    useEffect(()=>{
-        if (showPass){
-            decryptEntryPass(entry, vault.kek).then((p)=>{
-                setDecryptedPass(p)
-
-            })
-        }else{
-            setDecryptedPass(undefined)
-        }
-    },[showPass])
 
     return (
         
@@ -72,23 +55,30 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                 <div className='flex w-full justify-center h-20 text-2xl items-center font-bold'>
                     {entry.title}
                 </div>
-                <form onSubmit={handleConfirm} className='flex flex-col gap-5 w-[80%] items-end '>
-                    <div className='flex gap-2 items-center w-full'>
-                        <div className='flex text-nowrap w-34 justify-end'>Title:</div>
-                        <input value={entry.title} id='username' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
-                    </div>
+                <form onSubmit={handleConfirm} className='flex flex-col gap-5 w-[80%] h-full items-end '>
+                    <div className='flex flex-col gap-5 items-center h-full '>
+                        <div className='flex gap-2 items-center w-full'>
+                            <div className='flex text-nowrap w-34 justify-end'>Title:</div>
+                            <input value={entry.title} id='title' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                        </div>
 
-                    <div className='flex gap-2 items-center w-full'>
-                        <div className='flex text-nowrap w-34 justify-end'>Username:</div>
-                        <input value={entry.username} id='username' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
-                    </div>
+                        <div className='flex gap-2 items-center w-full'>
+                            <div className='flex text-nowrap w-34 justify-end'>Username:</div>
+                            <input value={entry.username} id='username' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                        </div>
 
-                    <div className='flex gap-2 items-center w-full'>
-                        <div className='flex text-nowrap w-34 justify-end'>Password:</div>
-                        <div className="border-2 flex w-full rounded-lg items-center">
-                            <input value={decryptedPass !== undefined? decryptedPass :"*".repeat(Math.max(8,Math.floor(Math.random()*12)))} id='username' className='flex w-full px-1 outline-none' onChange={handleChange} />
-                            <Image onClick={()=>{handleCopyPass()}} src={"/images/copy.svg"} alt='random' width={25} height={25} className='h-auto flex cursor-pointer' title='copy password' />
-                            <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
+                        <div className='flex gap-2 items-center w-full'>
+                            <div className='flex text-nowrap w-34 justify-end'>Password:</div>
+                            <div className="border-2 flex w-full rounded-lg items-center gap-1 px-1">
+                                <input value={showPass ? entry.password.toString() : "*".repeat(entry.password.length)} id='password' className='flex w-full px-1 outline-none' onChange={handleChange} />
+                                <Image src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
+                                <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
+                            </div>
+                        </div>
+                        {showRandomPassModal && <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>}
+                        <div className='flex gap-2 items-center w-full h-full'>
+                            <div className='flex text-nowrap w-34 justify-end'>Notes:</div>
+                            <input value={entry.notes} id='notes' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
                         </div>
                     </div>
                     <div className='flex w-full justify-center'>
