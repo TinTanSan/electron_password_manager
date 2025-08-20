@@ -7,7 +7,6 @@ import UnlockVaultPrompt from '../components/unlockVaultPrompt';
 import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
-import { createEntry, decryptEntryPass } from '../utils/entryFunctions';
 import { vaultLevelDecrypt, vaultLevelEncrypt, writeEntriesToFile } from '../utils/vaultFunctions';
 import { addBanner } from '../interfaces/Banner';
 import EntryComponent from '../components/EntryComponent';
