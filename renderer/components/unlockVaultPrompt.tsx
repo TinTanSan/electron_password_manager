@@ -23,6 +23,7 @@ export default function UnlockVaultPrompt() {
     const handleEnter = (e:FormEvent)=>{
       e.preventDefault();
       if (initialiseRequired){
+        // create new master password, i.e. new vault or vault key rotations
         if (password === ""){
           addBanner(bannerContext, "Password cannot be empty", "warning")
           return;
