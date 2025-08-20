@@ -1,7 +1,6 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext'
 import { Entry } from '../interfaces/Entry';
-import { decryptEntryPass, encryptPass } from '../utils/entryFunctions';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
@@ -15,34 +14,48 @@ type props ={
 export default function EditEntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
+    const [submit, setSubmit] = useState(false);
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
+    
     useEffect(()=>{
-        decryptEntryPass(entry, vault.kek).then((x)=>{
-            setEntry((prev)=>({...prev, password:Buffer.from(x)}))
+        entry.decryptEntryPass(vault.kek).then((x)=>{
+            setEntry((prev)=>prev.update('password',Buffer.from(x)))
         })
-    },[])
+    },[entry.metadata.lastEditedDate])
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
-            setEntry((prev)=>({...prev, password:Buffer.from(e.target.value)}))
+            setEntry((prev)=>prev.update('password',Buffer.from(e.target.value)))
             return;
         }
-        setEntry((prev)=>({...prev, [e.target.id]:e.target.value}))
+        
+        setEntry(prev=>prev.update(Entry.convertToKey(e.target.id), e.target.value));
+        
     }
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        encryptPass(entry.password.toString('utf-8'), entry.dek, vault.kek).then((passBuf)=>{
-            setEntry((prev)=>({...prev, password:passBuf, metadata:{...prev.metadata,  lastEditedDate: new Date()}}))
+         entry.encryptPass(vault.kek).then((passBuf)=>{
+            try {
+                const updatedEntry = new Entry({...entry, password:passBuf})
+                setEntry(updatedEntry)
+                setVault((prev)=>({
+                    ...prev, 
+                    entries:prev.entries.map(x => x.metadata.uuid === uuid ? updatedEntry : x)
+                }))
+                addBanner(bannerContext, 'entry updated successfully', 'success')
+            } catch (error) {
+                addBanner(bannerContext, 'unable to update entry '+error, 'error');
+            }
         })
     }
 
 
     return (
         
-        <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center backdrop-blur-lg'>
+        <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center backdrop-blur-lg z-10'>
         
             <div className='flex bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-1/2 h-3/4 rounded-xl shadow-lg p-2 text-xl'>
             {(entry!==undefined)?
@@ -70,7 +83,7 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                         <div className='flex gap-2 items-center w-full'>
                             <div className='flex text-nowrap w-34 justify-end'>Password:</div>
                             <div className="border-2 flex w-full rounded-lg items-center gap-1 px-1">
-                                <input value={showPass ? entry.password.toString() : "*".repeat(entry.password.length)} id='password' className='flex w-full px-1 outline-none' onChange={handleChange} />
+                                <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full px-1 outline-none' onChange={handleChange} />
                                 <Image src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
                                 <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
                             </div>
