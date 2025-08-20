@@ -42,7 +42,8 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
                                                  //  improperly delimit the encrypted text, which would have serious implications when decrypting
              x.notes + "|"+ 
             x.metadata.createDate.toISOString()+ "|" + 
-            x.metadata.lastEditedDate.toISOString()
+            x.metadata.lastEditedDate.toISOString()+ "|"+
+            x.metadata.uuid,
         ).join("$") + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
         
         const enc = Buffer.concat([
@@ -93,7 +94,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
         }
         const entries = entries_raw.map((x)=>{
             const [title, username,dek, password, notes, createDate, lastEditedDate] = Buffer.from(x).toString('utf8').split("|");
-            const entry:Entry = {
+            const entry:Entry = new Entry({
                 title,
                 username,
                 dek:Buffer.from(dek, 'base64'),
@@ -101,9 +102,10 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                 notes,
                 metadata:{
                     createDate:new Date(createDate),
-                    lastEditedDate:new Date(lastEditedDate)
+                    lastEditedDate:new Date(lastEditedDate),
+                    uuid: ""
                 }
-            }
+            })
             return entry
         });
         
