@@ -38,6 +38,10 @@ export default function EntryComponent({entry}:props) {
             })
         })
     }
+    
+    const handleDelete = ()=>{
+        setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
+    }   
   return (
     <div className='flex relative flex-col basis-md items-center grow max-w-md h-90 gap-2 shrink-0 border-2 border-base-300 bg-base-100 shadow-xl/20 w-full  rounded-xl p-2'>
         {showEditModal && <EditEntryModal uuid={entry.metadata.uuid} setShowModal={setShowEditModal}/>}
@@ -55,7 +59,11 @@ export default function EntryComponent({entry}:props) {
             </div>
             <div className='flex h-full rounded-lg p-1 border-2 shrink w-full'>{entry.notes}</div>
         </div>
-        <button onClick={()=>{setShowEditModal(true)}} className='flex w-1/2 rounded-lg justify-center h-10 items-center bg-primary hover:bg-primary-darken text-primary-content'>Edit Entry</button>
+        <div className='flex w-full gap-2 px-2'>
+            <button type='button' onClick={handleDelete} className='flex w-1/3 items-center justify-center rounded-lg bg-error text-error-content hover:bg-error-darken hover:text-white'>Delete</button>
+            <button onClick={()=>{setShowEditModal(true)}} className='flex w-full rounded-lg justify-center h-10 items-center bg-primary hover:bg-primary-darken text-primary-content'>Edit Entry</button>
+            
+        </div>
     </div>
   )
 }
