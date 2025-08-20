@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Entry } from '../interfaces/Entry'
 import EditEntryModal from './editEntryModal';
 import Image from 'next/image';
-import { decryptEntryPass } from '../utils/entryFunctions';
 import { VaultContext } from '../contexts/vaultContext';
 import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
@@ -17,7 +16,8 @@ export default function EntryComponent({entry}:props) {
     const [decryptedPass, setDecryptedPass] = useState<string | undefined>(undefined);
     const handleShowPass = ()=>{
         decryptedPass === undefined?
-        decryptEntryPass(entry, vault.kek).then((pass)=>{
+        
+        entry.decryptEntryPass(vault.kek).then((pass)=>{
             setDecryptedPass(pass);
             setTimeout(() => {
                 setDecryptedPass(undefined);
@@ -27,7 +27,7 @@ export default function EntryComponent({entry}:props) {
         setDecryptedPass(undefined);
     }
     const handleCopy = ()=>{
-        decryptEntryPass(entry, vault.kek).then((pass)=>{
+        entry.decryptEntryPass(vault.kek).then((pass)=>{
             navigator.clipboard.writeText(pass).then(()=>{
                 // set clipboard to be empty after 10 seconds
                 addBanner(bannerContext, 'password copied to clipboard', 'success')
@@ -49,7 +49,7 @@ export default function EntryComponent({entry}:props) {
             </div>
             <div className='flex w-full h-10 gap-2 items-center'>
                 <div className='flex'>Password:</div>
-                <div className='flex w-full rounded-md px-1 pt-1 items-end border-2 align-text-bottom'>{decryptedPass===undefined?'*'.repeat(Math.max(8,Math.floor(Math.random()*15))): decryptedPass}</div>
+                <div className='flex w-full rounded-md px-1 pt-1 items-end border-2 align-text-bottom overflow-x-auto'>{decryptedPass===undefined?'*'.repeat(Math.max(8,Math.floor(Math.random()*15))): decryptedPass}</div>
                 <Image src={decryptedPass===undefined?"/images/showPass.svg":"/images/hidePass.svg"} alt={decryptedPass===undefined?"show":"hide"} width={20} height={30} className='flex h-auto cursor-pointer' onClick={()=>{handleShowPass()}} />
                 <Image onClick={()=>{handleCopy()}} src={"/images/copy.svg"} alt='copy' height={20} width={20} className='flex h-auto cursor-pointer' />
             </div>
