@@ -5,6 +5,7 @@ import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
 import RandomPassModal from './RandomPassModal';
+import { writeEntriesToFile } from '../utils/vaultFunctions';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -14,25 +15,26 @@ type props ={
 export default function EditEntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
-    const [submit, setSubmit] = useState(false);
+    const [submit, setSubmit] = useState(true);
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     
     useEffect(()=>{
-        console.log('run')
-        entry.decryptEntryPass(vault.kek).then((x)=>{
-            setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
-        })
-    },[entry.metadata.lastEditedDate])
+        if (submit){
+            entry.decryptEntryPass(vault.kek).then((x)=>{
+                setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
+            })
+            setSubmit(false)
+        }
+    },[submit])
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
-            setEntry((prev)=>prev.update('password',Buffer.from(e.target.value)))
+            setEntry((prev)=>prev.cloneMutate('password',Buffer.from(e.target.value)))
             return;
         }
-        
-        setEntry(prev=>prev.update(Entry.convertToKey(e.target.id), e.target.value));
+        setEntry(prev=>prev.update(e.target.id, e.target.value));
         
     }
 
@@ -40,13 +42,16 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
         e.preventDefault();
          entry.encryptPass(vault.kek).then((passBuf)=>{
             try {
-                const updatedEntry = new Entry({...entry, password:passBuf})
+                const updatedEntry = new Entry({...entry, password:passBuf, metadata:{...entry.metadata, lastEditedDate: new Date()}})
                 setEntry(updatedEntry)
+                const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? updatedEntry : x)
                 setVault((prev)=>({
                     ...prev, 
-                    entries:prev.entries.map(x => x.metadata.uuid === uuid ? updatedEntry : x)
-                }))
+                    entries: newEntries
+                }));
+                writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
+                setSubmit(true)
             } catch (error) {
                 addBanner(bannerContext, 'unable to update entry '+error, 'error');
             }
@@ -90,13 +95,13 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                             </div>
                         </div>
                         {showRandomPassModal && <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>}
-                        <div className='flex gap-2 items-center w-full h-full'>
+                        <div className='flex gap-2 items-start w-full h-full'>
                             <div className='flex text-nowrap w-34 justify-end'>Notes:</div>
-                            <input value={entry.notes} id='notes' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                            <textarea value={entry.notes} id='notes' className='flex w-full h-2/3 resize-none px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
                         </div>
                     </div>
                     <div className='flex w-full justify-center'>
-                        <button type='submit' className='flex w-28 rounded-lg items-center justify-center  bg-primary text-primary-content'>Confirm</button>
+                        <button type='submit' className='flex w-1/2 hover:bg-primary-darken h-10 rounded-lg items-center justify-center  bg-primary text-primary-content'>Confirm</button>
                     </div>
                     
                 </form>

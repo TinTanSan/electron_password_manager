@@ -41,14 +41,6 @@ export class Entry{
     serialise(){
 
     }
-    static convertToKey(id:string){
-        let testEntry = new Entry(undefined, undefined);
-        const k = Object.keys(testEntry).find((x)=>x===id);
-        if (k === undefined){
-            throw new Error('key not found in Entry object, make sure it is correctly spelt')
-        }
-        return k;
-    }
     static createUUID(){
         if (typeof window !== undefined){
             return window.crypto.randomUUID()
