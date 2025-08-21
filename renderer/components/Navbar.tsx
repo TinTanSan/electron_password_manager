@@ -20,6 +20,7 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
 
 
     const handleClose = ()=>{
+        bannerContext.setBanners([])
         addBanner(bannerContext, "Vault Closed successfully", 'info')
         setVault(undefined);
     }
@@ -27,6 +28,8 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
     const handleLock = ()=>{
         window.ipc.openFile(vault.filePath).then((content)=>{
             setVault(prev=>({...prev, fileContents:content.fileContents, isUnlocked:false, entries:prev.entries}))
+            bannerContext.setBanners([]);
+            addBanner(bannerContext, 'Vault locked', 'info');
         })
     }
 
