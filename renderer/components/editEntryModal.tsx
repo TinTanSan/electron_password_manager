@@ -64,7 +64,7 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
         
         <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center backdrop-blur-lg z-10'>
         
-            <div className='flex bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-1/2 h-3/4 rounded-xl shadow-lg p-2 text-xl'>
+            <div className='flex bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-2/3 h-3/4 rounded-xl shadow-lg p-2 text-xl'>
             {(entry!==undefined)?
             <div className='flex flex-col w-full h-full items-center'>
                 <div className='flex absolute right-2'>
@@ -75,30 +75,30 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                 <div className='flex w-full justify-center h-20 text-2xl items-center font-bold'>
                     {entry.title}
                 </div>
-                <form onSubmit={handleConfirm} className='flex flex-col gap-5 w-[80%] h-full items-end '>
-                    <div className='flex flex-col gap-5 items-center h-full '>
-                        <div className='flex gap-2 items-center w-full'>
-                            <div className='flex text-nowrap w-34 justify-end'>Title:</div>
-                            <input value={entry.title} id='title' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                <form onSubmit={handleConfirm} className='flex flex-col gap-5 w-[80%] h-full items-center text-base-content'>
+                    <div className='flex flex-col gap-5 items-center h-full'>
+                        <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                            <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-lg'>Title</div>
+                            <input value={entry.title} id='title' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
                         </div>
 
-                        <div className='flex gap-2 items-center w-full'>
-                            <div className='flex text-nowrap w-34 justify-end'>Username:</div>
-                            <input value={entry.username} id='username' className='flex w-full px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                        <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                            <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-md'>Username</div>
+                            <input value={entry.username} id='username' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
                         </div>
 
-                        <div className='flex gap-2 items-center w-full'>
-                            <div className='flex text-nowrap w-34 justify-end'>Password:</div>
-                            <div className="border-2 flex w-full rounded-lg items-center gap-1 px-1">
-                                <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full px-1 outline-none' onChange={handleChange} />
+                        <div className='flex gap-2 items-center w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                            <div className='flex text-nowrap w-34 justify-start text-lg'>Password</div>
+                            <div className=" flex w-full rounded-r-md  items-center gap-1 px-1 focus-within:bg-base-300">
+                                <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full outline-none' onChange={handleChange} />
                                 <Image src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
                                 <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='w-auto h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
                             </div>
                         </div>
                         {showRandomPassModal && <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>}
-                        <div className='flex gap-2 items-start w-full h-full'>
-                            <div className='flex text-nowrap w-34 justify-end'>Notes:</div>
-                            <textarea value={entry.notes} id='notes' className='flex w-full h-2/3 resize-none px-1 border-2 outline-none rounded-lg' onChange={handleChange} />
+                        <div className='flex flex-col gap-2 items-start w-full h-full'>
+                            <div className='flex text-nowrap w-34'>Notes:</div>
+                            <textarea value={entry.notes} id='notes' className='flex w-full h-2/3 resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
                         </div>
                     </div>
                     <div className='flex w-full justify-center'>
