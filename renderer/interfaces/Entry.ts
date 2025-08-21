@@ -28,11 +28,16 @@ export class Entry{
             }
         }
     }
-    
+    // used when you want lastEditDate to change i.e. permanent changes in fields 
     update(field: string, value: any) {
         return new Entry({...this, [field]: value, metadata:{...this.metadata, lastEditedDate:new Date()}})
     }
-    
+    // used when you don't want lastEditDate to change i.e. decrrypting a pass then setting a state
+    cloneMutate(field:string, value:any){
+        return new Entry({...this, [field]: value})
+    }
+
+
     serialise(){
 
     }
