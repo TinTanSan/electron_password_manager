@@ -52,6 +52,7 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                 writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
                 setSubmit(true)
+                setShowModal(false);
             } catch (error) {
                 addBanner(bannerContext, 'unable to update entry '+error, 'error');
             }
@@ -91,7 +92,7 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
                             <div className="border-2 flex w-full rounded-lg items-center gap-1 px-1">
                                 <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full px-1 outline-none' onChange={handleChange} />
                                 <Image src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
-                                <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
+                                <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='w-auto h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
                             </div>
                         </div>
                         {showRandomPassModal && <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>}
