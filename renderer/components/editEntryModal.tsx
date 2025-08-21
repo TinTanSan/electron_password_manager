@@ -20,8 +20,9 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     
     useEffect(()=>{
+        console.log('run')
         entry.decryptEntryPass(vault.kek).then((x)=>{
-            setEntry((prev)=>prev.update('password',Buffer.from(x)))
+            setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
         })
     },[entry.metadata.lastEditedDate])
 
