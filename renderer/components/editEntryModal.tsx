@@ -34,7 +34,7 @@ export default function EditEntryModal({setShowModal, uuid}:props) {
             setEntry((prev)=>prev.cloneMutate('password',Buffer.from(e.target.value)))
             return;
         }
-        setEntry(prev=>prev.update(e.target.id, e.target.value));
+        setEntry(prev=>prev.cloneMutate(e.target.id, e.target.value));
         
     }
 
