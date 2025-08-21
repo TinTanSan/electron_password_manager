@@ -4,12 +4,6 @@ import { BannerContext } from '../contexts/bannerContext';
 
 export default function Banner({bannerDetails}:{bannerDetails:BannerDetails}) {
     const banners = useContext(BannerContext);
-    useEffect(()=>{
-        const timer = setTimeout(() => {
-            banners.setBanners(prev=>prev.filter(x=>x.id !== bannerDetails.id))
-        }, 3000);
-        return () => clearTimeout(timer);
-    },[]);
 
     const handleColour = ()=>{
         if (bannerDetails.type === 'success'){
