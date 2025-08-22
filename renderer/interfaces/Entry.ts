@@ -1,6 +1,13 @@
 import { makeNewDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+interface ExtraField{
+    isSensitive: boolean,
+    name: string,
+    data: Buffer
+}
+
+
 export class Entry{
     dek: Buffer;
     title    : string;
@@ -8,6 +15,7 @@ export class Entry{
     password : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
     metadata : MetaData;
+    extraFields: Array<ExtraField>
 
     constructor(init: PartialWithRequired<Entry, "title"|"password"|"username">, kek?:KEKParts){
         
@@ -18,6 +26,9 @@ export class Entry{
                     this.dek = wrappedDEK;
                 })
             })
+        }
+        if (!init.extraFields){
+            this.extraFields = [];
         }
         if (!init.metadata){
             const now = new Date();
@@ -39,8 +50,42 @@ export class Entry{
 
 
     serialise(){
+        
 
+        return this.title+"|" + 
+        this.username + "|" + 
+        this.dek.toString('base64')+ "|" +
+        this.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
+                                                //  improperly delimit the encrypted text, which would have serious implications when decrypting
+        this.notes + "|"+ 
+        this.metadata.createDate.toISOString()+ "|" + 
+        this.metadata.lastEditedDate.toISOString()+ "|"+
+        this.metadata.uuid +"|"+
+        this.extraFields.map((ef)=>
+            ef.isSensitive? ef.name+"_T_"+ef.data.toString('base64') :ef.name+"_F_"+ef.data
+        ).join("|");
     }
+    
+    static deserialise(content:string){
+        const fields = content.split("|");
+        if (fields.length < 6){
+            throw new Error("Incorrect number of fields recovered from content string when trying to deserialise the entry, expected at least 6 required fields, got"+fields.length)
+        }
+        const [title, username, dek, password, notes, createDate, lastEditedDate, uuid, ...exfields] = fields;
+        let extraFields:Array<ExtraField> | undefined = undefined;
+        // ensure the length is greater than 1 and ensure first exfield element is a truthy string i.e. not an empty string
+        if (exfields.length > 0 && exfields[0]){
+            console.log(exfields)
+            extraFields = exfields.map((field):ExtraField=>{
+                const [name, iss, data] = field.split("_");
+                const isSensitive = iss === "T"
+                return {name, isSensitive, data:isSensitive? Buffer.from(data,'base64') : Buffer.from(data)}
+            })
+        }
+        return new Entry({title, username, dek:Buffer.from(dek, 'base64'), password:Buffer.from(password, 'base64'), notes, metadata:{createDate:new Date(createDate), lastEditedDate:new Date(lastEditedDate), uuid},extraFields})
+        
+    }
+
     static createUUID(){
         if (typeof window !== undefined){
             return window.crypto.randomUUID()
