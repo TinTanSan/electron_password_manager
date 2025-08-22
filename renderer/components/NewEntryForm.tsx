@@ -18,7 +18,11 @@ export default function NewEntryForm({setShowForm}:props) {
     //  tab is whether we are looking at the main fields or the additional fields
     const [tab, setTab] = useState(true);
 
-    
+    // extra field states
+    const [eFieldName, setEFieldName] = useState("");
+    const [eFieldData, setEFieldData] = useState("");
+    const [eFieldSensitivity, setEFieldSensitivity] = useState<boolean>(false);
+
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
 
@@ -27,6 +31,7 @@ export default function NewEntryForm({setShowForm}:props) {
         username:"",
         password:Buffer.from(""),
         notes:"",
+        extraFields: []
     }, vault.kek))
     
     
@@ -41,6 +46,17 @@ export default function NewEntryForm({setShowForm}:props) {
 
     }
 
+    const handleAddExtraField = ()=>{
+        entry.addExtraField(vault.kek, eFieldName, eFieldData, eFieldSensitivity).then((updatedEntry:Entry)=>{
+            setEntry(updatedEntry)
+        })
+    }
+
+    const handleRemoveExtraField = (name:string)=>{
+        entry.removeExtraField(name).then((updatedEntry:Entry)=>{
+            setEntry(updatedEntry)
+        })
+    }
     
 
     const handleAdd = (e:React.FormEvent)=>{
@@ -79,24 +95,24 @@ export default function NewEntryForm({setShowForm}:props) {
                     {/* title */}
                     <div className='flex w-full items-center justify-center text-xl'>Create New Entry</div>
                     {/* close button */}
-                    <button type='button' onClick={()=>{setShowForm(false)}} className='flex justify-center items-center rounded-lg bg-accent text-accent-content basis-10 hover:rounded-xl duration-500 transition-all'>&#x2715;</button>
+                    <button type='button' onClick={()=>{setShowForm(false)}} className='flex justify-center items-center rounded-lg bg-accent text-accent-content basis-12 hover:rounded-xl duration-500 transition-all'>&#x2715;</button>
                 </div>
 
-                
+                {tab ? 
                 <div className='flex flex-col w-full h-full gap-5 p-2'>
                    
                    <div className='text-xl'>Set Main fields</div>
-                   <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                   <div className='flex w-full border-2 rounded-lg h-8 pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
                             <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-lg'>Title</div>
                             <input value={entry.title} id='title' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
                         </div>
                    <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
                         <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-md'>Username</div>
-                        <input value={entry.username} id='username' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
+                        <input value={entry.username} id='username' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-300' onChange={handleChange} />
                     </div>
 
-                    <div className='flex gap-2 items-center w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
-                        <div className='flex text-nowrap w-34 justify-start text-lg'>Password</div>
+                    <div className='flex gap-2 items-center w-full h-8 border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                        <div className='flex w-24 text-md items-center'>Password</div>
                         <div className=" flex w-full rounded-r-md  items-center gap-1 px-1 focus-within:bg-base-300">
                             <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full outline-none' onChange={handleChange} />
                             <Image src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
@@ -109,7 +125,50 @@ export default function NewEntryForm({setShowForm}:props) {
                         <textarea value={entry.notes} id='notes' className='flex w-full h-2/3 resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
                     </div>
                 </div>
-
+                :
+                <div className='flex flex-col w-full h-full gap-5 p-2'>
+                    <div className='flex flex-col w-full h-fit'>
+                        <div className='flex w-full h-fit justify-center text-lg'>New Extra field</div>
+                        <div className='flex flex-col gap-5'>
+                            <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
+                                <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
+                                <input className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
+                            </div>
+                            <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
+                                <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Data</label>
+                                <input className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
+                            </div>
+                            <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
+                                <div className='flex w-full items-center '>
+                                <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>keep this field a secret?</label>
+                                <input type='checkbox' onChange={()=>{setEFieldSensitivity(prev=>!prev)}} checked={eFieldSensitivity}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
+                                </div>
+                                <div className='flex w-full h-full justify-end'>
+                                    <button className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className='flex flex-col border-2 w-full h-full rounded-lg'>
+                        {
+                            entry.extraFields.length > 0 ?
+                                entry.extraFields.map((extraField, i)=>
+                                <div>
+                                    {extraField.name}
+                                </div>)
+                            :
+                                <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
+                                    Extra fields that you create will show up here
+                                </div>
+                        }
+                    </div>
+                </div>    
+            
+            
+            
+            
+            
+            }
 
 
 
