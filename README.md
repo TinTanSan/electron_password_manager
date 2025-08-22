@@ -1,38 +1,10 @@
-<p align="center"><img src="https://i.imgur.com/a9QWW0v.png"></p>
+### Simple password manager
+A simple minimalistic password manager that you can use to store password.
 
-## Usage
+# Tech Stack
+Electron.js, Next.js, Typescript, TailwindCSS
 
-### Create an App
-
-```
-# with npx
-$ npx create-nextron-app my-app --example with-tailwindcss
-
-# with yarn
-$ yarn create nextron-app my-app --example with-tailwindcss
-
-# with pnpm
-$ pnpm dlx create-nextron-app my-app --example with-tailwindcss
-```
-
-### Install Dependencies
-
-```
-$ cd my-app
-
-# using yarn or npm
-$ yarn (or `npm install`)
-
-# using pnpm
-$ pnpm install --shamefully-hoist
-```
-
-### Use it
-
-```
-# development mode
-$ yarn dev (or `npm run dev` or `pnpm run dev`)
-
-# production build
-$ yarn build (or `npm run build` or `pnpm run build`)
-```
+# How it works
+1. Create a vault file by following the prompts
+2. Create a password for the vault.
+3. Add Entries for each website you want to save a password for.
