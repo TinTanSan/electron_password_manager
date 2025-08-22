@@ -121,20 +121,31 @@ export class Entry{
         throw new Error("window is not defined, cannot encrypt entry pass")
     }
 
-    async encryptField(kek:KEKParts, fieldName:string){
-        
+    async encryptField(kek:KEKParts, name:string, data:string | Buffer){
+        if (typeof window !== 'undefined'){
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            var unwrappedDEK = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:'AES-KW'}, {name:'AES-GCM'}, false, ['encrypt', 'decrypt']);
+            const d = data instanceof Buffer? data : Buffer.from(data);
+            const encryptedText = await window.crypto.subtle.encrypt({name:"AES-GCM", iv}, unwrappedDEK, Buffer.from(d));
+            unwrappedDEK = undefined;
+            return {name, data:Buffer.concat([Buffer.from(encryptedText), iv]), isSensitive:false};
+        }
+        throw new Error('Window object was undefined when trying to encrypt field')
     }
 
     async addExtraField(kek:KEKParts,name:string, data:string| Buffer, isSensitive:boolean){
         if (this.extraFields.find(x=>x.name === name)){
             return undefined;
         }
-        
-        const d = data instanceof Buffer? data : Buffer.from(data);
-        
-        const extraField = {name, data:d, isSensitive};
-
-        return this.update('extraFields', [...this.extraFields, extraField])
+        let d = data instanceof Buffer? data : Buffer.from(data);
+        return this.update(
+            'extraFields', 
+            [...this.extraFields, 
+                isSensitive? 
+                await this.encryptField(kek, name, data) : 
+                {name, data:d, isSensitive}
+            ]
+        )
     }
     
     async removeExtraField(name:string){
