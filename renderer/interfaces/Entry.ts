@@ -120,6 +120,26 @@ export class Entry{
         }
         throw new Error("window is not defined, cannot encrypt entry pass")
     }
+
+    async encryptField(kek:KEKParts, fieldName:string){
+        
+    }
+
+    async addExtraField(kek:KEKParts,name:string, data:string| Buffer, isSensitive:boolean){
+        if (this.extraFields.find(x=>x.name === name)){
+            return undefined;
+        }
+        
+        const d = data instanceof Buffer? data : Buffer.from(data);
+        
+        const extraField = {name, data:d, isSensitive};
+
+        return this.update('extraFields', [...this.extraFields, extraField])
+    }
+    
+    async removeExtraField(name:string){
+        return this.update('extraFields', this.extraFields.filter((x)=>x.name !== name))
+    }
 }
 
 interface MetaData{
