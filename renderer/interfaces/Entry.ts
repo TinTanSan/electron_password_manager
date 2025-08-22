@@ -121,7 +121,7 @@ export class Entry{
         throw new Error("window is not defined, cannot encrypt entry pass")
     }
 
-    async encryptField(kek:KEKParts, name:string, data:string | Buffer){
+    async encryptField(kek:KEKParts, name:string, data:string | Buffer):Promise<ExtraField>{
         if (typeof window !== 'undefined'){
             const iv = window.crypto.getRandomValues(new Uint8Array(12));
             var unwrappedDEK = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:'AES-KW'}, {name:'AES-GCM'}, false, ['encrypt', 'decrypt']);
@@ -133,7 +133,7 @@ export class Entry{
         throw new Error('Window object was undefined when trying to encrypt field')
     }
 
-    async addExtraField(kek:KEKParts,name:string, data:string| Buffer, isSensitive:boolean){
+    async addExtraField(kek:KEKParts,name:string, data:string| Buffer, isSensitive:boolean): Promise<Entry>{
         if (this.extraFields.find(x=>x.name === name)){
             return undefined;
         }
@@ -148,7 +148,7 @@ export class Entry{
         )
     }
     
-    async removeExtraField(name:string){
+    async removeExtraField(name:string):Promise<Entry>{
         return this.update('extraFields', this.extraFields.filter((x)=>x.name !== name))
     }
 }
