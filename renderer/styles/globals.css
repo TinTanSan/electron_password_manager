@@ -43,6 +43,15 @@
   --text-md--line-height: 1.5rem;
 }
 
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 @keyframes slide-in{
   0% {
     
