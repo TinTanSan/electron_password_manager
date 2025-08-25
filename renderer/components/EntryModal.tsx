@@ -61,12 +61,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
 
     return (
+        // blurred bg parent div
+        <div className='fixed flex flex-col top-0 left-0 w-screen h-screen justify-center items-center backdrop-blur-lg z-10'>
         
-        <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center backdrop-blur-lg z-10'>
-        
-            <div className='flex bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-[75vw] h-[75wh] rounded-xl shadow-lg p-2 text-xl'>
-            {(entry!==undefined)?
-                <form onSubmit={handleConfirm} className='flex flex-col gap-2 w-full h-full text-base-content'>
+            <div className='flex flex-col bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-[75vw] h-[75vh] shrink-0 grow-0 rounded-xl shadow-lg p-2 text-xl'>
+            {
+             (entry!==undefined)?
+                <form onSubmit={handleConfirm} className='flex flex-col gap-2 grow-0 shrink-0 w-full h-full text-base-content'>
                     {/* top panel with title and close button */}
                     <div className='flex w-full justify-center h-10 text-2xl items-center font-bold '>
                         <div className='flex'>{entry.title}</div>
@@ -109,8 +110,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         </div>
                         {/* right side */}
                         <div className='flex flex-col w-full h-full overflow-hidden'>
-                            <div className='flex w-full h-10 justify-center items-center'>Extra fields</div>
-                            <div className='flex flex-col w-full h-full gap-2 overflow-y-auto border-2 shrink-0'>
+                            <div className='flex w-full h-100 overflow-y-auto justify-center items-center'>Extra fields</div>
+                            <div className='flex flex-col w-full h-fit border-2'>
+                                <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
                                 <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
                                 <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
                                 <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
@@ -123,13 +125,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         <button type='submit' className='flex w-1/2 hover:bg-primary-darken h-10 rounded-lg items-center justify-center  bg-primary text-primary-content'>Confirm</button>
                     </div>
                 </form>
-            :
-            <div className='flex w-full h-full text-4xl'>
-                This entry does not exist
-            </div>}
+
+             :
+                <div className='flex w-full h-full text-4xl'>
+                    This entry does not exist
+                </div>
+            }
             </div>
-            
         </div>
-    
-      )
+    )
 }
