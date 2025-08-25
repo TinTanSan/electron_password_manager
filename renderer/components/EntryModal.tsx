@@ -58,6 +58,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
             }
         })
     }
+    const escapeHandler = (e) => {
+    if (e.key === "Escape") {
+      setShowModal(false);
+    }
+  };
+    useEffect(() => {
+    document.addEventListener("keydown", (escapeHandler), false);
+    return () => {
+      document.removeEventListener("keydown", escapeHandler, false);
+    };
+  }, []);
 
 
     return (
@@ -79,21 +90,23 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         </div>
                     </div>
                     {/* entry fields */}
-                    <div className="flex w-full h-full gap-5 border-2">
+                    <div className="flex w-full h-full gap-5 px-1">
                         {/* left side */}
                         <div className='flex flex-col items-center h-full w-full'>
                             <div className='flex w-full h-10 justify-center items-center'>Main Fields</div>
-                            <div className='flex flex-col w-full h-full gap-5 border-2'>
-                                <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                            <div className='flex flex-col w-full h-full gap-5'>
+                                {/* title */}
+                                <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/20 focus-within:drop-shadow-zinc-300 transition-all duration-700'>
                                     <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-lg'>Title</div>
                                     <input value={entry.title} id='title' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
                                 </div>
-                                <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                                {/* username */}
+                                <div className='flex w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/20 focus-within:drop-shadow-zinc-300 transition-all duration-700'>
                                     <div className='flex text-nowrap w-18 shrink text-sm md:w-20 lg:w-24 items-center md:text-md'>Username</div>
                                     <input value={entry.username} id='username' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
                                 </div>
-
-                                <div className='flex items-center w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
+                                {/* password */}
+                                <div className='flex items-center w-full border-2 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/20 focus-within:drop-shadow-zinc-300 transition-all duration-700'>
                                     <div className='flex text-nowrap w-18 shrink text-sm md:w-20 lg:w-24 justify-start lg:text-md'>Password</div>
                                     <div className=" flex w-full rounded-r-md  items-center gap-1 px-1 focus-within:bg-base-300">
                                         <input type={showPass?'text':'password'} value={entry.password.toString() } id='password' className='flex w-full px-2 outline-none' onChange={handleChange} />
@@ -102,26 +115,27 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                 </div>
                                 {showRandomPassModal && <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>}
+                                {/* notes */}
                                 <div className='flex flex-col gap-2 items-start w-full h-full'>
                                     <div className='flex text-nowrap w-34'>Notes:</div>
-                                    <textarea value={entry.notes} id='notes' className='flex shrink-0 w-full h-full resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
+                                    <textarea value={entry.notes} id='notes' className='flex shrink-0 w-full h-60 resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
                                 </div>
                             </div>
                         </div>
-                        {/* right side */}
+                        {/* right side extra fields*/}
                         <div className='flex flex-col w-full h-full overflow-hidden'>
-                            <div className='flex w-full h-100 overflow-y-auto justify-center items-center'>Extra fields</div>
-                            <div className='flex flex-col w-full h-fit border-2'>
-                                <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
-                                <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
-                                <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
-                                <div className='flex w-full h-40 bg-zinc-200 shrink-0'></div>
-
+                            <div className='flex w-full h-10 overflow-y-auto justify-center items-center'>Extra fields</div>
+                            <div className='flex flex-col w-full h-120 gap-5 overflow-y-auto border-2'>
+                                {entry.extraFields.map((x)=>
+                                <div>
+                                    {x.name}
+                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
                     {/* confirm button */}
-                    <div className='flex w-full h-fit border-2 justify-center'>
+                    <div className='flex w-full h-fit justify-center'>
                         <button type='submit' className='flex w-1/2 hover:bg-primary-darken h-10 rounded-lg items-center justify-center  bg-primary text-primary-content'>Confirm</button>
                     </div>
                 </form>
