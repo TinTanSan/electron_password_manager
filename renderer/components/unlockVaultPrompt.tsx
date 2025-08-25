@@ -51,8 +51,10 @@ export default function UnlockVaultPrompt() {
         if(password !==""){
           validateKEK(vaultContext.vault.fileContents, password).then((response)=>{
             if (response === undefined){
+              
               addBanner(bannerContext, "Incorrect password", 'error')
             }else{
+              addBanner(bannerContext, "Vault unlocked", 'success');
               vaultContext.setVault(prev=>({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
             }
           })
