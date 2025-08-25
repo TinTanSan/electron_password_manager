@@ -84,7 +84,7 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
         }
     },[randomSettings])
     return (
-    <div className='flex flex-col z-50 absolute border-2 text-base-content bg-base-200 border-base-300 w-[55%] h-1/2 lg:h-1/3 shadow-xl rounded-lg p-2'>
+    <div className='flex flex-col z-50 absolute border-2 text-base-content bg-base-100 border-base-300 w-[55vw] h-[45vh] gap-2 lg:h-[30vh] shadow-xl rounded-lg p-2'>
         <div className='flex w-full justify-center'>
             Generate random password
         </div>
@@ -96,27 +96,27 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
                 </div>
                 <Image onClick={()=>{setRandomPass(generateRandomPass(randomSettings))}} src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto' />
             </div>
-            <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-5 items-center justify-center'>
-                <button onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowCapitals&& 'bg-neutral text-neutral-content'}`}>
+            <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center'>
+                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowCapitals&& 'bg-neutral text-neutral-content'}`}>
                     capital letters
                 </button>
-                <button onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowNumbers&& 'bg-neutral text-neutral-content'}`}>
+                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowNumbers&& 'bg-neutral text-neutral-content'}`}>
                     numbers
                 </button>
-                <button onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-neutral text-neutral-content'}`}>
-                    special characters
+                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-neutral text-neutral-content'}`}>
+                    special chars
                 </button>
             </div>
             {/* length slider + input box */}
-            <div className='flex w-full h-fit gap-2 justify-start'>
+            <div className='flex w-full h-fit gap-2'>
                 <label>Length</label>
                 <input id='length' type='range' step={1} min={8} max={50} value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-full'/>
-                <input value={randomSettings.length} type='number' onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-12 outline-none h-8 rounded-lg border-2 px-1'/>
+                <input value={randomSettings.length} type='number' onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-14 outline-none h-8 rounded-lg border-2 px-1'/>
             </div>
         </div>
         <div className='flex justify-between'>
-            <button className='flex rounded-lg w-24 h-8 justify-center items-center bg-accent hover:bg-accent-darken text-accent-content' onClick={()=>{setShowRandomPassModal(false)}}>Cancel</button>
-            <button className='flex rounded-lg w-24 h-8 justify-center items-center bg-primary hover:bg-primary-darken text-primary-content' onClick={()=>{setEntry((prev)=>(prev.update('password',Buffer.from(randomPass)))); setShowRandomPassModal(false)}}>Confirm</button>
+            <button type='button' className='flex rounded-lg w-24 h-8 justify-center items-center bg-accent hover:bg-accent-darken text-accent-content' onClick={()=>{setShowRandomPassModal(false)}}>Cancel</button>
+            <button type='button' className='flex rounded-lg w-24 h-8 justify-center items-center bg-primary hover:bg-primary-darken text-primary-content' onClick={()=>{setEntry((prev)=>(prev.update('password',Buffer.from(randomPass)))); setShowRandomPassModal(false)}}>Confirm</button>
         </div>
     </div>
 
