@@ -132,11 +132,11 @@ export default function NewEntryForm({setShowForm}:props) {
                         <div className='flex flex-col gap-5'>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
                                 <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
-                                <input className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
+                                <input onChange={(e)=>{setEFieldName(e.target.value)}} className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
                             </div>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
                                 <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Data</label>
-                                <input className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
+                                <input onChange={(e)=>{setEFieldData(e.target.value)}} className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
                             </div>
                             <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
                                 <div className='flex w-full items-center '>
@@ -144,7 +144,7 @@ export default function NewEntryForm({setShowForm}:props) {
                                 <input type='checkbox' onChange={()=>{setEFieldSensitivity(prev=>!prev)}} checked={eFieldSensitivity}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
                                 </div>
                                 <div className='flex w-full h-full justify-end'>
-                                    <button className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
+                                    <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
                                 </div>
                             </div>
                         </div>
@@ -153,8 +153,9 @@ export default function NewEntryForm({setShowForm}:props) {
                         {
                             entry.extraFields.length > 0 ?
                                 entry.extraFields.map((extraField, i)=>
-                                <div>
+                                <div className='flex text-base-content border-2 h-10'>
                                     {extraField.name}
+                                    {extraField.data.toString()}
                                 </div>)
                             :
                                 <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
