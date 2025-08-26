@@ -58,11 +58,33 @@ export default function HomePage() {
       { (vault !== undefined && vault.isUnlocked) && 
         <div className='flex flex-col w-full h-full items-center gap-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} searchSettings={searchSettings} setSearchSettings={setSearchSettings} />
-          <div className='flex w-full h-full overflow-y-auto gap-3 rounded-lg flex-row flex-wrap'>
+          <div className='flex flex-col w-full h-full border-2 bg-base-100 p-2 gap-2'>
+            <div className='flex w-full h-10 gap-2'>
+              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Title</div>
+              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Username</div>
+              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Password</div>
+              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Notes</div>
+            </div>
+            <div className='flex flex-col w-full h-full border-2 rounded-lg overflow-y-hidden gap-2'>
+              <div className='flex flex-col w-full h-full overflow-y-auto'>
+                <div className="flex h-fit w-full flex-col gap-2">
+                <div className="h-40 bg-zinc-200" />
+                <div className="h-40 bg-zinc-200" />
+                <div className="h-40 bg-zinc-200" />
+                <div className="h-40 bg-zinc-200" />
+                <div className="h-40 bg-zinc-200" />
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+          
+          {/* <div className='flex w-full h-full overflow-y-auto  rounded-lg flex-col gap-3'>
             {
               shownEntries.map((x, i)=><EntryComponent key={i} entry={x} />)
             }
-          </div>
+          </div> */}
         </div>
       }
     </div>
