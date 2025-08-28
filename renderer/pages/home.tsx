@@ -14,9 +14,11 @@ import EntryComponent from '../components/EntryComponent';
 
 export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
-  const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
-
   const [searchFilter, setSearchFilter] = useState("");
+  const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
+  // for pagination
+  const [page, setPage] = useState(0);
+  
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
   useEffect(()=>{
@@ -24,7 +26,6 @@ export default function HomePage() {
     if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
       vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
         setVault(prev=>({...prev, entries:decryptedEntries}));
-        setShownEntires(decryptedEntries)
       })
     }
   },[vault?.isUnlocked])
@@ -34,59 +35,59 @@ export default function HomePage() {
       const sf = searchFilter.toLowerCase();
       setShownEntires(
         sf !== "" ?
-        vault.entries.filter((x)=>{
-          if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)){
-            return true
-          }
-          if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)){
-            return true;
-          }
-          if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)){
-            return true;
-          }
-          return false;
-        })
-        :
-        vault.entries
+          vault.entries.filter((x)=>{
+            if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)){
+              return true
+            }
+            if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)){
+              return true;
+            }
+            if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)){
+              return true;
+            }
+            return false;
+          })
+          :
+          [...vault.entries, ...new Array<Entry>(1000).fill(new Entry({title:'test', password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
       )
+      setPage(0);
     }
   }, [searchFilter, searchSettings, vault?.entries])
 
-  return (
-    <div className='flex bg-base-200 w-screen h-screen flex-col justify-center items-center p-2 relative'>
-      {(vault !== undefined && !vault.isUnlocked) && <UnlockVaultPrompt />}
-      { (vault !== undefined && vault.isUnlocked) && 
-        <div className='flex flex-col w-full h-full items-center gap-2'>
-          <Navbar search={searchFilter} setSearch={setSearchFilter} searchSettings={searchSettings} setSearchSettings={setSearchSettings} />
-          <div className='flex flex-col w-full h-full border-2 bg-base-100 p-2 gap-2'>
-            <div className='flex w-full h-10 gap-2'>
-              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Title</div>
-              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Username</div>
-              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Password</div>
-              <div className='flex basis-1/4 border-2 items-center justify-center rounded-lg bg-base-200 border-base-300'>Notes</div>
-            </div>
-            <div className='flex flex-col w-full h-full border-2 rounded-lg overflow-y-hidden gap-2'>
-              <div className='flex flex-col w-full h-full overflow-y-auto'>
-                <div className="flex h-fit w-full flex-col gap-2">
-                <div className="h-40 bg-zinc-200" />
-                <div className="h-40 bg-zinc-200" />
-                <div className="h-40 bg-zinc-200" />
-                <div className="h-40 bg-zinc-200" />
-                <div className="h-40 bg-zinc-200" />
-                </div>
 
-              </div>
-            </div>
+  useEffect(()=>{
+    setShownEntires(prev=>prev.slice(page*100, (page*100)+100))
+  }, [page])
+
+  return (
+    <div className='flex w-screen h-screen items-center justify-center bg-base-200'>
+    {(vault !== undefined && !vault.isUnlocked) && <UnlockVaultPrompt />}
+    
+    {(vault !== undefined && vault.isUnlocked) && 
+    <div className='flex flex-col w-full h-screen items-center p-2 overflow-y-hidden'>
+      <div className="w-screen h-screen flex flex-col p-2 overflow-y-hidden gap-4">
+        <Navbar search={searchFilter} setSearch={setSearchFilter} searchSettings={searchSettings} setSearchSettings={setSearchSettings} />
+        <div className='flex flex-col w-full h-full text-base-content bg-base-100 rounded-xl border-2 border-base-300 overflow-y-hidden p-2 gap-2'>
+          <div className='flex w-full h-10 gap-2'>
+            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Title</div>
+            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>username</div>
+            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Password</div>
+            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Notes</div>
 
           </div>
           
-          {/* <div className='flex w-full h-full overflow-y-auto  rounded-lg flex-col gap-3'>
-            {
-              shownEntries.map((x, i)=><EntryComponent key={i} entry={x} />)
-            }
-          </div> */}
+          <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
+            <div className='flex flex-col w-full h-fit gap-2'>
+              {shownEntries.map((entry, i)=>
+                <EntryComponent entry={entry} key={i}/>
+              )}
+              
+            </div>
+          </div>
         </div>
-      }
-    </div>
+
+      </div>
+    </div>}
+    </div>  
   )
 }
