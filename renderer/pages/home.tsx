@@ -16,9 +16,15 @@ export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const [searchFilter, setSearchFilter] = useState("");
   const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
-  // for pagination
-  const [page, setPage] = useState(0);
   
+  
+  // for pagination
+  const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
+  const [page, setPage] = useState(0);
+  // hard coded 100 should be changed to use whatever is listed in the preferences
+  const maxPages = shownEntries.length/100;
+
+
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
   useEffect(()=>{
@@ -26,6 +32,7 @@ export default function HomePage() {
     if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
       vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
         setVault(prev=>({...prev, entries:decryptedEntries}));
+        setSearchFilter("")
       })
     }
   },[vault?.isUnlocked])
@@ -48,7 +55,7 @@ export default function HomePage() {
             return false;
           })
           :
-          [...vault.entries, ...new Array<Entry>(1000).fill(new Entry({title:'test', password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
+          [...vault.entries, ...Array.from({length: 1000}, (_,i)=>new Entry({title:'test_'+i, password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
       )
       setPage(0);
     }
@@ -56,7 +63,8 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    setShownEntires(prev=>prev.slice(page*100, (page*100)+100))
+    console.log('pages set')
+    setPaginatedEntries(shownEntries.slice(page*100, (page*100)+100))
   }, [page])
 
   return (
@@ -78,11 +86,38 @@ export default function HomePage() {
           
           <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
             <div className='flex flex-col w-full h-fit gap-2'>
-              {shownEntries.map((entry, i)=>
+              {paginatedEntries.map((entry, i)=>
                 <EntryComponent entry={entry} key={i}/>
               )}
               
             </div>
+          </div>
+          <div className='flex flex-row w-full h-10 p-2 items-center justify-center border-2 border-base-300 rounded-lg gap-2'>
+              {/* show previous button if the current page isn't the first page */}
+              <div className='flex w-24 h-8'>
+               <button onClick={()=>{setPage(prev=>prev-1)}} className={`flex w-full items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content ${page == 0 && 'invisible'}`}>Previous</button>
+              </div>
+              {/*  */}
+              <div className='flex w-28 gap-2 h-8 justify-end'>
+                {
+                  Array.from({length: Math.min(3, page-0)}, (_, i)=> page+i).map((x)=>
+                  <button onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
+                    {x}
+                  </button>)
+                }
+              </div>
+              <div className='flex bg-neutral rounded-lg w-8 h-8 items-center text-neutral-content justify-center'>{page+1}</div>
+              <div className='flex w-28 gap-2 h-8 justify-start'>
+              {
+                Array.from({length: Math.min(3, maxPages-page)}, (_, i)=> page+1+i).map((x)=>
+                <button onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
+                  {x+1}
+                </button>)
+              }
+              </div>
+              {
+                page < maxPages && <button onClick={()=>{setPage(prev=>prev+1)}} className='flex w-24 items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content'>Next</button>
+              }
           </div>
         </div>
 
