@@ -35,7 +35,7 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
 
 
     return (
-        <div className='flex w-full h-12 relative flex-row items-center justify-between px-1 shadow-lg bg-base-100 border-2 border-base-300 rounded-xl'>
+        <div className='flex flex-row w-full h-12 items-center justify-between px-1 shadow-lg bg-base-100 border-2 border-base-300 rounded-xl'>
             {showEntryForm && <NewEntryForm setShowForm={setShowEntryForm}/>}
             <button onClick={()=>{setShowEntryForm(true)}} className='flex bg-primary hover:bg-primary-darken text-primary-content w-32 shrink-0 h-8 justify-center items-center rounded-lg text-nowrap'>New Entry</button>
             <div className='flex justify-center w-full px-5 text-xl shrink grow'>
