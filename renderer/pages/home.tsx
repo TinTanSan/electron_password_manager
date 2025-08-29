@@ -1,14 +1,11 @@
 // 'use client'
 import React, { useContext, useEffect, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext';
-import { useRouter } from 'next/router';
-import { BannerContext } from '../contexts/bannerContext';
 import UnlockVaultPrompt from '../components/unlockVaultPrompt';
 import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
-import { vaultLevelDecrypt, vaultLevelEncrypt, writeEntriesToFile } from '../utils/vaultFunctions';
-import { addBanner } from '../interfaces/Banner';
+import { vaultLevelDecrypt} from '../utils/vaultFunctions';
 import EntryComponent from '../components/EntryComponent';
 
 
