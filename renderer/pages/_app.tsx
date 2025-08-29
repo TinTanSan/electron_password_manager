@@ -14,10 +14,23 @@ function MyApp({ Component, pageProps }: AppProps) {
   const navigate = useRouter();
   useEffect(()=>{
     if(vault === undefined && navigate.pathname !=="/loadFile"){
-      
       navigate.push('loadFile')
     }
+    let timeout:NodeJS.Timeout;
+    if (vault !== undefined && vault.isUnlocked){
+      console.log('timeout set')
+      timeout = setTimeout(() => {
+        setVault(prev=>({...prev, isUnlocked:false}));
+      }, 30000);
+    }
+    return ()=>{
+      if(timeout !== undefined){
+        clearTimeout(timeout)  
+      }}
   }, [vault])
+
+
+
   return (
     <VaultContext.Provider value={{vault, setVault}}>
       <BannerContext.Provider value={{banners, setBanners}}>
