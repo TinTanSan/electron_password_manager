@@ -81,7 +81,7 @@ export default function HomePage() {
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>username</div>
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Password</div>
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Notes</div>
-
+            <div className='flex w-full h-full' />
           </div>
           
           <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
@@ -100,8 +100,8 @@ export default function HomePage() {
               {/*  */}
               <div className='flex w-28 gap-2 h-8 justify-end'>
                 {
-                  Array.from({length: Math.min(3, page-0)}, (_, i)=> page+i).map((x)=>
-                  <button onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
+                  Array.from({length: Math.min(3, page-0)}, (_, i)=> page+i).map((x,i)=>
+                  <button key={i} onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
                     {x}
                   </button>)
                 }
@@ -109,8 +109,8 @@ export default function HomePage() {
               <div className='flex bg-neutral rounded-lg w-8 h-8 items-center text-neutral-content justify-center'>{page+1}</div>
               <div className='flex w-28 gap-2 h-8 justify-start'>
               {
-                Array.from({length: Math.min(3, maxPages-page)}, (_, i)=> page+1+i).map((x)=>
-                <button onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
+                Array.from({length: Math.min(3, maxPages-page)}, (_, i)=> page+1+i).map((x,i)=>
+                <button key={i} onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
                   {x+1}
                 </button>)
               }
