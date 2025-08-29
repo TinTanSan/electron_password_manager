@@ -47,7 +47,11 @@ export default function EntryComponent({entry}:props) {
         <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center'>{entry.username? entry.username: <i>No username</i>}</div>
         <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center'>{decryptedPass? decryptedPass? decryptedPass:<i>No Password</i> : "*".repeat(Math.max(8, Math.random()*15))}</div>
         <div className='flex w-full h-full items-center justify-center text-nowrap text-ellipsis overflow-hidden'>{entry.notes ? entry.notes :<i>No Notes</i>}</div>
-
+        {/* details/edit and delete buttons */}
+        <div className='flex w-full h-full items-center gap-2'>
+            <button type='button' className='flex w-full h-full  items-center justify-center border-2 rounded-lg bg-primary text-primary-content'>Details/Edit</button>
+            <button type='button' className='flex w-10 justify-center rounded-lg h-full items-center bg-error'><Image src={'/images/delete.svg'} alt='del' width={25} height={25} className='flex w-auto bg-error'/></button>
+        </div>
     </div>
   )
 }
