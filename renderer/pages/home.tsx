@@ -19,7 +19,7 @@ export default function HomePage() {
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
   const [page, setPage] = useState(0);
   // hard coded 100 should be changed to use whatever is listed in the preferences
-  const maxPages = shownEntries.length/100;
+  const maxPages = Math.floor(shownEntries.length/100);
 
 
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
@@ -38,21 +38,27 @@ export default function HomePage() {
     if (vault !== undefined && vault.isUnlocked){
       const sf = searchFilter.toLowerCase();
       setShownEntires(
-        sf !== "" ?
-          vault.entries.filter((x)=>{
-            if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)){
-              return true
-            }
-            if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)){
-              return true;
-            }
-            if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)){
-              return true;
-            }
-            return false;
-          })
-          :
-          [...vault.entries, ...Array.from({length: 1000}, (_,i)=>new Entry({title:'test_'+i, password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
+        ()=>{
+          const entries = sf !== "" ?
+            vault.entries.filter((x)=>{
+              if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)){
+                return true
+              }
+              if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)){
+                return true;
+              }
+              if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)){
+                return true;
+              }
+              return false;
+            })
+            :
+            // [...vault.entries, ...Array.from({length: 1000}, (_,i)=>new Entry({title:'test_'+i, password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
+            vault.entries
+            
+            setPaginatedEntries(entries);
+            return entries;
+        }
       )
       setPage(0);
     }
