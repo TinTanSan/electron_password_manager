@@ -24,7 +24,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
                 setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
+            }).catch((error)=>{
+                // consume the error
             })
+            
             setSubmit(false)
         }
     },[submit])
@@ -37,6 +40,16 @@ export default function EntryModal({setShowModal, uuid}:props) {
         setEntry(prev=>prev.cloneMutate(e.target.id, e.target.value));
         
     }
+
+    const handleCopy = ()=>{
+        entry.decryptEntryPass(vault.kek).then((x)=>{
+            navigator.clipboard.writeText(x);
+            navigator.clipboard.readText().then((x)=>{console.log(x)})
+        }).catch(()=>{
+            navigator.clipboard.writeText(entry.password.toString());    
+        })
+    }
+
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
@@ -58,15 +71,33 @@ export default function EntryModal({setShowModal, uuid}:props) {
             }
         })
     }
-    const escapeHandler = (e) => {
-    if (e.key === "Escape") {
-      setShowModal(false);
+    const escapeHandler = (e:KeyboardEvent) => {
+        if (e.key === "Escape") {
+        setShowModal(false);
+        }
+    };
+
+    const copyHandler = (e:KeyboardEvent)=>{
+        var key = e.key; // keyCode detection
+        var ctrl = e.ctrlKey // ctrl detection
+        var cmd_h = e.metaKey// ⌘ detection
+        
+        if ( key.toLowerCase() === 'c' && ctrl || key.toLowerCase() === 'c' && cmd_h ) {
+            e.preventDefault();
+            
+            handleCopy()
+            
+            
+        }
     }
-  };
+
+
     useEffect(() => {
     document.addEventListener("keydown", (escapeHandler), false);
+    addEventListener("keydown", (copyHandler), false);
     return () => {
       document.removeEventListener("keydown", escapeHandler, false);
+      removeEventListener("keydown", (copyHandler), false);
     };
   }, []);
 
@@ -75,7 +106,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         // blurred bg parent div
         <div className='fixed flex flex-col top-0 left-0 w-screen h-screen justify-center items-center backdrop-blur-lg z-10'>
         
-            <div className='flex flex-col bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-[75vw] h-[75vh] shrink-0 grow-0 rounded-xl shadow-lg p-2 text-xl'>
+            <div onCopy={handleCopy}  className='flex flex-col bg-base-100 border-2 border-base-300 relative shadow-base-300 z-30 w-[75vw] h-[75vh] shrink-0 grow-0 rounded-xl shadow-lg p-2 text-xl'>
             {
              (entry!==undefined)?
                 <form onSubmit={handleConfirm} className='flex flex-col gap-2 grow-0 shrink-0 w-full h-full text-base-content'>
