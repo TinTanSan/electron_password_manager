@@ -18,10 +18,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
     let timeout:NodeJS.Timeout;
     if (vault !== undefined && vault.isUnlocked){
-      console.log('timeout set')
-      timeout = setTimeout(() => {
-        setVault(prev=>({...prev, isUnlocked:false}));
-      }, 30000);
+      // timeout = setTimeout(() => {
+      //   setVault(prev=>({...prev, isUnlocked:false}));
+      // }, 30000);
     }
     return ()=>{
       if(timeout !== undefined){
