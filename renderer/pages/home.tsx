@@ -84,7 +84,7 @@ export default function HomePage() {
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>username</div>
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Password</div>
             <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Notes</div>
-            <div className='flex w-full h-full' />
+            <div className='flex w-full max-w-80 h-full' />
           </div>
           
           <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
