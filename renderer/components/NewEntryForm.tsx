@@ -89,8 +89,8 @@ export default function NewEntryForm({setShowForm}:props) {
                 {/* tab selector */}
                 <div className='flex w-full h-10'>
                     <div className='flex items-center'>
-                        <button onClick={()=>{setTab(true)}} type='button' className={`h-full transition-all duration-700 ${tab? "bg-base-100 ": "bg-base-200"}  rounded-t-lg w-20 items-center justify-center shrink-0 flex`}>Main</button>
-                        <button onClick={()=>{setTab(false)}} type='button' className={`h-full transition-all duration-700 ${!tab? "bg-base-100 ": "bg-base-200"} rounded-t-lg w-20 items-center justify-center shrink-0 flex`}>Extra</button>
+                        <button onClick={()=>{setTab(true)}} type='button' className={`h-full ${tab? "bg-base-100 border-t-2 border-base-300 border-r-2 border-l-2 top-0.5 relative": "bg-base-200"}  rounded-t-lg w-20 items-center justify-center shrink-0 flex`}>Main</button>
+                        <button onClick={()=>{setTab(false)}} type='button' className={`h-full ${!tab? "bg-base-100 border-t-2 border-base-300 border-r-2 border-l-2 top-0.5 relative ": "bg-base-200"} rounded-t-lg w-20 items-center justify-center shrink-0 flex`}>Extra</button>
                     </div>
                     {/* title */}
                     <div className='flex w-full items-center h-8 justify-center text-xl'>Create New Entry</div>
@@ -99,12 +99,12 @@ export default function NewEntryForm({setShowForm}:props) {
                 </div>
 
                 {tab ? 
-                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100'>
+                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-b-lg rounded-tr-lg'>
                    
                    <div className='text-xl'>Set Main fields</div>
                    <div className='flex w-full border-2 rounded-lg h-14 pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
                             <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-lg'>Title</div>
-                            <input value={entry.title} placeholder='enter a title here' id='title' className='flex w-full px-2 outline-none focus:bg-base-300 z-0 rounded-r-md bg-base-100' onChange={handleChange} />
+                            <input value={entry.title} placeholder='enter a title here' id='title' className='flex w-full px-2 outline-none bg-base-200 focus:bg-base-300 z-0 rounded-r-md' onChange={handleChange} />
                         </div>
                    <div className='flex w-full border-2 h-14 rounded-lg pl-2 focus-within:border-primary focus-within:shadow-lg/100 focus-within:shadow-zinc-300 transition-all duration-700'>
                         <div className='flex text-nowrap w-18 shrink md:w-20 lg:w-24 items-center text-md'>Username</div>
@@ -121,11 +121,11 @@ export default function NewEntryForm({setShowForm}:props) {
                     </div>
                     <div className='flex flex-col gap-2 items-start w-full h-full'>
                         <div className='flex text-nowrap w-full'>Notes:</div>
-                        <textarea value={entry.notes} id='notes' className='flex w-full h-full resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
+                        <textarea placeholder='Enter any notes here, for sensitive data (like security questions) head over to the extra tab and add an extra field with the sensitive marker checked.' value={entry.notes} id='notes' className='flex w-full h-full resize-none px-1 border-2 focus:bg-base-300 outline-none rounded-lg focus:border-primary transition-all duration-700 focus:shadow-lg/100 shadow-zinc-300' onChange={handleChange} />
                     </div>
                 </div>
                 :
-                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100'>
+                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg'>
                     <div className='flex flex-col w-full h-fit'>
                         <div className='flex w-full h-fit justify-center text-lg'>New Extra field</div>
                         <div className='flex flex-col gap-5'>
