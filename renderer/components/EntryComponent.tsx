@@ -14,7 +14,6 @@ export default function EntryComponent({entry}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [decryptedPass, setDecryptedPass] = useState<string | undefined>(undefined);
-    const [ctrlPressed, setCtrlPressed] = useState(false);
     const handleShowPass = ()=>{
         decryptedPass === undefined?
         entry.decryptEntryPass(vault.kek).then((pass)=>{
