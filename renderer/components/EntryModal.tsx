@@ -21,6 +21,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     
+
+    const [extraFeild, setExtraFeild] = useState({name:"", data:Buffer.from(''), isSensitive:false});
+
+
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
@@ -72,6 +76,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
             }
         })
     }
+
+    const handleAddExtraField = ()=>{
+        
+    }
+
+
     const escapeHandler = (e:KeyboardEvent) => {
         if (e.key === "Escape") {
         setShowModal(false);
@@ -92,6 +102,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     }
 
+    const handleChangeExtraField = (e:React.ChangeEvent<HTMLInputElement>)=>{
+        e.target.id !== 'data'?
+        setExtraFeild(prev=>({...prev, [e.target.id]:e.target.value}))
+        :
+        setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
+    }
 
     useEffect(() => {
     document.addEventListener("keydown", (escapeHandler), false);
@@ -155,8 +171,30 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             </form>
                         :
                         // extras tab
-                            <div className='flex flex-col w-full h-full'>
-                                
+                            <div className='flex flex-col w-full h-full gap-2 p-2'>
+                                <div className='flex flex-col w-full h-full border-2'>
+
+                                </div>
+                                <div className='flex flex-col w-full h-2/3 gap-2'>
+                                <div className='flex w-full'>Create new extra field</div>
+                                    <div className='flex flex-row w-full h-8 gap-2 items-center'>
+                                        <div className="flex w-full h-full border-2 rounded-lg px-2">
+                                            <label className='flex w-26 shrink-0 border-r h-full items-center'>Name</label>
+                                            <input className='flex w-full h-full outline-none' onChange={handleChangeExtraField}/>
+                                        </div>
+                                        <div className='flex w-fit h-full gap-2 items-center justify-center'>
+                                            <label className='flex w-fit'>sensitive</label>
+                                            <input className='flex w-4 h-4' type='checkbox' checked={extraFeild.isSensitive} onChange={(e)=>{setExtraFeild(prev=>({...prev, isSensitive:e.target.checked}))}} />
+                                        </div>
+                                    </div>
+                                    <div className='flex flex-row w-full h-8 border-2 rounded-lg items-center px-2 gap-1'>
+                                        <label className='flex w-26 shrink-0 border-r h-full items-center '>Value</label>
+                                        <input className='flex w-full h-full outline-none' onChange={handleChangeExtraField} value={extraFeild.data.toString()}/>
+                                    </div>
+                                    <div className='flex w-full items-center justify-center'>
+                                        <button className='flex w-32 bg-primary items-center justify-center text-primary-content rounded-lg h-8'>Add</button>
+                                    </div>
+                                </div>
                             </div>
                     }
                     </div>
