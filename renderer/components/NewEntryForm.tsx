@@ -74,10 +74,6 @@ export default function NewEntryForm({setShowForm}:props) {
                 })
                 setShowForm(false)
             })
-            
-
-
-            
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
         }
