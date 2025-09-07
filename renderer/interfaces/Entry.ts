@@ -35,6 +35,7 @@ export class Entry{
             this.metadata = {
                 createDate: now,
                 lastEditedDate: now,
+                lastRotate:now,
                 uuid: Entry.createUUID()
             }
         }
@@ -80,6 +81,7 @@ export class Entry{
         this.notes + "|"+ 
         this.metadata.createDate.toISOString()+ "|" + 
         this.metadata.lastEditedDate.toISOString()+ "|"+
+        this.metadata.lastRotate.toISOString()+"|"+
         this.metadata.uuid +"|"+
         this.extraFields.map((ef)=>
             ef.isSensitive? ef.name+"_T_"+ef.data.toString('base64') :ef.name+"_F_"+ef.data
@@ -91,7 +93,7 @@ export class Entry{
         if (fields.length < 6){
             throw new Error("Incorrect number of fields recovered from content string when trying to deserialise the entry, expected at least 6 required fields, got"+fields.length)
         }
-        const [title, username, dek, password, notes, createDate, lastEditedDate, uuid, ...exfields] = fields;
+        const [title, username, dek, password, notes, createDate, lastEditedDate, lastRotate, uuid, ...exfields] = fields;
         let extraFields:Array<ExtraField> | undefined = undefined;
         // ensure the length is greater than 1 and ensure first exfield element is a truthy string i.e. not an empty string
         if (exfields.length > 0 && exfields[0]){
@@ -102,7 +104,13 @@ export class Entry{
                 return {name, isSensitive, data:isSensitive? Buffer.from(data,'base64') : Buffer.from(data)}
             })
         }
-        return new Entry({title, username, dek:Buffer.from(dek, 'base64'), password:Buffer.from(password, 'base64'), notes, metadata:{createDate:new Date(createDate), lastEditedDate:new Date(lastEditedDate), uuid},extraFields})
+        return new Entry({
+            title, 
+            username, 
+            dek:Buffer.from(dek, 'base64'), 
+            password:Buffer.from(password, 'base64'), 
+            notes, 
+            metadata:{createDate:new Date(createDate), lastEditedDate:new Date(lastEditedDate), lastRotate:new Date(lastRotate), uuid},extraFields})
         
     }
 
@@ -202,5 +210,6 @@ export class Entry{
 interface MetaData{
     createDate:Date,
     lastEditedDate:Date,
+    lastRotate:Date,
     uuid: string
 } 
