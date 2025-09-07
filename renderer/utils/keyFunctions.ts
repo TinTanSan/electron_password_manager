@@ -1,5 +1,7 @@
 // a file to hold all the crypto key related functions
 
+import { Entry } from "../interfaces/Entry";
+
 /*
     user chooses password
     - Key Encryption Key (KEK) is generated using password
@@ -106,10 +108,10 @@ export async function makeNewDEK():Promise<CryptoKey>{
 }
 
 // unwrap an existing DEK for decrypting a text
-export async function unwrapDEK(kek:KEKParts, wrappedKey:string){
+export async function unwrapDEK(kek:KEKParts, wrappedKey:Buffer){
     return await crypto.subtle.unwrapKey(
             'raw',         // format of the wrapped key
-            Buffer.from(wrappedKey, 'base64'),    // wrapped key (ArrayBuffer)
+            Buffer.from(wrappedKey),    // wrapped key (ArrayBuffer)
             kek.kek,           // KEK used for unwrapping
             'AES-KW',      // algorithm used for wrapping
             { name: 'AES-GCM', length: 256 }, // expected algorithm of unwrapped key
@@ -126,4 +128,28 @@ export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<Buffer>{
         kek.kek,
         'AES-KW',
     ))
+}
+
+
+
+
+export async function rotateDEK(entry:Entry, kek:KEKParts){
+    const decryptedPass = await entry.decryptEntryPass(kek);
+    const decryptedExtraFields = await entry.decryptExtraFields(kek);
+    const newDek = await makeNewDEK();
+    const wrappedDek = await wrapDEK(newDek, kek);
+    let e = new Entry({
+        ...entry,
+        dek: wrappedDek
+    })
+    e.extraFields = [];
+    e.password = Buffer.from(decryptedPass);
+    e.password = await e.encryptPass(kek);
+    console.log(e.dek)
+    await Promise.all(decryptedExtraFields.map(async (x)=>{
+        e = await e.addExtraField(kek, x.name, x.data, x.isSensitive);
+    })).catch((error)=>{
+        console.error(error)
+    })
+    return e;
 }
