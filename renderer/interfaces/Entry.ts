@@ -1,4 +1,4 @@
-import { makeNewDEK, wrapDEK } from "../utils/keyFunctions";
+import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 interface ExtraField{
@@ -38,6 +38,26 @@ export class Entry{
                 uuid: Entry.createUUID()
             }
         }
+    }
+
+    static async build(init:PartialWithRequired<Entry,'title'|'password'|'username'>,kek:KEKParts){
+        if (init.dek !== undefined){
+            console.warn("you've called build even when you have already initialised the dek field");
+        }
+        
+        
+        const dek = await makeNewDEK();
+        init.dek = await wrapDEK(dek, kek)
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = await window.crypto.subtle.encrypt(
+                {name:'AES-GCM',
+                    iv
+                },
+                dek,
+            Buffer.from(init.password)
+        )
+        init.password = Buffer.concat([Buffer.from(enc), iv]);
+        return new Entry(init);
     }
     // used when you want lastEditDate to change i.e. permanent changes in fields 
     update(field: string, value: any) {
@@ -128,7 +148,7 @@ export class Entry{
             const d = data instanceof Buffer? data : Buffer.from(data);
             const encryptedText = await window.crypto.subtle.encrypt({name:"AES-GCM", iv}, unwrappedDEK, Buffer.from(d));
             unwrappedDEK = undefined;
-            return {name, data:Buffer.concat([Buffer.from(encryptedText), iv]), isSensitive:false};
+            return {name, data:Buffer.concat([Buffer.from(encryptedText), iv]), isSensitive:true};
         }
         throw new Error('Window object was undefined when trying to encrypt field')
     }
@@ -150,6 +170,32 @@ export class Entry{
     
     async removeExtraField(name:string):Promise<Entry>{
         return this.update('extraFields', this.extraFields.filter((x)=>x.name !== name))
+    }
+
+
+    async decryptExtraFields(kek:KEKParts){
+        if (typeof window !== 'undefined'){
+            if (this.dek === undefined){
+                throw new Error("dek was undefined, cannot call decryptExtraFields without DEK being defined")
+            }
+            const dek = await unwrapDEK(kek, this.dek);
+
+            return Promise.all(this.extraFields.map(async (x)=>{
+                let data = x.data;
+                console.log(x.isSensitive)
+                if (x.isSensitive){
+                    data = x.data.subarray(0,x.data.length-12);
+                    const iv = x.data.subarray(x.data.length-12)
+                    data = Buffer.from(await window.crypto.subtle.decrypt({name:'AES-GCM', iv:Buffer.from(iv)}, dek,Buffer.from(data)))
+                    console.log("data:",data)
+                }  
+                return {
+                    name:x.name,
+                    data,
+                    isSensitive:x.isSensitive
+                }
+            }))
+        }
     }
 }
 
