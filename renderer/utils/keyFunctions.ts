@@ -1,6 +1,8 @@
 // a file to hold all the crypto key related functions
 
+import { VaultType } from "../contexts/vaultContext";
 import { Entry } from "../interfaces/Entry";
+import { vaultLevelEncrypt } from "./vaultFunctions";
 
 /*
     user chooses password
@@ -130,7 +132,48 @@ export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<Buffer>{
     ))
 }
 
+export async function rotateVK( vault:VaultType){
+    const wrappedVk = await wrapDEK(await makeNewDEK(), vault.kek);
 
+    const newFileContents = await vaultLevelEncrypt(
+        structuredClone(vault.entries), // deep copy entries
+        wrappedVk,
+        vault.kek
+    );
+    const newVault: VaultType = {
+        ...structuredClone(vault), // deep copy vault
+        wrappedVK: wrappedVk,
+        fileContents: newFileContents,
+    };
+    return newVault;
+}
+
+export async function rotateKEK(vault:VaultType, password:string): Promise<VaultType>{
+    let vk = await unwrapDEK(vault.kek, vault.wrappedVK);
+    const deks = await Promise.all(
+        vault.entries.map(async (x)=>await unwrapDEK(vault.kek, x.dek))
+    )
+    const newKek = await makeNewKEK(password);
+    const newWrappedVK = await wrapDEK(vk, newKek);
+    vk = undefined;
+    const newEntries = await Promise.all(
+        vault.entries.map(async (entry, i):Promise<Entry> => (
+            entry.cloneMutate('dek', await wrapDEK(deks[i], newKek))
+        ))
+    );
+    return {
+        ...structuredClone(vault),
+        kek: newKek,
+        wrappedVK: newWrappedVK,
+        entries: newEntries,
+        fileContents: 
+        await vaultLevelEncrypt(
+            newEntries,
+            newWrappedVK,
+            newKek
+        ),
+    };
+}
 
 
 export async function rotateDEK(entry:Entry, kek:KEKParts){
@@ -151,5 +194,6 @@ export async function rotateDEK(entry:Entry, kek:KEKParts){
     })).catch((error)=>{
         console.error(error)
     })
+    e.metadata.lastRotate = new Date();
     return e;
 }
