@@ -10,6 +10,13 @@ export type VaultType = {
     entries: Array<Entry>,
 }
 
+type vaultMetaData = {
+    lastRotateDate: Date,
+    createDate: Date,
+    lastEditDate:Date,
+    
+}
+
 type VaultCxtType = {
     vault: VaultType, setVault: React.Dispatch<React.SetStateAction<VaultType>>}
 
