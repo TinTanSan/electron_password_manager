@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { BannerContext } from '../contexts/bannerContext'
 import { addBanner } from '../interfaces/Banner'
 
-export default function loadFile() {
+export default function LoadFile() {
     const vaultContext = useContext(VaultContext)
     const navigate = useRouter()
     const [recent, setRecent] = useState<Array<string>>([]);
