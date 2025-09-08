@@ -93,7 +93,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
             }
         }
         const entries = entries_raw.map((x)=>{
-            const [title, username,dek, password, notes, createDate, lastEditedDate] = Buffer.from(x).toString('utf8').split("|");
+            const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid] = Buffer.from(x).toString('utf8').split("|");
             const entry:Entry = new Entry({
                 title,
                 username,
@@ -103,7 +103,8 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                 metadata:{
                     createDate:new Date(createDate),
                     lastEditedDate:new Date(lastEditedDate),
-                    uuid: ""
+                    lastRotate:new Date(lastRotateDate),
+                    uuid: uuid
                 }
             })
             return entry
