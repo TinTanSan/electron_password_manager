@@ -1,7 +1,7 @@
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
-interface ExtraField{
+export interface ExtraField{
     isSensitive: boolean,
     name: string,
     data: Buffer
