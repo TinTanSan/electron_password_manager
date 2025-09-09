@@ -82,6 +82,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         entry.addExtraField(vault.kek, extraFeild.name, extraFeild.data, extraFeild.isSensitive).then((e)=>{
             setEntry(e);
         })
+        setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
     }
 
     const escapeHandler = (e:KeyboardEvent) => {
