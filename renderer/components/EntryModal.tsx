@@ -6,6 +6,7 @@ import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
 import RandomPassModal from './RandomPassModal';
 import { writeEntriesToFile } from '../utils/vaultFunctions';
+import ExtraFieldComponent from './ExtraField';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -78,9 +79,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleAddExtraField = ()=>{
-        
+        entry.addExtraField(vault.kek, extraFeild.name, extraFeild.data, extraFeild.isSensitive).then((e)=>{
+            setEntry(e);
+        })
     }
-
 
     const escapeHandler = (e:KeyboardEvent) => {
         if (e.key === "Escape") {
@@ -103,6 +105,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleChangeExtraField = (e:React.ChangeEvent<HTMLInputElement>)=>{
+        console.log(e.target.id, e.target.value)
         e.target.id !== 'data'?
         setExtraFeild(prev=>({...prev, [e.target.id]:e.target.value}))
         :
@@ -172,15 +175,30 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         :
                         // extras tab
                             <div className='flex flex-col w-full h-full gap-2 p-2'>
-                                <div className='flex flex-col w-full h-full border-2'>
+                                {/* all extra fields */}
+                                <div className='flex flex-col w-full h-full overflow-y-hidden border-2 no-repeat'>
+                                    <div className='flex h-8 w-full flow-row text-md gap-2 px-3'>
+                                        <div className="flex w-full h-full">Name</div>
+                                        <div className="flex w-full h-full">data</div>
+                                        <div className="flex w-fit h-full">sensitive</div>
+                                    </div>
+                                    <div className='flex flex-col w-full h-full overflow-y-auto'>
+                                        <div className="flex flex-col gap-2 p-1">
+                                            {entry.extraFields.map((ef,i)=>
+                                                <ExtraFieldComponent extraField={ef} key={i} />
+                                            )}
+                                            
 
+                                        </div>
+                                    </div>
                                 </div>
+                                {/* new extra field */}
                                 <div className='flex flex-col w-full h-2/3 gap-2'>
-                                <div className='flex w-full'>Create new extra field</div>
+                                    <div className='flex w-full'>Create new extra field</div>
                                     <div className='flex flex-row w-full h-8 gap-2 items-center'>
                                         <div className="flex w-full h-full border-2 rounded-lg px-2">
                                             <label className='flex w-26 shrink-0 border-r h-full items-center'>Name</label>
-                                            <input className='flex w-full h-full outline-none' onChange={handleChangeExtraField}/>
+                                            <input className='flex w-full h-full outline-none' id='name' onChange={handleChangeExtraField}/>
                                         </div>
                                         <div className='flex w-fit h-full gap-2 items-center justify-center'>
                                             <label className='flex w-fit'>sensitive</label>
@@ -189,10 +207,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                     <div className='flex flex-row w-full h-8 border-2 rounded-lg items-center px-2 gap-1'>
                                         <label className='flex w-26 shrink-0 border-r h-full items-center '>Value</label>
-                                        <input className='flex w-full h-full outline-none' onChange={handleChangeExtraField} value={extraFeild.data.toString()}/>
+                                        <input className='flex w-full h-full outline-none' id='data' onChange={handleChangeExtraField} value={extraFeild.data.toString()}/>
                                     </div>
                                     <div className='flex w-full items-center justify-center'>
-                                        <button className='flex w-32 bg-primary items-center justify-center text-primary-content rounded-lg h-8'>Add</button>
+                                        <button onClick={()=>{handleAddExtraField()}} className='flex w-32 bg-primary items-center justify-center text-primary-content rounded-lg h-8'>Add</button>
                                     </div>
                                 </div>
                             </div>
