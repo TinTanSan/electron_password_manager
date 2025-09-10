@@ -65,13 +65,19 @@ export default function NewEntryForm({setShowForm}:props) {
             // go ahead
             entry.encryptPass(vault.kek).then((encryptedPass)=>{
                 const newEntries = [...vault.entries, entry.update('password', encryptedPass)];    
-                writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek).then(({content, status})=>{
-                    if (status === "OK"){
-                        setVault((prev)=>({...prev, entries:newEntries, fileContents:content}))
-                    }else{
-                        addBanner(bannerContext, 'unable to add entry, writing to file failed', 'error');
-                    }
-                })
+                
+                        setVault((prev)=>{
+                            const newState = {...prev, entries:newEntries};
+                            writeEntriesToFile(vault).then(({content, status})=>{
+                                if (status === "OK"){
+                                    newState.fileContents = content;
+                                }else{
+                                    addBanner(bannerContext, 'unable to add entry, writing to file failed', 'error');
+                                }
+                            })
+                            return newState
+                        })
+                    
                 setShowForm(false)
             })
         }else{
