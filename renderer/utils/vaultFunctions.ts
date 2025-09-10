@@ -85,7 +85,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
         );
         const encContents = Buffer.from(fileContents.subarray(56,fileContents.length-12));
         const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
-
+        console.log(decryptedItems.toString())
         let entries_raw = [];
         let curEntry = [];
         for (let i = 0; i<decryptedItems.length; i++){
@@ -99,15 +99,19 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
         const entries = entries_raw.map((x)=>{
             console.log(Buffer.from(x).toString('utf8').split("|"))
             const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(x).toString('utf8').split("|");
-            const efs = extraFields.map((x):ExtraField=>{
-                const [name, data, isSensitive] = x.split("_");
-                console.log(name, data, isSensitive)
-                return {
-                    name,
-                    data: Buffer.from(data, 'base64'),
-                    isSensitive:isSensitive === "1"
-                }
-            })
+            let efs = []
+            if (extraFields[0] !== ""){
+                efs = extraFields.map((x):ExtraField=>{
+                    const [name, data, isSensitive] = x.split("_");
+                    console.log(name, data, isSensitive)
+                    return {
+                        name,
+                        data: Buffer.from(data, 'base64'),
+                        isSensitive:isSensitive === "1"
+                    }
+                })
+            }
+            
             const entry:Entry = new Entry({
                 title,
                 username,
