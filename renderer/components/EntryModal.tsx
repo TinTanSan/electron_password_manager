@@ -68,7 +68,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     ...prev, 
                     entries: newEntries
                 }));
-                writeEntriesToFile(newEntries, vault.filePath, vault.wrappedVK, vault.kek);
+                writeEntriesToFile(vault);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
                 setSubmit(true)
                 setShowModal(false);
@@ -81,8 +81,14 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const handleAddExtraField = ()=>{
         entry.addExtraField(vault.kek, extraFeild.name, extraFeild.data, extraFeild.isSensitive).then((e)=>{
             setEntry(e);
+            setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
+            setVault(prev=>{
+                const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
+                writeEntriesToFile(newState);
+                return newState;
+            })
         })
-        setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
+        
     }
 
     const escapeHandler = (e:KeyboardEvent) => {
@@ -199,7 +205,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <div className='flex flex-row w-full h-8 gap-2 items-center'>
                                         <div className="flex w-full h-full border-2 rounded-lg px-2">
                                             <label className='flex w-26 shrink-0 border-r h-full items-center'>Name</label>
-                                            <input className='flex w-full h-full outline-none' id='name' onChange={handleChangeExtraField}/>
+                                            <input className='flex w-full h-full outline-none' id='name' value={extraFeild.name} onChange={handleChangeExtraField}/>
                                         </div>
                                         <div className='flex w-fit h-full gap-2 items-center justify-center'>
                                             <label className='flex w-fit'>sensitive</label>
