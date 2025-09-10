@@ -85,7 +85,6 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
         );
         const encContents = Buffer.from(fileContents.subarray(56,fileContents.length-12));
         const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
-        console.log(decryptedItems.toString())
         let entries_raw = [];
         let curEntry = [];
         for (let i = 0; i<decryptedItems.length; i++){
