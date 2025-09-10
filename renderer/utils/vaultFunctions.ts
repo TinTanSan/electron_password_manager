@@ -1,6 +1,7 @@
 // this file contains functions to do with vault to file transitions i.e. opening a file and converting
 // to a vault, type and handling splitting of file contents into entries etc. and vice versa
-import { Entry } from "../interfaces/Entry";
+import { VaultType } from "../contexts/vaultContext";
+import { Entry, ExtraField } from "../interfaces/Entry";
 import { makeNewDEK } from "./keyFunctions";
 
 // this function is to do with commiting a KEK whenever the master password changes, it will commit a salt,
@@ -19,7 +20,7 @@ export async function commitKEK(filePath:string,fileContents:Buffer,kek:KEKParts
     }
 }
 
-export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, kek:KEKParts){
+export async function vaultLevelEncrypt({entries, wrappedVK, kek}:VaultType){
     if (typeof window !=="undefined"){
         const crypto = window.crypto.subtle;
         const VK = await crypto.unwrapKey(
@@ -40,12 +41,13 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
             x.dek.toString('base64')+ "|" +
             x.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
                                                  //  improperly delimit the encrypted text, which would have serious implications when decrypting
-             x.notes + "|"+ 
+            x.notes + "|"+ 
+            x.extraFields.map((ef)=>ef.name+"_"+ef.data.toString('base64')+"_" + ef.isSensitive?"1":"0").join("+")+"|"+
             x.metadata.createDate.toISOString()+ "|" + 
             x.metadata.lastEditedDate.toISOString()+ "|"+
             x.metadata.uuid,
         ).join("$") + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
-        
+        console.log(content)
         const enc = Buffer.concat([
                 kek.salt,
                 wrappedVK,
@@ -56,10 +58,10 @@ export async function vaultLevelEncrypt(entries:Array<Entry>, wrappedVK:Buffer, 
     }
 }
 
-export async function writeEntriesToFile(entries:Array<Entry>, filePath:string, wrappedVK:Buffer, kek:KEKParts){
+export async function writeEntriesToFile(vault:VaultType){
     if (typeof window !=="undefined"){
-        const content = Buffer.from(await vaultLevelEncrypt(entries, wrappedVK,kek));
-        const result = await window.ipc.writeFile(filePath, content);
+        const content = Buffer.from(await vaultLevelEncrypt(vault));
+        const result = await window.ipc.writeFile(vault.filePath, content);
         return result === "OK" ? {content, status:result} : {content:undefined, status:result};
     }
     
@@ -93,7 +95,16 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
             }
         }
         const entries = entries_raw.map((x)=>{
-            const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid] = Buffer.from(x).toString('utf8').split("|");
+            console.log(Buffer.from(x).toString('utf8').split("|"))
+            const [title, username,dek, password, notes, extraFields, createDate, lastEditedDate,lastRotateDate,uuid] = Buffer.from(x).toString('utf8').split("|");
+            extraFields.split("+").map((x):ExtraField=>{
+                const [name, data, isSensitive] = x.split("_");
+                return {
+                    name,
+                    data: Buffer.from(data, 'base64'),
+                    isSensitive:isSensitive === "1"
+                }
+            })
             const entry:Entry = new Entry({
                 title,
                 username,
