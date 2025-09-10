@@ -8,6 +8,7 @@ import { makeNewDEK, wrapDEK } from '../utils/keyFunctions';
 import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
 import { writeEntriesToFile } from '../utils/vaultFunctions'
 import RandomPassModal from './RandomPassModal'
+import ExtraFieldComponent from './ExtraField'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -65,10 +66,9 @@ export default function NewEntryForm({setShowForm}:props) {
             // go ahead
             entry.encryptPass(vault.kek).then((encryptedPass)=>{
                 const newEntries = [...vault.entries, entry.update('password', encryptedPass)];    
-                
                         setVault((prev)=>{
                             const newState = {...prev, entries:newEntries};
-                            writeEntriesToFile(vault).then(({content, status})=>{
+                            writeEntriesToFile(newState).then(({content, status})=>{
                                 if (status === "OK"){
                                     newState.fileContents = content;
                                 }else{
@@ -154,10 +154,7 @@ export default function NewEntryForm({setShowForm}:props) {
                         {
                             entry.extraFields.length > 0 ?
                                 entry.extraFields.map((extraField, i)=>
-                                <div className='flex text-base-content border-2 h-10'>
-                                    {extraField.name}
-                                    {extraField.data.toString()}
-                                </div>)
+                                <ExtraFieldComponent extraField={extraField} key={i} />)
                             :
                                 <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
                                     Extra fields that you create will show up here
