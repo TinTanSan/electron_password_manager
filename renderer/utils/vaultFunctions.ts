@@ -42,12 +42,14 @@ export async function vaultLevelEncrypt({entries, wrappedVK, kek}:VaultType){
             x.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
                                                  //  improperly delimit the encrypted text, which would have serious implications when decrypting
             x.notes + "|"+ 
-            x.extraFields.map((ef)=>ef.name+"_"+ef.data.toString('base64')+"_" + ef.isSensitive?"1":"0").join("+")+"|"+
+            
             x.metadata.createDate.toISOString()+ "|" + 
             x.metadata.lastEditedDate.toISOString()+ "|"+
-            x.metadata.uuid,
+            x.metadata.lastRotate.toISOString()+ "|"+
+            x.metadata.uuid + "|"+
+            x.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isSensitive?'1':'0'))).join("|")
         ).join("$") + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
-        console.log(content)
+        
         const enc = Buffer.concat([
                 kek.salt,
                 wrappedVK,
@@ -96,9 +98,10 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
         }
         const entries = entries_raw.map((x)=>{
             console.log(Buffer.from(x).toString('utf8').split("|"))
-            const [title, username,dek, password, notes, extraFields, createDate, lastEditedDate,lastRotateDate,uuid] = Buffer.from(x).toString('utf8').split("|");
-            extraFields.split("+").map((x):ExtraField=>{
+            const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(x).toString('utf8').split("|");
+            const efs = extraFields.map((x):ExtraField=>{
                 const [name, data, isSensitive] = x.split("_");
+                console.log(name, data, isSensitive)
                 return {
                     name,
                     data: Buffer.from(data, 'base64'),
@@ -111,6 +114,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                 dek:Buffer.from(dek, 'base64'),
                 password: Buffer.from(password, 'base64'),
                 notes,
+                extraFields:efs,
                 metadata:{
                     createDate:new Date(createDate),
                     lastEditedDate:new Date(lastEditedDate),
@@ -118,6 +122,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                     uuid: uuid
                 }
             })
+            console.log(entry)
             return entry
         });
         
