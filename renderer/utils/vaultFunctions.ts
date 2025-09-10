@@ -97,13 +97,11 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
             }
         }
         const entries = entries_raw.map((x)=>{
-            console.log(Buffer.from(x).toString('utf8').split("|"))
             const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(x).toString('utf8').split("|");
             let efs = []
             if (extraFields[0] !== ""){
                 efs = extraFields.map((x):ExtraField=>{
                     const [name, data, isSensitive] = x.split("_");
-                    console.log(name, data, isSensitive)
                     return {
                         name,
                         data: Buffer.from(data, 'base64'),
@@ -126,7 +124,6 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                     uuid: uuid
                 }
             })
-            console.log(entry)
             return entry
         });
         
