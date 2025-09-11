@@ -154,7 +154,7 @@ export default function NewEntryForm({setShowForm}:props) {
                         {
                             entry.extraFields.length > 0 ?
                                 entry.extraFields.map((extraField, i)=>
-                                <ExtraFieldComponent extraField={extraField} key={i} />)
+                                <ExtraFieldComponent extraField={extraField} key={i} uuid={entry.metadata.uuid} onDelete={handleRemoveExtraField} />)
                             :
                                 <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
                                     Extra fields that you create will show up here
