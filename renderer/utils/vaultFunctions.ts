@@ -35,20 +35,9 @@ export async function vaultLevelEncrypt({entries, wrappedVK, kek}:VaultType){
         const iv = new Uint8Array(12);
         
         window.crypto.getRandomValues(iv);
-        const content = entries.map((x)=>
-            x.title+"|" + 
-            x.username + "|" + 
-            x.dek.toString('base64')+ "|" +
-            x.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
-                                                 //  improperly delimit the encrypted text, which would have serious implications when decrypting
-            x.notes + "|"+ 
-            
-            x.metadata.createDate.toISOString()+ "|" + 
-            x.metadata.lastEditedDate.toISOString()+ "|"+
-            x.metadata.lastRotate.toISOString()+ "|"+
-            x.metadata.uuid + "|"+
-            x.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isSensitive?'1':'0'))).join("|")
-        ).join("$") + "$"; //the + "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
+        //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, 
+        // there will be at least one $ symbol
+        const content = entries.map((x)=>x.serialise()).join("$") + "$"; 
         
         const enc = Buffer.concat([
                 kek.salt,
