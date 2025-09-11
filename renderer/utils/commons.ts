@@ -20,7 +20,7 @@ export async function decrypt(content:Buffer| string, key: CryptoKey, iv?:Buffer
         let c = content instanceof Buffer? content : Buffer.from(content);
         if (c.length < 12){
             return {
-                data: Buffer.from("unsafe decrypt, expected at least 12 bytes of data, got"+c.length),
+                data: Buffer.from("unsafe decrypt, expected at least 12 bytes of data, got "+c.length),
                 status :'ERROR'
             }
         }
