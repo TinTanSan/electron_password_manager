@@ -1,4 +1,4 @@
-import { encrypt } from "../utils/commons";
+import { decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -123,9 +123,12 @@ export class Entry{
 
     async decryptEntryPass(kek:KEKParts){
         if (typeof window !== 'undefined'){
-            const iv = Buffer.from(this.password.subarray(this.password.length-12))
             const dek = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:"AES-KW"}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
-            return new TextDecoder().decode(await window.crypto.subtle.decrypt({name:'AES-GCM', iv}, dek , Buffer.from(this.password.subarray(0,this.password.length-12))))
+            const results = await decrypt(this.password, dek);
+            if (results.status === "OK"){
+                return results.data
+            }
+            throw new Error("Error decrypting password: "+results.data);
         }
         throw new Error("Window is not defined, cannot decrypt entry pass")
     }
