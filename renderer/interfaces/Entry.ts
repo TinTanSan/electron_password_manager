@@ -205,6 +205,15 @@ export class Entry{
             }))
         }
     }
+
+    async decryptExtraField(name:string, kek:KEKParts){
+        
+        if (typeof window !== 'undefined'){
+            const ef = this.extraFields.find((x=>x.name === name));
+            
+        }
+        throw new Error("Window is not defined")
+    }
 }
 
 interface MetaData{
