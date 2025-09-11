@@ -15,9 +15,19 @@ export function isStrongPassword(password:string):string{
     return passwordMessage.length > 0? "The password "+passwordMessage.join(", ") : "";
 }
 
-export async function decrypt(content:Buffer| string, key: CryptoKey, iv:Buffer):Promise<{data:Buffer, status:"OK"| "ERROR"}>{
+export async function decrypt(content:Buffer| string, key: CryptoKey, iv?:Buffer):Promise<{data:Buffer, status:"OK"| "ERROR"}>{
     if (typeof window !== "undefined"){
-        const c = content instanceof Buffer? content : Buffer.from(content);
+        let c = content instanceof Buffer? content : Buffer.from(content);
+        if (c.length < 12){
+            return {
+                data: Buffer.from("unsafe decrypt, expected at least 12 bytes of data, got"+c.length),
+                status :'ERROR'
+            }
+        }
+        if (iv === undefined){
+            iv = c.subarray(c.length-12);
+            c = c.subarray(0, c.length-12);
+        }
         try {
             return {
                 data: Buffer.from(await window.crypto.subtle.decrypt({ name:"AES-GCM", iv:Buffer.from(iv)}, key, Buffer.from(c))),   
@@ -30,7 +40,7 @@ export async function decrypt(content:Buffer| string, key: CryptoKey, iv:Buffer)
             }
         }
     }
-    throw new Error("Window was not defined")
+    throw new Error("Window object was not defined when trying to decrypt")
 
 }
 
