@@ -91,6 +91,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
         
     }
 
+    const handleDeleteExtraField = (name:string)=>{
+        setEntry(prev=>(prev.update('extraFields',prev.extraFields.filter(x=>x.name === name))))
+    }
+
     const escapeHandler = (e:KeyboardEvent) => {
         if (e.key === "Escape") {
         setShowModal(false);
@@ -192,7 +196,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <div className='flex flex-col w-full h-full overflow-y-auto'>
                                         <div className="flex flex-col gap-2 p-1">
                                             {entry.extraFields.map((ef,i)=>
-                                                <ExtraFieldComponent extraField={ef} key={i} />
+                                                <ExtraFieldComponent extraField={ef} uuid={entry.metadata.uuid} key={i} />
                                             )}
                                             
 
