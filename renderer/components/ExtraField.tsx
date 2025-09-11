@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { ExtraField } from '../interfaces/Entry'
-
+import { VaultContext } from '../contexts/vaultContext'
+import Image from 'next/image';
 
 type props = {
     extraField: ExtraField,
-    uuid: string
+    uuid: string,
+    onDelete: (name:string)=>void 
 }
 
 export default function ExtraFieldComponent({extraField, uuid}:props) {
-
+  const {vault} = useContext(VaultContext);
   const [data, setData] = useState();
 
   useEffect(()=>{
-    
+    vault.entries.find(x=>x.metadata.uuid === uuid)
   },[extraField])
 
   return (
@@ -21,8 +23,9 @@ export default function ExtraFieldComponent({extraField, uuid}:props) {
         
         <input className='flex w-full border-r-2 border-base-300 h-full items-center outline-none' readOnly value={extraField.data.toString()} />
         <div className='flex w-32 justify-end'>
-        <input type='checkbox' checked={extraField.isSensitive} className='flex' readOnly/>
+          <input type='checkbox' checked={extraField.isSensitive} className='flex' readOnly/>
         </div>
+        <Image src={'/images/delete.svg'} alt='del' width={25} height={25} className='flex w-auto bg-error'/>
     </div>
   )
 }
