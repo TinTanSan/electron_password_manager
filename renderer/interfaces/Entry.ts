@@ -1,3 +1,4 @@
+import { encrypt } from "../utils/commons";
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -74,18 +75,16 @@ export class Entry{
         
 
         return this.title+"|" + 
-        this.username + "|" + 
-        this.dek.toString('base64')+ "|" +
-        this.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
-                                                //  improperly delimit the encrypted text, which would have serious implications when decrypting
-        this.notes + "|"+ 
-        this.metadata.createDate.toISOString()+ "|" + 
-        this.metadata.lastEditedDate.toISOString()+ "|"+
-        this.metadata.lastRotate.toISOString()+"|"+
-        this.metadata.uuid +"|"+
-        this.extraFields.map((ef)=>
-            ef.isSensitive? ef.name+"_T_"+ef.data.toString('base64') :ef.name+"_F_"+ef.data
-        ).join("|");
+            this.username + "|" + 
+            this.dek.toString('base64')+ "|" +
+            this.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
+                                                 //  improperly delimit the encrypted text, which would have serious implications when decrypting
+            this.notes + "|"+ 
+            this.metadata.createDate.toISOString()+ "|" + 
+            this.metadata.lastEditedDate.toISOString()+ "|"+
+            this.metadata.lastRotate.toISOString()+ "|"+
+            this.metadata.uuid + "|"+
+            this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isSensitive?'1':'0'))).join("|");
     }
     
     static deserialise(content:string){
@@ -131,19 +130,11 @@ export class Entry{
         throw new Error("Window is not defined, cannot decrypt entry pass")
     }
 
-    // encrypt only pass of an entry given the pass, wrappedDEK, and kek
+    // encrypt only pass of an entry
     async encryptPass({kek}:KEKParts):Promise<Buffer>{
         if (typeof window !== 'undefined'){
             const dek = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek, {name:"AES-KW"}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
-            const enc = await window.crypto.subtle.encrypt(
-                {name:'AES-GCM',
-                    iv
-                },
-                dek,
-                Buffer.from(this.password)
-            )
-            return Buffer.concat([Buffer.from(enc), iv]);
+            return await encrypt(this.password, dek);
 
         }
         throw new Error("window is not defined, cannot encrypt entry pass")
@@ -151,12 +142,9 @@ export class Entry{
 
     async encryptField(kek:KEKParts, name:string, data:string | Buffer):Promise<ExtraField>{
         if (typeof window !== 'undefined'){
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
             var unwrappedDEK = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:'AES-KW'}, {name:'AES-GCM'}, false, ['encrypt', 'decrypt']);
             const d = data instanceof Buffer? data : Buffer.from(data);
-            const encryptedText = await window.crypto.subtle.encrypt({name:"AES-GCM", iv}, unwrappedDEK, Buffer.from(d));
-            unwrappedDEK = undefined;
-            return {name, data:Buffer.concat([Buffer.from(encryptedText), iv]), isSensitive:true};
+            return {name, data:await encrypt(d, unwrappedDEK), isSensitive:true};
         }
         throw new Error('Window object was undefined when trying to encrypt field')
     }
