@@ -66,7 +66,6 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    console.log('pages set')
     setPaginatedEntries(shownEntries.slice(page*100, (page*100)+100))
   }, [page])
 
