@@ -134,12 +134,11 @@ export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<Buffer>{
 
 export async function rotateVK( vault:VaultType){
     const wrappedVk = await wrapDEK(await makeNewDEK(), vault.kek);
-
-    const newFileContents = await vaultLevelEncrypt(
-        structuredClone(vault.entries), // deep copy entries
-        wrappedVk,
-        vault.kek
-    );
+    const newState:VaultType = 
+    { entries: structuredClone(vault.entries), // deep copy entries
+        wrappedVK:wrappedVk,
+        ...vault}
+    const newFileContents = await vaultLevelEncrypt(newState);
     const newVault: VaultType = {
         ...structuredClone(vault), // deep copy vault
         wrappedVK: wrappedVk,
@@ -161,18 +160,14 @@ export async function rotateKEK(vault:VaultType, password:string): Promise<Vault
             entry.cloneMutate('dek', await wrapDEK(deks[i], newKek))
         ))
     );
-    return {
+    let newState:VaultType = {
         ...structuredClone(vault),
         kek: newKek,
         wrappedVK: newWrappedVK,
         entries: newEntries,
-        fileContents: 
-        await vaultLevelEncrypt(
-            newEntries,
-            newWrappedVK,
-            newKek
-        ),
-    };
+    }
+    newState.fileContents = await vaultLevelEncrypt(newState);
+    return newState;
 }
 
 
