@@ -1,12 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ExtraField } from '../interfaces/Entry'
 
 
 type props = {
-    extraField: ExtraField
+    extraField: ExtraField,
+    uuid: string
 }
 
-export default function ExtraFieldComponent({extraField}:props) {
+export default function ExtraFieldComponent({extraField, uuid}:props) {
+
+  const [data, setData] = useState();
+
+  useEffect(()=>{
+    
+  },[extraField])
+
   return (
     <div className='flex flex-row w-full text-md gap-2 border-2 rounded-lg border-base-300 px-2 h-10 items-center'>
         <input className='flex w-full h-full items-center border-r-2 border-base-300 outline-none' readOnly value={extraField.name} />
