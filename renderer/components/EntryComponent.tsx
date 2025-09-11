@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { VaultContext } from '../contexts/vaultContext';
 import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
+import { writeEntriesToFile } from '../utils/vaultFunctions';
 type props={
     entry: Entry
 }
@@ -17,7 +18,7 @@ export default function EntryComponent({entry}:props) {
     const handleShowPass = ()=>{
         decryptedPass === undefined?
         entry.decryptEntryPass(vault.kek).then((pass)=>{
-            setDecryptedPass(pass);
+            setDecryptedPass(pass.toString());
             setTimeout(() => {
                 setDecryptedPass(undefined);
             }, 10000);
@@ -26,8 +27,27 @@ export default function EntryComponent({entry}:props) {
         setDecryptedPass(undefined);
     }
     const handleCopy = ()=>{
-        entry.decryptEntryPass(vault.kek).then((pass)=>{
-            navigator.clipboard.writeText(pass).then(()=>{
+        if (decryptedPass){
+            navigator.clipboard.writeText(decryptedPass.toString()).then(()=>{
+                // set clipboard to be empty after 10 seconds
+                addBanner(bannerContext, 'password copied to clipboard', 'success')
+                setTimeout(() => {
+                    window.ipc.clearClipboard();
+                    addBanner(bannerContext, 'password removed from clipboard','info');
+                }, 5000);
+            })
+        }else{
+            entry.decryptEntryPass(vault.kek).then((pass)=>{
+                navigator.clipboard.writeText(pass.toString()).then(()=>{
+                    // set clipboard to be empty after 10 seconds
+                    addBanner(bannerContext, 'password copied to clipboard', 'success')
+                    setTimeout(() => {
+                        window.ipc.clearClipboard();
+                        addBanner(bannerContext, 'password removed from clipboard','info');
+                    }, 5000);
+                })
+            }).catch(error=>{
+            navigator.clipboard.writeText(entry.password.toString()).then(()=>{
                 // set clipboard to be empty after 10 seconds
                 addBanner(bannerContext, 'password copied to clipboard', 'success')
                 setTimeout(() => {
@@ -36,9 +56,17 @@ export default function EntryComponent({entry}:props) {
                 }, 5000);
             })
         })
+        }
+        
     }
     const handleDelete = ()=>{
-        setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
+        setVault((prev)=>
+            
+            {
+                const newState ={...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}
+                writeEntriesToFile(newState);
+                return newState;
+            })
     }
     
 
