@@ -9,6 +9,13 @@ export interface ExtraField{
 }
 
 
+interface MetaData{
+    createDate:Date,
+    lastEditedDate:Date,
+    lastRotate:Date,
+    uuid: string
+} 
+
 export class Entry{
     dek: Buffer;
     title    : string;
@@ -72,8 +79,6 @@ export class Entry{
 
 
     serialise(){
-        
-
         return this.title+"|" + 
             this.username + "|" + 
             this.dek.toString('base64')+ "|" +
@@ -206,15 +211,8 @@ export class Entry{
         
         if (typeof window !== 'undefined'){
             const ef = this.extraFields.find((x=>x.name === name));
-            
+            return await decrypt(ef.data, await unwrapDEK(kek, this.dek));
         }
         throw new Error("Window is not defined")
     }
 }
-
-interface MetaData{
-    createDate:Date,
-    lastEditedDate:Date,
-    lastRotate:Date,
-    uuid: string
-} 
