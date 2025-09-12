@@ -49,7 +49,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleCopy = ()=>{
         entry.decryptEntryPass(vault.kek).then((x)=>{
-            navigator.clipboard.writeText(x);
+            navigator.clipboard.writeText(x.toString());
         }).catch(()=>{
             navigator.clipboard.writeText(entry.password.toString());    
         })
