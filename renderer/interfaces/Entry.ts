@@ -88,29 +88,34 @@ export class Entry{
     }
     
     static deserialise(content:string){
-        const fields = content.split("|");
-        if (fields.length < 6){
-            throw new Error("Incorrect number of fields recovered from content string when trying to deserialise the entry, expected at least 6 required fields, got"+fields.length)
-        }
-        const [title, username, dek, password, notes, createDate, lastEditedDate, lastRotate, uuid, ...exfields] = fields;
-        let extraFields:Array<ExtraField> | undefined = undefined;
-        // ensure the length is greater than 1 and ensure first exfield element is a truthy string i.e. not an empty string
-        if (exfields.length > 0 && exfields[0]){
-            console.log(exfields)
-            extraFields = exfields.map((field):ExtraField=>{
-                const [name, iss, data] = field.split("_");
-                const isSensitive = iss === "T"
-                return {name, isSensitive, data:isSensitive? Buffer.from(data,'base64') : Buffer.from(data)}
+        const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(content).toString('utf8').split("|");
+            let efs = []
+            if (extraFields[0] !== ""){
+                efs = extraFields.map((x):ExtraField=>{
+                    const [name, data, isSensitive] = x.split("_");
+                    return {
+                        name,
+                        data: Buffer.from(data, 'base64'),
+                        isSensitive:isSensitive === "1"
+                    }
+                })
+            }
+            
+            const entry:Entry = new Entry({
+                title,
+                username,
+                dek:Buffer.from(dek, 'base64'),
+                password: Buffer.from(password, 'base64'),
+                notes,
+                extraFields:efs,
+                metadata:{
+                    createDate:new Date(createDate),
+                    lastEditedDate:new Date(lastEditedDate),
+                    lastRotate:new Date(lastRotateDate),
+                    uuid: uuid
+                }
             })
-        }
-        return new Entry({
-            title, 
-            username, 
-            dek:Buffer.from(dek, 'base64'), 
-            password:Buffer.from(password, 'base64'), 
-            notes, 
-            metadata:{createDate:new Date(createDate), lastEditedDate:new Date(lastEditedDate), lastRotate:new Date(lastRotate), uuid},extraFields})
-        
+            return entry
     }
 
     static createUUID(){
