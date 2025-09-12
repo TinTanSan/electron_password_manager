@@ -1,5 +1,5 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
-import { VaultContext } from '../contexts/vaultContext'
+import { VaultContext, VaultType } from '../contexts/vaultContext'
 import { Entry } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
@@ -21,7 +21,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [tab, setTab] = useState(true);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    
 
     const [extraFeild, setExtraFeild] = useState({name:"", data:Buffer.from(''), isSensitive:false});
 
@@ -32,6 +31,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
             }).catch((error)=>{
                 // consume the error
+                addBanner(bannerContext, "An Error occured when decrypting password"+error, 'error')
             })
             
             setSubmit(false)
@@ -92,7 +92,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleDeleteExtraField = (name:string)=>{
-        setEntry(prev=>(prev.update('extraFields',prev.extraFields.filter(x=>x.name === name))))
+        const newEntryState = entry.update('extraFields',entry.extraFields.filter(x=>x.name === name))
+        setEntry(newEntryState)
+        setVault(prev=>{
+            const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), newEntryState]}
+            writeEntriesToFile(newVaultState);
+            return newVaultState;
+        })
     }
 
     const escapeHandler = (e:KeyboardEvent) => {
@@ -196,7 +202,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <div className='flex flex-col w-full h-full overflow-y-auto'>
                                         <div className="flex flex-col gap-2 p-1">
                                             {entry.extraFields.map((ef,i)=>
-                                                <ExtraFieldComponent extraField={ef} uuid={entry.metadata.uuid} key={i} />
+                                                <ExtraFieldComponent extraField={ef} uuid={entry.metadata.uuid} key={i} onDelete={handleDeleteExtraField} />
                                             )}
                                             
 
