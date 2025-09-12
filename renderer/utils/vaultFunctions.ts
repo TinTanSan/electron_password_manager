@@ -1,7 +1,7 @@
 // this file contains functions to do with vault to file transitions i.e. opening a file and converting
 // to a vault, type and handling splitting of file contents into entries etc. and vice versa
 import { VaultType } from "../contexts/vaultContext";
-import { Entry, ExtraField } from "../interfaces/Entry";
+import { Entry } from "../interfaces/Entry";
 import { makeNewDEK } from "./keyFunctions";
 
 // this function is to do with commiting a KEK whenever the master password changes, it will commit a salt,
