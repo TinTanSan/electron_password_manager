@@ -84,36 +84,7 @@ export async function vaultLevelDecrypt(fileContents:Buffer, {kek}:KEKParts){
                 curEntry = [];
             }
         }
-        const entries = entries_raw.map((x)=>{
-            const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(x).toString('utf8').split("|");
-            let efs = []
-            if (extraFields[0] !== ""){
-                efs = extraFields.map((x):ExtraField=>{
-                    const [name, data, isSensitive] = x.split("_");
-                    return {
-                        name,
-                        data: Buffer.from(data, 'base64'),
-                        isSensitive:isSensitive === "1"
-                    }
-                })
-            }
-            
-            const entry:Entry = new Entry({
-                title,
-                username,
-                dek:Buffer.from(dek, 'base64'),
-                password: Buffer.from(password, 'base64'),
-                notes,
-                extraFields:efs,
-                metadata:{
-                    createDate:new Date(createDate),
-                    lastEditedDate:new Date(lastEditedDate),
-                    lastRotate:new Date(lastRotateDate),
-                    uuid: uuid
-                }
-            })
-            return entry
-        });
+        const entries = entries_raw.map((x)=>Entry.deserialise(x));
         
         return entries
     }
