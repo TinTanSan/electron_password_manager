@@ -101,14 +101,16 @@ ipcMain.handle('createFileDialog', async()=>{
 })
 
 ipcMain.handle("getRecent", ()=>{
-    if (fs.existsSync(data_path + "/recents.json")){
+  const recentsPath = path.join(data_path , "/recents.json");
+    if (fs.existsSync(recentsPath)){
       // read file 
-      const recentVaults = JSON.parse(fs.readFileSync(data_path + "/recents.json").toString());
+      const recentVaults = JSON.parse(fs.readFileSync(recentsPath).toString());
       const existingVaults = recentVaults.filter((x:string)=>fs.existsSync(x))
       // make sure that if for some reason the vaults were deleted in between sessions, then we are able to 
       // update recents to exlude those vaults
       if (existingVaults.length != existingVaults ){
-        fs.writeFileSync(data_path + "/recents.json", JSON.stringify(existingVaults));
+        
+        fs.writeFileSync(path.join(data_path + "/recents.json"), JSON.stringify(existingVaults));
       }
       return existingVaults;
       
@@ -119,7 +121,7 @@ ipcMain.handle("getRecent", ()=>{
     }
 })
 
-ipcMain.on('addRecent', (event,filepath)=>{
+ipcMain.on('addRecent', (_,filepath)=>{
     handleAddRecent(filepath);
 })
 
@@ -132,8 +134,8 @@ ipcMain.handle('removeClipboard', ()=>{
 
 const handleAddRecent = (filePath:string)=>{
   let content:Array<string> = [];
-  if(!fs.existsSync(data_path+"/recents.json")){
-    fs.writeFileSync(data_path+"/recents.json", "[]");
+  if(!fs.existsSync(path.join(data_path,"/recents.json"))){
+    fs.writeFileSync(path.join(data_path,"/recents.json"), "[]");
     content = [];
   }else{
     // ensure no duplicates are in the recents
@@ -145,5 +147,5 @@ const handleAddRecent = (filePath:string)=>{
   }
   // only add file if we can't find it
   content.unshift(filePath);
-  fs.writeFileSync(data_path+"/recents.json", JSON.stringify(content));
+  fs.writeFileSync(path.join(data_path+"/recents.json"), JSON.stringify(content));
 }
