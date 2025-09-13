@@ -91,10 +91,11 @@ export default function HomePage() {
               {paginatedEntries.map((entry, i)=>
                 <EntryComponent entry={entry} key={i}/>
               )}
-              
             </div>
           </div>
-          <div className='flex flex-row w-full h-10 p-2 items-center justify-center border-2 border-base-300 rounded-lg gap-2'>
+          {/* pagination */}
+          { maxPages >1 && 
+            <div className='flex flex-row w-full h-10 p-2 items-center justify-center border-2 border-base-300 rounded-lg gap-2'>
               {/* show previous button if the current page isn't the first page */}
               <div className='flex w-24 h-8'>
                <button onClick={()=>{setPage(prev=>prev-1)}} className={`flex w-full items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content ${page == 0 && 'invisible'}`}>Previous</button>
@@ -120,9 +121,9 @@ export default function HomePage() {
               {
                 page < maxPages && <button onClick={()=>{setPage(prev=>prev+1)}} className='flex w-24 items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content'>Next</button>
               }
-          </div>
+            </div>
+          }
         </div>
-
       </div>
     </div>}
     </div>  
