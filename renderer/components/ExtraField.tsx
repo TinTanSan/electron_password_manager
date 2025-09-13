@@ -33,10 +33,11 @@ export default function ExtraFieldComponent({extraField, uuid, onDelete}:props) 
   },[extraField])
 
   return (
-    <div className='flex flex-row w-full text-md gap-2 border-2 rounded-lg border-base-300 px-2 h-10 items-center'>
-        <input className='flex w-full h-full items-center border-r-2 border-base-300 outline-none' readOnly value={extraField.name} />
+    <div className='flex flex-row w-full text-md items-center gap-2'>
+      <div className='flex flex-row w-full gap-2 border-2 rounded-lg border-base-300 px-2 h-10 items-center'>
+        <input className='flex w-full h-full items-center border-r-2 border-base-300 outline-none' value={extraField.name} />
         <div className='flex w-full h-full border-r-2 border-base-300 items-center px-2'>
-          <input className='flex w-full border-base-300 h-full items-center outline-none' readOnly value={(!extraField.isSensitive || showData)?data: "*".repeat(data.length)} />
+          <input className='flex w-full border-base-300 h-full items-center outline-none' defaultValue={(!extraField.isSensitive || showData)?data: "*".repeat(Math.max(8,Math.floor(Math.random()*8)))} readOnly/>
           {extraField.isSensitive && <Image src={showData?'/images/hidePass.svg':'/images/showPass.svg'} alt='show/hide' width={25} height={25} className='flex w-auto hover:cursor-pointer' onClick={()=>{setShowData(prev=>!prev)}} />}
         </div>
         
@@ -44,7 +45,9 @@ export default function ExtraFieldComponent({extraField, uuid, onDelete}:props) 
         <div className='flex w-32 justify-end'>
           <input type='checkbox' checked={extraField.isSensitive} className='flex' readOnly/>
         </div>
-        <Image src={'/images/delete.svg'} alt='del' width={25} height={25} onClick={()=>{onDelete(extraField.name)}} className='flex w-auto bg-error cursor-pointer'/>
+        </div>
+        <Image src={'/images/delete.svg'} alt='del' width={10} height={10} onClick={()=>{onDelete(extraField.name)}} className='flex w-auto h-8 hover:bg-error rounded-md  cursor-pointer'/>
+        
     </div>
   )
 }
