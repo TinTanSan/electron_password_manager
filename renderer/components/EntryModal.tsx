@@ -31,7 +31,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
             }).catch((error)=>{
                 // consume the error
-                addBanner(bannerContext, "An Error occured when decrypting password"+error, 'error')
+                addBanner(bannerContext, "An Error occured when decrypting password", 'error')
             })
             
             setSubmit(false)
@@ -211,7 +211,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <div className='flex flex-col w-full h-full overflow-y-auto'>
                                         <div className="flex flex-col gap-2 p-1">
                                             {entry.extraFields.map((ef,i)=>
-                                                <ExtraFieldComponent extraField={ef} uuid={entry.metadata.uuid} key={i} onDelete={handleDeleteExtraField} />
+                                                <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleDeleteExtraField} />
                                             )}
                                             
 
