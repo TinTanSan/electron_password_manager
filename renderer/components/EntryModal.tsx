@@ -80,25 +80,33 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleAddExtraField = ()=>{
         entry.addExtraField(vault.kek, extraFeild.name, extraFeild.data, extraFeild.isSensitive).then((e)=>{
-            setEntry(e);
-            setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
-            setVault(prev=>{
-                const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
-                writeEntriesToFile(newState);
-                return newState;
-            })
+            if (!e){
+                addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
+            }else{
+                setEntry(e);
+                setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
+                setVault(prev=>{
+                    const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
+                    writeEntriesToFile(newState);
+                    return newState;
+                })
+            }
+            
         })
         
     }
 
     const handleDeleteExtraField = (name:string)=>{
-        const newEntryState = entry.update('extraFields',entry.extraFields.filter(x=>x.name === name))
-        setEntry(newEntryState)
-        setVault(prev=>{
-            const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), newEntryState]}
+        entry.removeExtraField(name).then((e)=>{
+            setEntry(e)
+            setVault(prev=>{
+            const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), e]}
             writeEntriesToFile(newVaultState);
             return newVaultState;
         })
+        })
+        
+        
     }
 
     const escapeHandler = (e:KeyboardEvent) => {
@@ -198,6 +206,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <div className="flex w-full h-full">Name</div>
                                         <div className="flex w-full h-full">data</div>
                                         <div className="flex w-fit h-full">sensitive</div>
+                                        <div className='flex w-20 h-full' />
                                     </div>
                                     <div className='flex flex-col w-full h-full overflow-y-auto'>
                                         <div className="flex flex-col gap-2 p-1">
