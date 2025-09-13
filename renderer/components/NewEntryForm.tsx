@@ -49,7 +49,11 @@ export default function NewEntryForm({setShowForm}:props) {
 
     const handleAddExtraField = ()=>{
         entry.addExtraField(vault.kek, eFieldName, eFieldData, eFieldSensitivity).then((updatedEntry:Entry)=>{
-            setEntry(updatedEntry)
+            if(!updatedEntry){
+                addBanner(bannerContext, 'cannot add extra field, another extra feild with that name already exists', 'error')
+            }else{
+                setEntry(updatedEntry)
+            }
         })
     }
 
@@ -87,7 +91,7 @@ export default function NewEntryForm({setShowForm}:props) {
   
     return (
         <div className='backdrop-blur-lg z-20 fixed w-screen h-screen top-0 left-0 flex flex-col justify-center items-center'>
-            <form onSubmit={handleAdd} className='flex flex-col relative w-1/2 h-[80vh] border-2 border-base-300 bg-base-200 z-10 shadow-lg rounded-xl p-2 items-center'>
+            <form onSubmit={handleAdd} className='flex flex-col relative w-1/2 h-[80vh] border-2 border-base-300 bg-base-200 gap-2 z-10 shadow-lg rounded-xl p-2 items-center'>
                 {/* tab selector */}
                 <div className='flex w-full h-10'>
                     <div className='flex items-center'>
@@ -150,16 +154,20 @@ export default function NewEntryForm({setShowForm}:props) {
                             </div>
                         </div>
                     </div>
-                    <div className='flex flex-col border-2 w-full h-full rounded-lg'>
-                        {
-                            entry.extraFields.length > 0 ?
+                    <div className='flex flex-col border-2 border-base-300 w-full h-90 rounded-lg gap-2 py-2 overflow-y-hidden'>
+                        <div className='flex flex-col w-full h-full overflow-y-auto px-2'>
+                            <div className='flex flex-col w-full h-fit gap-2'>
+                            {entry.extraFields.length > 0 ?
                                 entry.extraFields.map((extraField, i)=>
-                                <ExtraFieldComponent extraField={extraField} key={i} uuid={entry.metadata.uuid} onDelete={handleRemoveExtraField} />)
+                                <ExtraFieldComponent extraField={extraField} key={i} entry={entry} onDelete={handleRemoveExtraField} />)
                             :
                                 <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
                                     Extra fields that you create will show up here
                                 </div>
-                        }
+                            }
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>    
             
@@ -168,9 +176,6 @@ export default function NewEntryForm({setShowForm}:props) {
             
             
             }
-
-
-
                 <button type='submit' className='bg-primary hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
             </form>
             {
