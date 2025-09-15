@@ -21,15 +21,18 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [tab, setTab] = useState(true);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-
+    const [entryPass, setEntryPass]= useState<string | undefined>(undefined);
     const [extraFeild, setExtraFeild] = useState({name:"", data:Buffer.from(''), isSensitive:false});
 
 
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
-                setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
+                
+                setEntryPass(x.toString());
+                // setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
             }).catch((error)=>{
+                console.error(error)
                 // consume the error
                 addBanner(bannerContext, "An Error occured when decrypting password", 'error')
             })
@@ -48,12 +51,21 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleCopy = ()=>{
-        entry.decryptEntryPass(vault.kek).then((x)=>{
-            navigator.clipboard.writeText(x.toString());
-        }).catch(()=>{
-            navigator.clipboard.writeText(entry.password.toString());    
-        })
+        if (entryPass === undefined){
+            entry.decryptEntryPass(vault.kek).then((x)=>{
+                navigator.clipboard.writeText(x.toString());
+            }).catch(error => {
+                addBanner(bannerContext, 'unable to copy password', 'error');
+                console.error(error);
+                return;
+            })
+        }else{
+            navigator.clipboard.writeText(entryPass.toString());
+        }
         addBanner(bannerContext, 'password copied successfully', 'success')
+        setTimeout(() => {
+            window.ipc.clearClipboard();
+        }, 10000);
     }
 
 
@@ -70,7 +82,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 }));
                 writeEntriesToFile(vault);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
-                setSubmit(true)
                 setShowModal(false);
             } catch (error) {
                 addBanner(bannerContext, 'unable to update entry '+error, 'error');
@@ -182,7 +193,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 </div>
                                 <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200 pr-2'>
                                     <label className='flex w-26 shrink-0 border-r border-base-300 pl-2 rounded-l-lg'>Password</label>
-                                    <input type={showPass?"text":'password'} value={entry.password.toString()} onChange={handleChange} id='password' className='flex w-full h-full outline-none' />
+                                    <input type={showPass?"text":'password'} value={entryPass!==undefined? entryPass.toString(): "*".repeat(8)} onChange={handleChange} id='password' className='flex w-full h-full outline-none' />
                                     <div className='flex flex-row gap-2 w-32'>
                                         <Image onClick={()=>{setShowRandomPassModal(true)}} src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
                                         <Image onClick={()=>{handleCopy()}} src={'/images/copy.svg'} alt='copy' width={25} height={25} className='w-auto h-auto flex items-center justify-center' />
