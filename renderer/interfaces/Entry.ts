@@ -3,7 +3,7 @@ import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 export interface ExtraField{
-    isSensitive: boolean,
+    isProtected: boolean,
     name: string,
     data: Buffer
 }
@@ -89,7 +89,7 @@ export class Entry{
             this.metadata.lastEditedDate.toISOString()+ "|"+
             this.metadata.lastRotate.toISOString()+ "|"+
             this.metadata.uuid + "|"+
-            this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isSensitive?'1':'0'))).join("|");
+            this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
     }
     
     static deserialise(content:string){
@@ -97,11 +97,11 @@ export class Entry{
             let efs = []
             if (extraFields[0] !== ""){
                 efs = extraFields.map((x):ExtraField=>{
-                    const [name, data, isSensitive] = x.split("_");
+                    const [name, data, isProtected] = x.split("_");
                     return {
                         name,
                         data: Buffer.from(data, 'base64'),
-                        isSensitive:isSensitive === "1"
+                        isProtected:isProtected === "1"
                     }
                 })
             }
@@ -157,12 +157,12 @@ export class Entry{
         if (typeof window !== 'undefined'){
             var unwrappedDEK = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:'AES-KW'}, {name:'AES-GCM'}, false, ['encrypt', 'decrypt']);
             const d = data instanceof Buffer? data : Buffer.from(data);
-            return {name, data:await encrypt(d, unwrappedDEK), isSensitive:true};
+            return {name, data:await encrypt(d, unwrappedDEK), isProtected:true};
         }
         throw new Error('Window object was undefined when trying to encrypt field')
     }
 
-    async addExtraField(kek:KEKParts,name:string, data:string| Buffer, isSensitive:boolean): Promise<Entry>{
+    async addExtraField(kek:KEKParts,{name, data, isProtected}:ExtraField): Promise<Entry>{
         if (this.extraFields.find(x=>x.name === name)){
             return undefined;
         }
@@ -170,9 +170,9 @@ export class Entry{
         return this.update(
             'extraFields', 
             [...this.extraFields, 
-                isSensitive? 
+                isProtected? 
                 await this.encryptField(kek, name, data) : 
-                {name, data:d, isSensitive}
+                {name, data:d, isProtected}
             ]
         )
     }
@@ -191,8 +191,8 @@ export class Entry{
 
             return Promise.all(this.extraFields.map(async (x)=>{
                 let data = x.data;
-                console.log(x.isSensitive)
-                if (x.isSensitive){
+                console.log(x.isProtected)
+                if (x.isProtected){
                     data = x.data.subarray(0,x.data.length-12);
                     const iv = x.data.subarray(x.data.length-12)
                     data = Buffer.from(await window.crypto.subtle.decrypt({name:'AES-GCM', iv:Buffer.from(iv)}, dek,Buffer.from(data)))
@@ -201,7 +201,7 @@ export class Entry{
                 return {
                     name:x.name,
                     data,
-                    isSensitive:x.isSensitive
+                    isProtected:x.isProtected
                 }
             }))
         }
@@ -211,7 +211,15 @@ export class Entry{
         
         if (typeof window !== 'undefined'){
             const ef = this.extraFields.find((x=>x.name === name));
-            return await decrypt(ef.data, await unwrapDEK(kek, this.dek));
+            if (ef.isProtected){
+                return await decrypt(ef.data, await unwrapDEK(kek, this.dek));
+            }else{
+                console.warn("tried to decrypt a field that was not protected");
+                return {
+                    data:ef.data, 
+                    status:"OK"
+                }
+            }
         }
         throw new Error("Window is not defined")
     }
