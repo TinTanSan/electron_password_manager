@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useContext, useEffect, useState } from 'react'
-import { Entry } from '../interfaces/Entry'
+import { Entry, ExtraField } from '../interfaces/Entry'
 import { VaultContext } from '../contexts/vaultContext'
 import { addBanner } from '../interfaces/Banner'
 import { BannerContext } from '../contexts/bannerContext'
@@ -19,10 +19,19 @@ export default function NewEntryForm({setShowForm}:props) {
     //  tab is whether we are looking at the main fields or the additional fields
     const [tab, setTab] = useState(true);
 
-    // extra field states
-    const [eFieldName, setEFieldName] = useState("");
-    const [eFieldData, setEFieldData] = useState("");
-    const [eFieldSensitivity, setEFieldSensitivity] = useState<boolean>(false);
+    // extra field state
+    const [extraField, setExtraField] = useState<ExtraField>({name:"", data: Buffer.from(""), isProtected: false});
+
+    const handleEFieldChange = (e:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>{
+        if (e.target.id === 'name'){
+            setExtraField(prev=>({...prev, name: e.target.value}));
+        }else if (e.target.id === "data"){
+            setExtraField(prev=>({...prev, data:Buffer.from(e.target.value)}))
+        }else if (e.target.id === "protected" && e.target.type === "checkbox"){
+            setExtraField(prev=>({...prev, isProtected: (e.target as HTMLInputElement).checked}))
+        }
+    }
+
 
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
@@ -48,7 +57,7 @@ export default function NewEntryForm({setShowForm}:props) {
     }
 
     const handleAddExtraField = ()=>{
-        entry.addExtraField(vault.kek, eFieldName, eFieldData, eFieldSensitivity).then((updatedEntry:Entry)=>{
+        entry.addExtraField(vault.kek, extraField).then((updatedEntry:Entry)=>{
             if(!updatedEntry){
                 addBanner(bannerContext, 'cannot add extra field, another extra feild with that name already exists', 'error')
             }else{
@@ -136,16 +145,16 @@ export default function NewEntryForm({setShowForm}:props) {
                         <div className='flex flex-col gap-5'>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
                                 <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
-                                <input onChange={(e)=>{setEFieldName(e.target.value)}} className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
+                                <input onChange={handleEFieldChange} id='name' value={extraField.name} className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
                             </div>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
                                 <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Data</label>
-                                <input onChange={(e)=>{setEFieldData(e.target.value)}} className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
+                                <input onChange={handleEFieldChange} id='data' value={extraField.data.toString()} className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
                             </div>
                             <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
                                 <div className='flex w-full items-center '>
                                 <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>keep this field a secret?</label>
-                                <input type='checkbox' onChange={()=>{setEFieldSensitivity(prev=>!prev)}} checked={eFieldSensitivity}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
+                                <input type='checkbox' onChange={handleEFieldChange} checked={extraField.isProtected}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
                                 </div>
                                 <div className='flex w-full h-full justify-end'>
                                     <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
