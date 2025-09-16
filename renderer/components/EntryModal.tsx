@@ -1,6 +1,6 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import { VaultContext, VaultType } from '../contexts/vaultContext'
-import { Entry } from '../interfaces/Entry';
+import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
@@ -22,7 +22,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string | undefined>(undefined);
-    const [extraFeild, setExtraFeild] = useState({name:"", data:Buffer.from(''), isSensitive:false});
+    const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
 
 
     useEffect(()=>{
@@ -90,12 +90,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleAddExtraField = ()=>{
-        entry.addExtraField(vault.kek, extraFeild.name, extraFeild.data, extraFeild.isSensitive).then((e)=>{
+        entry.addExtraField(vault.kek,extraFeild).then((e)=>{
             if (!e){
                 addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
             }else{
                 setEntry(e);
-                setExtraFeild({name:"", data:Buffer.from(''), isSensitive:false})
+                setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
                 setVault(prev=>{
                     const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
                     writeEntriesToFile(newState);
@@ -239,11 +239,11 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         </div>
                                         <div className='flex w-fit h-full gap-2 items-center justify-center'>
                                             <label className='flex w-fit'>sensitive</label>
-                                            <input className='flex w-4 h-4' type='checkbox' checked={extraFeild.isSensitive} onChange={(e)=>{setExtraFeild(prev=>({...prev, isSensitive:e.target.checked}))}} />
+                                            <input className='flex w-4 h-4' type='checkbox' checked={extraFeild.isProtected} onChange={(e)=>{setExtraFeild(prev=>({...prev, isSensitive:e.target.checked}))}} />
                                         </div>
                                     </div>
                                     <div className='flex flex-row w-full h-8 border-2 rounded-lg items-center px-2 gap-1'>
-                                        <label className='flex w-26 shrink-0 border-r h-full items-center '>Value</label>
+                                        <label className='flex w-26 shrink-0 border-r h-full items-center '>Data</label>
                                         <input className='flex w-full h-full outline-none' id='data' onChange={handleChangeExtraField} value={extraFeild.data.toString()}/>
                                     </div>
                                     <div className='flex w-full items-center justify-center'>
