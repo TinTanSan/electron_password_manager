@@ -139,7 +139,7 @@ export default function NewEntryForm({setShowForm}:props) {
                     </div>
                 </div>
                 :
-                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg'>
+                <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg overflow-y-hidden'>
                     <div className='flex flex-col w-full h-fit shrink-0'>
                         <div className='flex w-full h-fit justify-center text-lg'>New Extra field</div>
                         <div className='flex flex-col gap-5'>
@@ -164,13 +164,12 @@ export default function NewEntryForm({setShowForm}:props) {
                     </div>
                     {/* the following section overflows */}
 
-                    <div className='flex flex-col gap-2 w-full h-full border-2 overflow-y-auto'>
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
-                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                    <div className='flex flex-col w-full gap-2 h-full '>
+                        <div className='flex flex-col w-full h-full gap-2 overflow-y-auto'>
+                            {entry.extraFields.map((ef, i)=>
+                                <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
+                            )}
+                        </div>
                     </div>
                     
                 </div>    
