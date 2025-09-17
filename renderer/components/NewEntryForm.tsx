@@ -140,7 +140,7 @@ export default function NewEntryForm({setShowForm}:props) {
                 </div>
                 :
                 <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg'>
-                    <div className='flex flex-col w-full h-fit'>
+                    <div className='flex flex-col w-full h-fit shrink-0'>
                         <div className='flex w-full h-fit justify-center text-lg'>New Extra field</div>
                         <div className='flex flex-col gap-5'>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
@@ -153,8 +153,8 @@ export default function NewEntryForm({setShowForm}:props) {
                             </div>
                             <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
                                 <div className='flex w-full items-center '>
-                                <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>keep this field a secret?</label>
-                                <input type='checkbox' onChange={handleEFieldChange} checked={extraField.isProtected}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
+                                    <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>Protect Field</label>
+                                    <input type='checkbox' onChange={handleEFieldChange} checked={extraField.isProtected}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
                                 </div>
                                 <div className='flex w-full h-full justify-end'>
                                     <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
@@ -162,29 +162,21 @@ export default function NewEntryForm({setShowForm}:props) {
                             </div>
                         </div>
                     </div>
-                    <div className='flex flex-col border-2 border-base-300 w-full h-full rounded-lg gap-2 py-2 overflow-y-hidden'>
-                        <div className='flex flex-col w-full h-full overflow-y-auto px-2'>
-                            <div className='flex flex-col w-full h-fit gap-2'>
-                            {entry.extraFields.length > 0 ?
-                                entry.extraFields.map((extraField, i)=>
-                                <ExtraFieldComponent extraField={extraField} key={i} entry={entry} onDelete={handleRemoveExtraField} />)
-                            :
-                                <div className='flex w-full h-full text-lg items-center justify-center opacity-80'>
-                                    Extra fields that you create will show up here
-                                </div>
-                            }
-                            </div>
-                        </div>
-                        
+                    {/* the following section overflows */}
+
+                    <div className='flex flex-col gap-2 w-full h-full border-2 overflow-y-auto'>
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
+                        <div className='flex shrink-0 w-full h-80 bg-zinc-300' />
                     </div>
+                    
                 </div>    
             
-            
-            
-            
-            
             }
-                <button type='submit' className='bg-primary hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
+                <button type='submit' className='bg-primary mt-2 shrink-0 hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
             </form>
             {
                 showRandomPassModal &&

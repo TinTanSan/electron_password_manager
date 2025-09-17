@@ -212,25 +212,14 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         // extras tab
                             <div className='flex flex-col w-full h-full gap-2 p-2'>
                                 {/* all extra fields */}
-                                <div className='flex flex-col w-full h-full overflow-y-hidden border-2 no-repeat'>
-                                    <div className='flex h-8 w-full flow-row text-md gap-2 px-3'>
-                                        <div className="flex w-full h-full">Name</div>
-                                        <div className="flex w-full h-full">data</div>
-                                        <div className="flex w-fit h-full">sensitive</div>
-                                        <div className='flex w-20 h-full' />
-                                    </div>
-                                    <div className='flex flex-col w-full h-full overflow-y-auto'>
-                                        <div className="flex flex-col gap-2 p-1">
-                                            {entry.extraFields.map((ef,i)=>
-                                                <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleDeleteExtraField} />
-                                            )}
-                                            
-
-                                        </div>
+                                <div className='flex flex-col w-full h-full grow-0 overflow-y-hidden'>
+                                    <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
+                                        <div className='flex w-full h-80 bg-zinc-400 shrink-0' />
+                                        <div className='flex w-full h-80 bg-zinc-400 shrink-0' />
                                     </div>
                                 </div>
                                 {/* new extra field */}
-                                <div className='flex flex-col w-full h-2/3 gap-2'>
+                                <div className='flex flex-col w-full h-1/2 gap-2'>
                                     <div className='flex w-full'>Create new extra field</div>
                                     <div className='flex flex-row w-full h-8 gap-2 items-center'>
                                         <div className="flex w-full h-full border-2 rounded-lg px-2">
