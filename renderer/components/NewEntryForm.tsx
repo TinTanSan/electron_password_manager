@@ -97,6 +97,18 @@ export default function NewEntryForm({setShowForm}:props) {
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
         }
     }
+
+    const escapeHandler = (e:KeyboardEvent) => {
+        if (e.key === "Escape") {
+        setShowForm(false);
+        }
+    };
+    useEffect(() => {
+        document.addEventListener("keydown", (escapeHandler), false);
+        return () => {
+          document.removeEventListener("keydown", escapeHandler, false);
+        };
+      }, []);
   
     return (
         <div className='backdrop-blur-lg z-20 fixed w-screen h-screen top-0 left-0 flex flex-col justify-center items-center'>
