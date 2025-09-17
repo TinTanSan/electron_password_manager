@@ -162,15 +162,11 @@ export default function NewEntryForm({setShowForm}:props) {
                             </div>
                         </div>
                     </div>
-                    {/* the following section overflows */}
-
-                    <div className='flex flex-col w-full gap-2 h-full '>
                         <div className='flex flex-col w-full h-full gap-2 overflow-y-auto'>
                             {entry.extraFields.map((ef, i)=>
                                 <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
                             )}
                         </div>
-                    </div>
                     
                 </div>    
             
