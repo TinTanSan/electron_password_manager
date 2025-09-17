@@ -90,20 +90,24 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleAddExtraField = ()=>{
-        entry.addExtraField(vault.kek,extraFeild).then((e)=>{
-            if (!e){
-                addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
-            }else{
-                setEntry(e);
-                setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
-                setVault(prev=>{
-                    const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
-                    writeEntriesToFile(newState);
-                    return newState;
-                })
-            }
-            
-        })
+        if (extraFeild.name){
+            entry.addExtraField(vault.kek,extraFeild).then((e)=>{
+                if (!e){
+                    addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
+                }else{
+                    setEntry(e);
+                    setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
+                    setVault(prev=>{
+                        const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
+                        writeEntriesToFile(newState);
+                        return newState;
+                    })
+                }
+                
+            })
+        }else{
+            addBanner(bannerContext, 'Banner not added, no name provided','info')
+        }
         
     }
 
@@ -118,6 +122,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
         })
         
         
+    }
+
+    const handleClearFields = ()=>{
+        setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
+    }
+
+    const handleChangeExtraField = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
+        e.target.id !== 'data'?
+            setExtraFeild(prev=>({...prev, [e.target.id]:e.target.value}))
+        :
+            setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
     }
 
     const escapeHandler = (e:KeyboardEvent) => {
@@ -140,13 +155,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     }
 
-    const handleChangeExtraField = (e:React.ChangeEvent<HTMLInputElement>)=>{
-        console.log(e.target.id, e.target.value)
-        e.target.id !== 'data'?
-        setExtraFeild(prev=>({...prev, [e.target.id]:e.target.value}))
-        :
-        setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
-    }
+    
 
     useEffect(() => {
     document.addEventListener("keydown", (escapeHandler), false);
@@ -178,7 +187,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         </div>
                         <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center bg-neutral hover:bg-neutral-darken text-neutral-content items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
                     </div>
-                    <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg ${!tab && 'rounded-t-lg'}`}>
+                    <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!tab && 'rounded-t-lg'}`}>
                     {
                         tab?
                         // main tab
@@ -207,39 +216,43 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 <div className='flex w-full h-12 justify-center'>
                                     <button className='bg-primary w-32 items-center justify-center text-primary-content rounded-lg h-full hover:bg-primary-darken'>Confirm</button>
                                 </div>
-                            </form>
+                            </form>  
                         :
                         // extras tab
-                            <div className='flex flex-col w-full h-full gap-2 p-2'>
-                                {/* all extra fields */}
-                                <div className='flex flex-col w-full h-full grow-0 overflow-y-hidden'>
+                                <div className='flex flex-col gap-2 w-full h-full p-2 '>
+                                    <div className='flex w-full h-1/4 flex-col gap-2'>
+                                        <div className='flex w-full h-10 items-center justify-center'>New Extra Field</div> 
+                                        <div className='flex w-full h-full gap-2 grow-0'>
+                                            <div className='flex flex-col w-3/4 h-full gap-1'>
+                                                {/* name input */}
+                                                <div className='flex w-full h-10 shrink-0 items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
+                                                    <div className='flex w-24 pl-1 full bg-base-300 h-full items-center'>Name</div>
+                                                    <input id='name' className='flex w-full h-full outline-none overflow-x-scroll' value={extraFeild.name} onChange={handleChangeExtraField} />
+                                                </div> 
+                                                <div className='flex w-full flex-col h-full py-2 items-end'>
+                                                    {/* protect button */}
+                                                    <button className={`flex w-1/2 h-10 shrink-0 border-2 items-center justify-center rounded-lg border-neutral ${extraFeild.isProtected&& "bg-neutral text-neutral-content border-none"}`} onClick={()=>{setExtraFeild(prev=>({...prev, isProtected:!prev.isProtected}))}}>{extraFeild.isProtected?"Field Protected":"Protect Field"}</button>
+                                                    {/* add / clear field button */}
+                                                    <div className='flex flex-row w-full h-full items-end'>
+                                                        <button onClick={()=>{handleClearFields()}} className='flex w-1/2 h-10 rounded-lg items-center justify-center border-2 text-accent-content bg-accent'>clear Inputs</button>
+                                                        <button onClick={()=>{handleAddExtraField()}} className='flex w-1/2 h-10 rounded-lg items-center justify-center border-2 text-primary-content bg-primary'>Add</button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <div className='flex flex-col w-full h-full items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
+                                                <div className='flex w-full pl-1 bg-base-300 h-fit py-1 items-center'>data</div>
+                                                <textarea id='data' className='flex w-full resize-none h-full outline-none overflow-y-auto' value={extraFeild.data.toString()} onChange={handleChangeExtraField} />
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
-                                        <div className='flex w-full h-80 bg-zinc-400 shrink-0' />
-                                        <div className='flex w-full h-80 bg-zinc-400 shrink-0' />
+                                        <div className='flex w-full h-80 shrink-0 bg-zinc-300' />
+                                        <div className='flex w-full h-80 shrink-0 bg-zinc-300' />
+                                        <div className='flex w-full h-80 shrink-0 bg-zinc-300' />
+                                        <div className='flex w-full h-80 shrink-0 bg-zinc-300' />
                                     </div>
                                 </div>
-                                {/* new extra field */}
-                                <div className='flex flex-col w-full h-1/2 gap-2'>
-                                    <div className='flex w-full'>Create new extra field</div>
-                                    <div className='flex flex-row w-full h-8 gap-2 items-center'>
-                                        <div className="flex w-full h-full border-2 rounded-lg px-2">
-                                            <label className='flex w-26 shrink-0 border-r h-full items-center'>Name</label>
-                                            <input className='flex w-full h-full outline-none' id='name' value={extraFeild.name} onChange={handleChangeExtraField}/>
-                                        </div>
-                                        <div className='flex w-fit h-full gap-2 items-center justify-center'>
-                                            <label className='flex w-fit'>sensitive</label>
-                                            <input className='flex w-4 h-4' type='checkbox' checked={extraFeild.isProtected} onChange={(e)=>{setExtraFeild(prev=>({...prev, isSensitive:e.target.checked}))}} />
-                                        </div>
-                                    </div>
-                                    <div className='flex flex-row w-full h-8 border-2 rounded-lg items-center px-2 gap-1'>
-                                        <label className='flex w-26 shrink-0 border-r h-full items-center '>Data</label>
-                                        <input className='flex w-full h-full outline-none' id='data' onChange={handleChangeExtraField} value={extraFeild.data.toString()}/>
-                                    </div>
-                                    <div className='flex w-full items-center justify-center'>
-                                        <button onClick={()=>{handleAddExtraField()}} className='flex w-32 bg-primary items-center justify-center text-primary-content rounded-lg h-8'>Add</button>
-                                    </div>
-                                </div>
-                            </div>
                     }
                     </div>
                     {showRandomPassModal && <RandomPassModal  setShowRandomPassModal={setShowRandomPassModal} setEntry={setEntry}/>}
