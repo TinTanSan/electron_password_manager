@@ -1,4 +1,4 @@
-import React, { FormEvent, useContext, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import FancyInput from './fancyInput';
 import { VaultContext } from '../contexts/vaultContext';
 import { useRouter } from 'next/router';
@@ -68,6 +68,10 @@ export default function UnlockVaultPrompt() {
   
     // when we initialise the vault at either time, we want to use a sanity checker value, which we can encrypt and decrpyt to verify
     // the password's legitimacy
+    useEffect(()=>{
+      const passInput = document.getElementById('mainPassInput');
+      passInput.children[0]
+    },[])
 
     return (
     <div className='flex flex-col bg-base-100 text-base-content w-1/2 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-5 items-center'>
@@ -83,9 +87,9 @@ export default function UnlockVaultPrompt() {
               </div>
             </div>
           }
-          <div className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
-            <FancyInput placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
-            {initialiseRequired && <FancyInput placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
+          <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
+            <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
+            {initialiseRequired && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
           </div>
           <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
             <button type='button' onClick={()=>{vaultContext.setVault(undefined); navigate.push('/loadFile'); addBanner(bannerContext, "Vault Closed successfully", 'info')}} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
