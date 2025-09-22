@@ -11,11 +11,12 @@ export default function LoadFile() {
     const banners = useContext(BannerContext);
     const handleCreateFile = ()=>{
         window.ipc.openCreateFile().then((filePath)=>{
-            if (filePath! == ''){
+            
+            if (filePath){
                 // since its a new file, the file content will be empty anyways
                 vaultContext.setVault({filePath, fileContents:Buffer.from(""), wrappedVK:Buffer.from(""), isUnlocked:false, kek:undefined, entries:[]});
                 window.ipc.addRecent(filePath);
-                navigate.push("/home")
+                navigate.push("/home");
             }
         })
     }
