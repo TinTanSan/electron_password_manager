@@ -23,7 +23,6 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   useEffect(()=>{
     if (extraField.isProtected && showData && !data){
         entry.decryptExtraField(extraField.name, vault.kek).then((d)=>{
-          console.log(d.data.toString())
           if (d.status === "ERROR"){
             addBanner(bannerContext, 'error decrypting extra field data', 'error')
             setData(undefined);
@@ -40,7 +39,24 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
 
   return (
-    <div className='flex flex-row w-full h-40 shrink-0 border-2 border-base-300 bg-base-200 rounded-lg'></div>
+    <div className='flex flex-row w-full h-40 shrink-0 border-2 border-base-300 bg-base-200 rounded-lg p-2 gap-2'>
+      <div className='flex flex-col w-full h-full gap-2'>
+        <div className='flex flex-row border-2 border-base-300 rounded-lg focus-within:border-primary'>
+          <div className='flex border-r-2 border-base-300 px-1'>Name</div>
+          <input className='flex w-full h-full bg-base-100 px-1 rounded-r-lg outline-none' readOnly value={extraField.name}/>
+        </div>
+        <div className='flex flex-row w-full h-fit '>
+          {extraField.isProtected && <button onClick={()=>{setShowData(prev=>!prev)}} className={`flex border-2 w-1/2 items-center justify-center rounded-lg h-8 border-neutral ${showData&& "bg-base-100"}`}>Reveal</button>}
+        </div>
+
+      </div>
+
+      <div className='flex flex-col w-full h-full'>
+        <textarea value={(!extraField.isProtected  || showData)?data:"Click reveal to show contents"}  readOnly className='flex p-1 overflow-y-auto border-2 border-base-300 resize-none h-full w-full'/>
+      </div>
+
+
+    </div>
     // <div className='flex flex-row w-full text-md items-center gap-2'>
     //   <div className='flex flex-row w-full gap-2 border-2 rounded-lg border-base-300 px-2 h-10 items-center'>
     //     <input className='flex w-full h-full items-center border-r-2 border-base-300 outline-none' defaultValue={extraField.name} onChange={(e)=>{e.target.value = extraField.name}}/>
