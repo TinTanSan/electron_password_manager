@@ -1,3 +1,4 @@
+import assert from "assert";
 import { decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
@@ -13,8 +14,14 @@ interface MetaData{
     createDate:Date,
     lastEditedDate:Date,
     lastRotate:Date,
-    uuid: string
+    uuid: string;
+    version  : string; 
 } 
+
+export interface EntryGroup{
+    groupName:string,
+    entries: Array<string>
+}
 
 export class Entry{
     dek: Buffer;
@@ -23,7 +30,8 @@ export class Entry{
     password : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
     metadata : MetaData;
-    extraFields: Array<ExtraField>
+    extraFields: Array<ExtraField>;
+    
 
     constructor(init: PartialWithRequired<Entry, "title"|"password"|"username">, kek?:KEKParts){
         
@@ -44,7 +52,8 @@ export class Entry{
                 createDate: now,
                 lastEditedDate: now,
                 lastRotate:now,
-                uuid: Entry.createUUID()
+                uuid: Entry.createUUID(),
+                version: '0.1.0'
             }
         }
     }
@@ -89,13 +98,19 @@ export class Entry{
             this.metadata.lastEditedDate.toISOString()+ "|"+
             this.metadata.lastRotate.toISOString()+ "|"+
             this.metadata.uuid + "|"+
+            this.metadata.version + "|"+
             this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
     }
     
     static deserialise(content:string){
         const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(content).toString('utf8').split("|");
-            let efs = []
+            let efs = [];
+            let version = undefined;
             if (extraFields[0] !== ""){
+                if (!extraFields[0].includes("_")){
+                    version = extraFields[0];
+                    extraFields.splice(0);
+                }
                 efs = extraFields.map((x):ExtraField=>{
                     const [name, data, isProtected] = x.split("_");
                     return {
@@ -117,7 +132,8 @@ export class Entry{
                     createDate:new Date(createDate),
                     lastEditedDate:new Date(lastEditedDate),
                     lastRotate:new Date(lastRotateDate),
-                    uuid: uuid
+                    uuid: uuid,
+                    version: version || "0.1.0"
                 }
             })
             return entry
