@@ -1,4 +1,3 @@
-import assert from "assert";
 import { decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
