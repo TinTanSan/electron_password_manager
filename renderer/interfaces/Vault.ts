@@ -1,3 +1,4 @@
+import { makeNewDEK } from "../utils/keyFunctions";
 import { Entry } from "./Entry"
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -21,7 +22,7 @@ type vaultMetaData = {
 
 class Vault{
     filePath:string;
-    fileContents:string;
+    fileContents:Buffer;
     isUnlocked:boolean;
     wrappedVK: Buffer;
     kek: KEKParts | undefined;
@@ -41,7 +42,7 @@ class Vault{
         }
     }
 
-    mutate(field:string, value:any, inPlace:boolean = false){
+    mutate(field:string, value:any, inPlace:boolean = false):Vault{
         return new Vault({
             ...this, 
             [field] : value, 
@@ -57,11 +58,89 @@ class Vault{
         })
     }
 
+    async commitKEK(){
+    // remove the first line, which contains important content retaining to the KEK
+        const content = this.fileContents.subarray(48);
+        if (typeof window !== "undefined"){
+            const VK = await makeNewDEK();
+            const wrappedVK = Buffer.from(await window.crypto.subtle.wrapKey('raw', VK, this.kek.kek, {name:'AES-KW'}));
+            const allContent = Buffer.concat([this.kek.salt,wrappedVK,content]);
+            window.ipc.writeFile(this.filePath,allContent);
+            return wrappedVK
+        }else{
+            throw new Error('window object was undefined')
+        }
+    }
 
-    
-    
+    async vaultLevelEncrypt(){
+        if (typeof window !=="undefined"){
+            const crypto = window.crypto.subtle;
+            const VK = await crypto.unwrapKey(
+                'raw', 
+                Buffer.from(this.wrappedVK), 
+                this.kek.kek,
+                {name:"AES-KW"},
+                {name:"AES-GCM"},
+                false, 
+                ['encrypt', 'decrypt']
+            )
+            const iv = new Uint8Array(12);
+            
+            window.crypto.getRandomValues(iv);
+            //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, 
+            // there will be at least one $ symbol
+            const content = this.entries.map((x)=>x.serialise()).join("$") + "$"; 
+            
+            const enc = Buffer.concat([
+                    this.kek.salt,
+                    this.wrappedVK,
+                    Buffer.from(await crypto.encrypt({name:"AES-GCM", iv: Buffer.from(iv)},  VK,  Buffer.from(content))), // actual ciphertext
+                    iv //  associated iv
+            ]);
+            return enc
+        }
+    }
 
+    async writeEntriesToFile(){
+        if (typeof window !=="undefined"){
+            const content = Buffer.from(await this.vaultLevelEncrypt());
+            const result = await window.ipc.writeFile(this.filePath, content);
+            return result === "OK" ? {content, status:result} : {content:undefined, status:result};
+        }
+        
+    }
 
-
+    async vaultLevelDecrypt(){
+        
+        if (typeof window !== "undefined"){
+            const wrappedVK = this.fileContents.subarray(16,56);
+            const iv = this.fileContents.subarray(this.fileContents.length-12);
+            const vk = await window.crypto.subtle.unwrapKey(
+                'raw',
+                Buffer.from(wrappedVK),
+                this.kek.kek,
+                {name:"AES-KW"},
+                {name:"AES-GCM", length:256}, 
+                false, 
+                ['encrypt', 'decrypt']
+            );
+            const encContents = Buffer.from(this.fileContents.subarray(56,this.fileContents.length-12));
+            const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
+            let entries_raw = [];
+            let curEntry = [];
+            for (let i = 0; i<decryptedItems.length; i++){
+                if(decryptedItems[i] !== 0x24){
+                    curEntry.push(decryptedItems[i]);
+                }else{
+                    entries_raw.push(curEntry);
+                    curEntry = [];
+                }
+            }
+            const entries = entries_raw.map((x)=>Entry.deserialise(x));
+            
+            return entries
+        }
+        throw new Error("Window object was undefined")
+    }
 
 }
