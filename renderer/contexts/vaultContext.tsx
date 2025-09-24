@@ -8,6 +8,7 @@ export type VaultType = {
     wrappedVK: Buffer,
     kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
     entries: Array<Entry>,
+    version: string
 }
 
 type vaultMetaData = {
