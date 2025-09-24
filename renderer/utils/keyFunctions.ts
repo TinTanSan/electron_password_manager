@@ -185,7 +185,7 @@ export async function rotateDEK(entry:Entry, kek:KEKParts){
     e.password = await e.encryptPass(kek);
     console.log(e.dek)
     await Promise.all(decryptedExtraFields.map(async (x)=>{
-        e = await e.addExtraField(kek, x.name, x.data, x.isSensitive);
+        e = await e.addExtraField(kek,x);
     })).catch((error)=>{
         console.error(error)
     })
