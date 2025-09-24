@@ -1,5 +1,5 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
-import { VaultContext, VaultType } from '../contexts/vaultContext'
+import { VaultContext } from '../contexts/vaultContext';
 import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
@@ -7,6 +7,7 @@ import Image from 'next/image';
 import RandomPassModal from './RandomPassModal';
 import { writeEntriesToFile } from '../utils/vaultFunctions';
 import ExtraFieldComponent from './ExtraField';
+import { VaultType } from '../interfaces/Vault';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -30,7 +31,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
             entry.decryptEntryPass(vault.kek).then((x)=>{
                 
                 setEntryPass(x.toString());
-                // setEntry((prev)=>prev.cloneMutate('password',Buffer.from(x)))
             }).catch((error)=>{
                 console.error(error)
                 // consume the error
@@ -115,10 +115,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
         entry.removeExtraField(name).then((e)=>{
             setEntry(e)
             setVault(prev=>{
-            const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), e]}
-            writeEntriesToFile(newVaultState);
-            return newVaultState;
-        })
+                const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), e]}
+                writeEntriesToFile(newVaultState);
+                return newVaultState;
+            })
         })
         
         

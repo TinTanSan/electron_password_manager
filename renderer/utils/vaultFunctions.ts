@@ -1,6 +1,6 @@
 // this file contains functions to do with vault to file transitions i.e. opening a file and converting
 // to a vault, type and handling splitting of file contents into entries etc. and vice versa
-import { VaultType } from "../contexts/vaultContext";
+import { VaultType } from "../interfaces/Vault";
 import { Entry } from "../interfaces/Entry";
 import { makeNewDEK } from "./keyFunctions";
 

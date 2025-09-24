@@ -1,6 +1,6 @@
 // a file to hold all the crypto key related functions
 
-import { VaultType } from "../contexts/vaultContext";
+import { VaultType } from "../interfaces/Vault";
 import { Entry } from "../interfaces/Entry";
 import { vaultLevelEncrypt } from "./vaultFunctions";
 
