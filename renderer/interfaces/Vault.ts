@@ -1,3 +1,4 @@
+import { createUUID } from "../utils/commons";
 import { makeNewDEK } from "../utils/keyFunctions";
 import { Entry } from "./Entry"
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -19,6 +20,12 @@ type vaultMetaData = {
     version: string
 }
 
+interface EntryGroup{
+    groupID: string;
+    groupName: string;
+    entries: Array<String>
+}
+
 
 class Vault{
     filePath:string;
@@ -28,7 +35,7 @@ class Vault{
     kek: KEKParts | undefined;
     entries: Array<Entry>;
     vaultMetadata: vaultMetaData;
-    entryGroups: Array<string>;
+    entryGroups: Array<EntryGroup>;
 
     constructor(init:PartialWithRequired<Vault, "filePath"| "fileContents" | "isUnlocked" | "wrappedVK">){
         Object.assign(this, init);
@@ -56,6 +63,22 @@ class Vault{
                     
             }
         })
+    }
+
+    addEntryToGroup(uuid:string,groupName: string, groupId:string | undefined ){
+        // try and find entrygroup first, if not found then create
+        if (groupId){
+            const group = this.entryGroups.find((x)=>x.groupID === groupId);
+            if (group){
+                this.mutate("entryGroups",[...this.entryGroups.filter(x=>x.groupID !== groupId), {groupName, groupID: createUUID(), entries: [uuid]}])
+            }else{
+                console.warn("group not found, creating group");
+                this.mutate("entryGroups",[...this.entryGroups, {groupName, groupID: createUUID(), entries: [uuid]}])
+            }
+        }else{
+            // just add new entry group
+            this.mutate("entryGroups", [...this.entryGroups,{groupName, groupID: createUUID(), entries: [uuid]}]);
+        }
     }
 
     async commitKEK(){
