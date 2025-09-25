@@ -1,4 +1,4 @@
-import { decrypt, encrypt } from "../utils/commons";
+import { createUUID, decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK, unwrapDEK, wrapDEK } from "../utils/keyFunctions";
 
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -51,7 +51,7 @@ export class Entry{
                 createDate: now,
                 lastEditedDate: now,
                 lastRotate:now,
-                uuid: Entry.createUUID(),
+                uuid: createUUID(),
                 version: '0.1.0'
             }
         }
@@ -138,12 +138,6 @@ export class Entry{
             return entry
     }
 
-    static createUUID(){
-        if (typeof window !== undefined){
-            return window.crypto.randomUUID()
-        }
-        throw new Error("Window object was undefined when calling createUUID for Entry")
-    }
 
 
     async decryptEntryPass(kek:KEKParts){

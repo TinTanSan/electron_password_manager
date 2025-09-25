@@ -14,6 +14,12 @@ export function isStrongPassword(password:string):string{
     }
     return passwordMessage.length > 0? "The password "+passwordMessage.join(", ") : "";
 }
+export function createUUID(){
+    if (typeof window !== undefined){
+        return window.crypto.randomUUID()
+    }
+    throw new Error("Window object was undefined when calling createUUID for Entry")
+}
 
 export async function decrypt(content:Buffer| string, key: CryptoKey, iv?:Buffer):Promise<{data:Buffer, status:"OK"| "ERROR"}>{
     if (typeof window !== "undefined"){
