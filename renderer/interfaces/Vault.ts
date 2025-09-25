@@ -1,4 +1,4 @@
-import { createUUID } from "../utils/commons";
+import { createUUID, encrypt } from "../utils/commons";
 import { makeNewDEK } from "../utils/keyFunctions";
 import { Entry } from "./Entry"
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -95,10 +95,29 @@ class Vault{
         }
     }
 
+
+    serialiseMetadata(){
+        return  "|"+this.vaultMetadata.version +"_" +
+            + this.vaultMetadata.createDate.toISOString()
+            + this.vaultMetadata.lastEditDate.toISOString() 
+            + this.vaultMetadata.lastRotateDate.toISOString()
+        +"|";
+    }
+
+    deserialiseMetadata(content:string):vaultMetaData{
+        const [version, datesString] = content.split("_");
+        const [createDate, lastEditDate, lastRotateDate] = datesString.split("Z").map((x)=>new Date(x));
+        return {
+            version,
+            createDate,
+            lastEditDate,
+            lastRotateDate
+        }
+    }
+
     async vaultLevelEncrypt(){
         if (typeof window !=="undefined"){
-            const crypto = window.crypto.subtle;
-            const VK = await crypto.unwrapKey(
+            const VK = await window.crypto.subtle.unwrapKey(
                 'raw', 
                 Buffer.from(this.wrappedVK), 
                 this.kek.kek,
@@ -107,18 +126,11 @@ class Vault{
                 false, 
                 ['encrypt', 'decrypt']
             )
-            const iv = new Uint8Array(12);
-            
-            window.crypto.getRandomValues(iv);
-            //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, 
-            // there will be at least one $ symbol
-            const content = this.entries.map((x)=>x.serialise()).join("$") + "$"; 
-            
             const enc = Buffer.concat([
                     this.kek.salt,
                     this.wrappedVK,
-                    Buffer.from(await crypto.encrypt({name:"AES-GCM", iv: Buffer.from(iv)},  VK,  Buffer.from(content))), // actual ciphertext
-                    iv //  associated iv
+                    //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
+                    Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$") + "$"+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
             return enc
         }
@@ -152,6 +164,7 @@ class Vault{
             let entries_raw = [];
             let curEntry = [];
             for (let i = 0; i<decryptedItems.length; i++){
+                // 0x24 is the '$' symbol
                 if(decryptedItems[i] !== 0x24){
                     curEntry.push(decryptedItems[i]);
                 }else{
@@ -160,8 +173,8 @@ class Vault{
                 }
             }
             const entries = entries_raw.map((x)=>Entry.deserialise(x));
-            
-            return entries
+             
+            this.mutate('entries',entries, true);
         }
         throw new Error("Window object was undefined")
     }
