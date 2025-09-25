@@ -1,4 +1,4 @@
-import { createUUID, encrypt } from "../utils/commons";
+import { createUUID, decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK } from "../utils/keyFunctions";
 import { Entry } from "./Entry"
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -27,7 +27,7 @@ interface EntryGroup{
 }
 
 
-class Vault{
+export class Vault{
     filePath:string;
     fileContents:Buffer;
     isUnlocked:boolean;
@@ -97,11 +97,11 @@ class Vault{
 
 
     serialiseMetadata(){
-        return  "|"+this.vaultMetadata.version +"_" +
+        return  "MD"+this.vaultMetadata.version +"_"
             + this.vaultMetadata.createDate.toISOString()
             + this.vaultMetadata.lastEditDate.toISOString() 
             + this.vaultMetadata.lastRotateDate.toISOString()
-        +"|";
+        ;
     }
 
     deserialiseMetadata(content:string):vaultMetaData{
@@ -130,8 +130,9 @@ class Vault{
                     this.kek.salt,
                     this.wrappedVK,
                     //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
-                    Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$") + "$"+this.serialiseMetadata()), VK)), // actual ciphertext
+                    Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
+            console.log(enc)
             return enc
         }
     }
@@ -145,11 +146,12 @@ class Vault{
         
     }
 
-    async vaultLevelDecrypt(){
+    async vaultLevelDecrypt(encryptedText:Buffer = undefined){
         
         if (typeof window !== "undefined"){
-            const wrappedVK = this.fileContents.subarray(16,56);
-            const iv = this.fileContents.subarray(this.fileContents.length-12);
+            console.log(encryptedText)
+            const toDecrypt = encryptedText ? encryptedText : this.fileContents;
+            const wrappedVK = toDecrypt.subarray(16,56);
             const vk = await window.crypto.subtle.unwrapKey(
                 'raw',
                 Buffer.from(wrappedVK),
@@ -159,22 +161,24 @@ class Vault{
                 false, 
                 ['encrypt', 'decrypt']
             );
-            const encContents = Buffer.from(this.fileContents.subarray(56,this.fileContents.length-12));
-            const decryptedItems = Buffer.from(await window.crypto.subtle.decrypt({name:"AES-GCM", iv:Buffer.from(iv)},vk, encContents));
-            let entries_raw = [];
-            let curEntry = [];
-            for (let i = 0; i<decryptedItems.length; i++){
-                // 0x24 is the '$' symbol
-                if(decryptedItems[i] !== 0x24){
-                    curEntry.push(decryptedItems[i]);
-                }else{
-                    entries_raw.push(curEntry);
-                    curEntry = [];
-                }
+            const {data, status} = await decrypt(toDecrypt.subarray(56),vk);
+            if (status === "OK"){
+                const [decryptedItems, metadata] = data.toString().split("MD");
+                let entries_raw = decryptedItems.split("$");
+                const vaultMetadata = this.deserialiseMetadata(metadata);
+                console.log(entries_raw)
+                const entries = entries_raw.map((x)=>Entry.deserialise(x));
+                
+                return new Vault({
+                    ...this,
+                    entries,
+                    vaultMetadata
+                })
             }
-            const entries = entries_raw.map((x)=>Entry.deserialise(x));
-             
-            this.mutate('entries',entries, true);
+            else{
+                throw new Error("Soemthing went wrong when decrypting the vault, possible KEK mismatch")
+            }
+            
         }
         throw new Error("Window object was undefined")
     }
