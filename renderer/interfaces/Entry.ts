@@ -103,9 +103,9 @@ export class Entry{
     
     static deserialise(content:string){
         const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(content).toString('utf8').split("|");
-            let efs = [];
+        let efs = [];
             let version = undefined;
-            if (extraFields[0] !== ""){
+            if (extraFields[0]){
                 if (!extraFields[0].includes("_")){
                     version = extraFields[0];
                     extraFields.splice(0);
