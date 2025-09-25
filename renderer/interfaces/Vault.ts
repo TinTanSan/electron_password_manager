@@ -132,7 +132,6 @@ export class Vault{
                     //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
-            console.log(enc)
             return enc
         }
     }
@@ -149,7 +148,6 @@ export class Vault{
     async vaultLevelDecrypt(encryptedText:Buffer = undefined){
         
         if (typeof window !== "undefined"){
-            console.log(encryptedText)
             const toDecrypt = encryptedText ? encryptedText : this.fileContents;
             const wrappedVK = toDecrypt.subarray(16,56);
             const vk = await window.crypto.subtle.unwrapKey(
@@ -166,7 +164,6 @@ export class Vault{
                 const [decryptedItems, metadata] = data.toString().split("MD");
                 let entries_raw = decryptedItems.split("$");
                 const vaultMetadata = this.deserialiseMetadata(metadata);
-                console.log(entries_raw)
                 const entries = entries_raw.map((x)=>Entry.deserialise(x));
                 
                 return new Vault({
