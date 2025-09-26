@@ -1,9 +1,13 @@
 import { createContext } from "react";
-import { Entry } from "../interfaces/Entry";
-import { VaultType } from "../interfaces/Vault";
+import { Vault } from "../interfaces/Vault";
 
 
 type VaultCxtType = {
-    vault: VaultType, setVault: React.Dispatch<React.SetStateAction<VaultType>>}
+    vault: Vault | undefined,
+    setVault: React.Dispatch<React.SetStateAction<Vault | undefined>>
+}
 
-export const VaultContext = createContext<VaultCxtType | undefined>(undefined)
+export const VaultContext = createContext<VaultCxtType>({
+        vault: undefined,
+        setVault: (_:Vault) => { throw new Error("setVault called outside provider") }
+    })
