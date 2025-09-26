@@ -5,7 +5,6 @@ import UnlockVaultPrompt from '../components/unlockVaultPrompt';
 import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
-import { vaultLevelDecrypt} from '../utils/vaultFunctions';
 import EntryComponent from '../components/EntryComponent';
 
 
@@ -26,9 +25,9 @@ export default function HomePage() {
 
   useEffect(()=>{
     // 56 is the length of the salt + wrapped VK i.e. 16 bytes for salt and 40 bytes for wrappedVK
-    if(vault !== undefined && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
-      vaultLevelDecrypt(vault.fileContents, vault.kek).then((decryptedEntries)=>{
-        setVault(prev=>({...prev, entries:decryptedEntries}));
+    if(vault && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
+      vault.vaultLevelDecrypt().then((decryptedVault)=>{
+        setVault(decryptedVault);
         setSearchFilter("")
       })
     }
@@ -55,7 +54,6 @@ export default function HomePage() {
             :
             // [...vault.entries, ...Array.from({length: 1000}, (_,i)=>new Entry({title:'test_'+i, password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
             vault.entries
-            
             setPaginatedEntries(entries);
             return entries;
         }
