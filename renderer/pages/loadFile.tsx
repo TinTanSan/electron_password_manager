@@ -3,9 +3,10 @@ import { VaultContext } from '../contexts/vaultContext'
 import { useRouter } from 'next/router'
 import { BannerContext } from '../contexts/bannerContext'
 import { addBanner } from '../interfaces/Banner'
+import { Vault } from '../interfaces/Vault'
 
 export default function LoadFile() {
-    const vaultContext = useContext(VaultContext)
+    const {vault, setVault} = useContext(VaultContext)
     const navigate = useRouter()
     const [recent, setRecent] = useState<Array<string>>([]);
     const banners = useContext(BannerContext);
@@ -14,7 +15,14 @@ export default function LoadFile() {
             
             if (filePath){
                 // since its a new file, the file content will be empty anyways
-                vaultContext.setVault({filePath, fileContents:Buffer.from(""), wrappedVK:Buffer.from(""), isUnlocked:false, kek:undefined, entries:[]});
+                setVault( new Vault({
+                    filePath, 
+                    fileContents:Buffer.from(""), 
+                    wrappedVK:Buffer.from(""), 
+                    isUnlocked:false, 
+                    kek:undefined, 
+                    entries:[]
+                }));
                 window.ipc.addRecent(filePath);
                 navigate.push("/home");
             }
@@ -29,7 +37,7 @@ export default function LoadFile() {
                 if (status ==="OK"){
                     window.ipc.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
-                        vaultContext.setVault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,56)), filePath, isUnlocked:false, kek:undefined, entries:[]})
+                        setVault(new Vault({fileContents:Buffer.from(fileContents), wrappedVK:Buffer.from(fileContents.substring(16,56)), filePath, isUnlocked:false, kek:undefined, entries:[]}))
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
                         navigate.push('/home')
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
@@ -45,21 +53,21 @@ export default function LoadFile() {
                 // we don't handle the case where a vault is not of the correct extension because the vault will only be added into
                 // the recents if the extension is okay and the vault was opened successfully.s
                 if (content.status === "OK"){
-                    vaultContext.setVault({
+                    setVault(new Vault({
                         fileContents:content.fileContents, 
-                        wrappedVK:Buffer.from(content.fileContents.subarray(16,56)) ,
                         filePath:content.filePath, 
+                        wrappedVK:Buffer.from(content.fileContents.subarray(16,56)) ,
                         isUnlocked:false, 
                         kek:undefined, 
                         entries:[]
-                    });
+                    }));
                     addBanner(banners, "Vault Opened successfully", 'success')
                     navigate.push('/home')
                 }else{
                     // this is different to the undefined in the above if branch because when we directly call openFile we are
                     // using an filesystem read to open the filepath, and undefined means something went wrong finding that file
                     addBanner(banners, "Vault Not found", 'error')
-                    vaultContext.setVault(undefined);
+                    setVault(undefined);
                 }
             });
         }
