@@ -7,6 +7,7 @@ import { BannerContext } from '../contexts/bannerContext';
 import { isStrongPassword } from '../utils/commons';
 import { makeNewKEK, validateKEK } from '../utils/keyFunctions';
 import { commitKEK } from '../utils/vaultFunctions';
+import { Vault } from '../interfaces/Vault';
 // this component will handle the initial create of the vault KEK and subsequent unlocks
 export default function UnlockVaultPrompt() {
     const vaultContext = useContext(VaultContext);
@@ -33,10 +34,9 @@ export default function UnlockVaultPrompt() {
           if(passMessage.length === 0){
               makeNewKEK(password).then((x:KEKParts)=>{ 
                 commitKEK(vaultContext.vault.filePath, vaultContext.vault.fileContents, x).then((wrappedVK)=>{
-                  vaultContext.setVault(prev=>({...prev, wrappedVK, kek:x}))
+                  vaultContext.setVault(prev=>new Vault({...prev, wrappedVK, kek:x, isUnlocked:true}))
                   addBanner(bannerContext, "Vault unlocked", 'success');
                   // set vault to be unlocked
-                  vaultContext.setVault(prev=>({...prev, isUnlocked:true}));
                 })
               });
           }else{
@@ -55,7 +55,7 @@ export default function UnlockVaultPrompt() {
               addBanner(bannerContext, "Incorrect password", 'error')
             }else{
               addBanner(bannerContext, "Vault unlocked", 'success');
-              vaultContext.setVault(prev=>({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
+              vaultContext.setVault(prev=>new Vault({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
             }
           })
         }else{
