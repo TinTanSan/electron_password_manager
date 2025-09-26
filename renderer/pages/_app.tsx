@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react'
 import type { AppProps } from 'next/app'
 
 import '../styles/globals.css'
-import { VaultContext, VaultType } from '../contexts/vaultContext'
+import { VaultContext } from '../contexts/vaultContext';
+import {Vault} from '../interfaces/Vault';
 import { BannerContext } from '../contexts/bannerContext'
 import { BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [vault, setVault] = useState<VaultType>()
+  const [vault, setVault] = useState<Vault |undefined>(undefined);
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
