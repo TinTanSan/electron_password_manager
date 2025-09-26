@@ -104,38 +104,38 @@ export class Entry{
     static deserialise(content:string){
         const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(content).toString('utf8').split("|");
         let efs = [];
-            let version = undefined;
-            if (extraFields[0]){
-                if (!extraFields[0].includes("_")){
-                    version = extraFields[0];
-                    extraFields.splice(0);
-                }
-                efs = extraFields.map((x):ExtraField=>{
-                    const [name, data, isProtected] = x.split("_");
-                    return {
-                        name,
-                        data: Buffer.from(data, 'base64'),
-                        isProtected:isProtected === "1"
-                    }
-                })
+        let version = undefined;
+        if (extraFields[0]){
+            if (!extraFields[0].includes("_")){
+                version = extraFields[0];
+                extraFields.splice(0);
             }
-            
-            const entry:Entry = new Entry({
-                title,
-                username,
-                dek:Buffer.from(dek, 'base64'),
-                password: Buffer.from(password, 'base64'),
-                notes,
-                extraFields:efs,
-                metadata:{
-                    createDate:new Date(createDate),
-                    lastEditedDate:new Date(lastEditedDate),
-                    lastRotate:new Date(lastRotateDate),
-                    uuid: uuid,
-                    version: version || "0.1.0"
+            efs = extraFields.map((x):ExtraField=>{
+                const [name, data, isProtected] = x.split("_");
+                return {
+                    name,
+                    data: Buffer.from(data, 'base64'),
+                    isProtected:isProtected === "1"
                 }
             })
-            return entry
+        }
+        
+        const entry:Entry = new Entry({
+            title,
+            username,
+            dek:Buffer.from(dek, 'base64'),
+            password: Buffer.from(password, 'base64'),
+            notes,
+            extraFields:efs,
+            metadata:{
+                createDate:new Date(createDate),
+                lastEditedDate:new Date(lastEditedDate),
+                lastRotate:new Date(lastRotateDate),
+                uuid: uuid,
+                version: version || "0.1.0"
+            }
+        })
+        return entry
     }
 
 
@@ -200,12 +200,10 @@ export class Entry{
 
             return Promise.all(this.extraFields.map(async (x)=>{
                 let data = x.data;
-                console.log(x.isProtected)
                 if (x.isProtected){
                     data = x.data.subarray(0,x.data.length-12);
                     const iv = x.data.subarray(x.data.length-12)
                     data = Buffer.from(await window.crypto.subtle.decrypt({name:'AES-GCM', iv:Buffer.from(iv)}, dek,Buffer.from(data)))
-                    console.log("data:",data)
                 }  
                 return {
                     name:x.name,
