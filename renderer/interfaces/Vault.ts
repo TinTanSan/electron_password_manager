@@ -47,6 +47,9 @@ export class Vault{
                 version: "0.1.0"
             }
         }
+        if (!init.entries){
+            this.entries = [];
+        }
     }
 
     mutate(field:string, value:any, inPlace:boolean = false):Vault{
@@ -129,7 +132,6 @@ export class Vault{
             const enc = Buffer.concat([
                     this.kek.salt,
                     this.wrappedVK,
-                    //the extra "$" is to ensure that we wrap the end by a $ so that even if there is only 1 entry, there will be at least one $ symbol
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
             return enc
@@ -162,14 +164,20 @@ export class Vault{
             const {data, status} = await decrypt(toDecrypt.subarray(56),vk);
             if (status === "OK"){
                 const [decryptedItems, metadata] = data.toString().split("MD");
-                let entries_raw = decryptedItems.split("$");
-                const vaultMetadata = this.deserialiseMetadata(metadata);
-                const entries = entries_raw.map((x)=>Entry.deserialise(x));
+                let entries_raw = decryptedItems.split("$").filter(x=>x!=="");
+                let vaultMetadata = undefined;
+                if (metadata){
+                    vaultMetadata = this.deserialiseMetadata(metadata);
+                }
+                
+                const entries = entries_raw.map(
+                    (x)=>Entry.deserialise(x)
+                );
                 
                 return new Vault({
                     ...this,
                     entries,
-                    vaultMetadata
+                    vaultMetadata:vaultMetadata? vaultMetadata : undefined
                 })
             }
             else{
