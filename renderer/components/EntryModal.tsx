@@ -76,10 +76,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 const updatedEntry = new Entry({...entry, password:passBuf, metadata:{...entry.metadata, lastEditedDate: new Date()}})
                 setEntry(updatedEntry)
                 const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? updatedEntry : x)
-                setVault((prev)=>({
-                    ...prev, 
-                    entries: newEntries
-                }));
+                setVault((prev)=>prev.mutate('entries', newEntries));
                 writeEntriesToFile(vault);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
                 setShowModal(false);
@@ -98,9 +95,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     setEntry(e);
                     setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
                     setVault(prev=>{
-                        const newState = ({...prev, entries:vault.entries.map(x => x.metadata.uuid === uuid ? e : x)});
-                        writeEntriesToFile(newState);
-                        return newState;
+                        let newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? e : x);
+                        return prev.mutate('entries', newEntries);
                     })
                 }
                 
@@ -112,13 +108,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleDeleteExtraField = (name:string)=>{
-        entry.removeExtraField(name).then((e)=>{
-            setEntry(e)
-            setVault(prev=>{
-                const newVaultState:VaultType = {...prev, entries:[...prev.entries.filter((x)=>x.metadata.uuid !== uuid), e]}
-                writeEntriesToFile(newVaultState);
-                return newVaultState;
-            })
+        setEntry(prev=>{
+            const newState = prev.removeExtraField(name);
+            setVault(prev=>prev.mutate('entries',prev.entries.map((x)=>x.metadata.uuid !== uuid? x : newState)))
+            return newState;
         })
         
         
