@@ -186,7 +186,7 @@ export class Entry{
         )
     }
     
-    async removeExtraField(name:string):Promise<Entry>{
+    removeExtraField(name:string):Entry{
         return this.update('extraFields', this.extraFields.filter((x)=>x.name !== name))
     }
 
