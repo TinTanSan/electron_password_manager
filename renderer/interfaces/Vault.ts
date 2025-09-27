@@ -53,7 +53,8 @@ export class Vault{
     }
 
     mutate(field:string, value:any, inPlace:boolean = false):Vault{
-        return new Vault({
+        
+        const newState = new Vault({
             ...this, 
             [field] : value, 
             vaultMetadata:{
@@ -66,6 +67,10 @@ export class Vault{
                     
             }
         })
+        if (!inPlace){
+            newState.writeEntriesToFile();
+        }
+        return newState
     }
 
     addEntryToGroup(uuid:string,groupName: string, groupId:string | undefined ){
