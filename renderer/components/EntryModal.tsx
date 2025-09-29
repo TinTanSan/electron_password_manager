@@ -7,7 +7,6 @@ import Image from 'next/image';
 import RandomPassModal from './RandomPassModal';
 import { writeEntriesToFile } from '../utils/vaultFunctions';
 import ExtraFieldComponent from './ExtraField';
-import { VaultType } from '../interfaces/Vault';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -178,7 +177,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         <div className='flex w-full justify-center items-center text-2xl'>
                             {entry.title}
                         </div>
-                        <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center bg-neutral hover:bg-neutral-darken text-neutral-content items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
+                        <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
                     </div>
                     <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!tab && 'rounded-t-lg'}`}>
                     {
