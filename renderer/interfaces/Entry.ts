@@ -153,11 +153,12 @@ export class Entry{
     }
 
     // encrypt only pass of an entry
-    async encryptPass({kek}:KEKParts):Promise<Buffer>{
+    async updatePass({kek}:KEKParts, newPassword:string | Buffer):Promise<Entry>{
         if (typeof window !== 'undefined'){
             const dek = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek, {name:"AES-KW"}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
-            return await encrypt(this.password, dek);
-
+            
+            const encPassword = await encrypt(newPassword, dek);
+            return this.update('password', encPassword)
         }
         throw new Error("window is not defined, cannot encrypt entry pass")
     }
