@@ -4,9 +4,6 @@ import { VaultContext } from '../contexts/vaultContext'
 import { addBanner } from '../interfaces/Banner'
 import { BannerContext } from '../contexts/bannerContext'
 import Image from 'next/image'
-import { makeNewDEK, wrapDEK } from '../utils/keyFunctions';
-import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons'
-import { writeEntriesToFile } from '../utils/vaultFunctions'
 import RandomPassModal from './RandomPassModal'
 import ExtraFieldComponent from './ExtraField'
 type props ={
@@ -67,9 +64,7 @@ export default function NewEntryForm({setShowForm}:props) {
     }
 
     const handleRemoveExtraField = (name:string)=>{
-        entry.removeExtraField(name).then((updatedEntry:Entry)=>{
-            setEntry(updatedEntry)
-        })
+        setEntry(entry.removeExtraField(name))
     }
     
 
@@ -77,20 +72,8 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
-            entry.encryptPass(vault.kek).then((encryptedPass)=>{
-                const newEntries = [...vault.entries, entry.update('password', encryptedPass)];    
-                        setVault((prev)=>{
-                            const newState = {...prev, entries:newEntries};
-                            writeEntriesToFile(newState).then(({content, status})=>{
-                                if (status === "OK"){
-                                    newState.fileContents = content;
-                                }else{
-                                    addBanner(bannerContext, 'unable to add entry, writing to file failed', 'error');
-                                }
-                            })
-                            return newState
-                        })
-                    
+            entry.updatePass(vault.kek,entry.password).then((encryptedPass)=>{
+                setVault((prev)=>prev.mutate('entries', [...vault.entries, entry.update('password', encryptedPass)]))
                 setShowForm(false)
             })
         }else{
