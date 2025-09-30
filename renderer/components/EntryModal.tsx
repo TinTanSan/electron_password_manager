@@ -21,7 +21,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [tab, setTab] = useState(true);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    const [entryPass, setEntryPass]= useState<string | undefined>(undefined);
+    const [entryPass, setEntryPass]= useState<string>("");
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
 
 
@@ -42,7 +42,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
-            setEntry((prev)=>prev.cloneMutate('password',Buffer.from(e.target.value)))
+            setEntryPass(e.target.value);
             return;
         }
         setEntry(prev=>prev.cloneMutate(e.target.id, e.target.value));
@@ -70,15 +70,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-         entry.encryptPass(vault.kek).then((passBuf)=>{
+        entry.updatePass(vault.kek, entryPass).then((newEntryState)=>{
             try {
-                const updatedEntry = new Entry({...entry, password:passBuf, metadata:{...entry.metadata, lastEditedDate: new Date()}})
-                setEntry(updatedEntry)
-                const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? updatedEntry : x)
+                setEntry(newEntryState)
+                const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
                 setVault((prev)=>prev.mutate('entries', newEntries));
-                writeEntriesToFile(vault);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
-                setShowModal(false);
+                setShowModal(false);    
             } catch (error) {
                 addBanner(bannerContext, 'unable to update entry '+error, 'error');
             }
@@ -194,7 +192,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 </div>
                                 <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200 pr-2'>
                                     <label className='flex w-26 shrink-0 border-r border-base-300 pl-2 rounded-l-lg'>Password</label>
-                                    <input type={showPass?"text":'password'} value={entryPass!==undefined? entryPass.toString(): "*".repeat(8)} onChange={handleChange} id='password' className='flex w-full h-full outline-none' />
+                                    <input type={showPass?"text":'password'} value={entryPass} onChange={handleChange} id='password' className='flex w-full h-full outline-none' />
                                     <div className='flex flex-row gap-2 w-32'>
                                         <Image onClick={()=>{setShowRandomPassModal(true)}} src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
                                         <Image onClick={()=>{handleCopy()}} src={'/images/copy.svg'} alt='copy' width={25} height={25} className='w-auto h-auto flex items-center justify-center' />
@@ -202,7 +200,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                 </div>
                                 <div className='flex flex-col w-full border-2 border-base-300 h-full gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200'>
-                                    <label className='flex shrink-0 w-full border-b border-base-300 pl-2 rounded-l-lg'>Username</label>
+                                    <label className='flex shrink-0 w-full border-b border-base-300 pl-2 rounded-l-lg'>Notes</label>
                                     <textarea value={entry.notes} onChange={handleChange} id='notes' className='flex w-full outline-none h-full resize-none px-2' />
                                 </div>
                                 <div className='flex w-full h-12 justify-center'>
