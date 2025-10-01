@@ -18,7 +18,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const bannerContext = useContext(BannerContext);
     const [submit, setSubmit] = useState(true);
     const [showPass, setShowPass] = useState(false);
-    const [tab, setTab] = useState(true);
+    const [tab, setTab] = useState(0);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string>("");
@@ -169,17 +169,18 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     <div className='flex flex-row w-full h-10 items-start'>
                         {/* tab selector */}
                         <div className='flex h-full'>
-                            <button onClick={()=>{setTab(true)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${tab?"bg-base-100 border-t-2 border-r-2 border-l-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Main</button>
-                            <button onClick={()=>{setTab(false)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${!tab?"bg-base-100 border-t-2 border-l-2 border-r-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Extra</button>
+                            <button onClick={()=>{setTab(0)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===0)?"bg-base-100 border-t-2 border-r-2 border-l-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Main</button>
+                            <button onClick={()=>{setTab(1)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===1)?"bg-base-100 border-t-2 border-l-2 border-r-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Extra</button>
+                            <button onClick={()=>{setTab(2)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===2)?"bg-base-100 border-t-2 border-l-2 border-r-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Info</button>
                         </div>
                         <div className='flex w-full justify-center items-center text-2xl'>
                             {entry.title}
                         </div>
                         <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
                     </div>
-                    <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!tab && 'rounded-t-lg'}`}>
+                    <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!(tab===0) && 'rounded-t-lg'}`}>
                     {
-                        tab?
+                        tab===0?
                         // main tab
                             <form onSubmit={handleConfirm} className='flex flex-col w-full h-full p-2 gap-2'>
                                 <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200'>
@@ -208,8 +209,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 </div>
                             </form>  
                         :
-                        // extras tab
-                                <div className='flex flex-col gap-2 w-full h-full p-2 '>
+                        
+                        tab===1?
+                            // extras tab
+                            <div className='flex flex-col gap-2 w-full h-full p-2 '>
                                     <div className='flex w-full h-1/3 flex-col gap-2 shrink-0'>
                                         <div className='flex w-full h-10 items-center justify-center'>New Extra Field</div> 
                                         <div className='flex w-full h-full gap-2 grow-0'>
@@ -243,7 +246,31 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                             )
                                         }
                                     </div>
+                            </div>
+                            :
+                            // info/metadata
+                            <div className='flex flex-col gap-2 w-full h-full p-2 text-lg'>
+                                <h1 className='flex flex-row w-full h-fit text-xl items-center'>
+                                    Details about this Entry
+                                </h1>
+                                <div className='flex flex-row w-full gap-5 items-center'>
+                                    <div className='flex w-32 h-fit text-nowrap'>UUID:</div>
+                                    <div className='flex w-full text-md'>{entry.metadata.uuid}</div>
+                                </div>  
+                                <div className='flex w-3/4 bg-base-300 h-0.25' />
+                                
+                                <div className='flex flex-row w-full gap-5 items-center'>
+                                    <div className='flex w-32 h-fit text-nowrap'>Created at:</div>
+                                    <div className='flex w-full text-md'>{entry.metadata.createDate.toString()}</div>
                                 </div>
+                                <div className='flex w-3/4 bg-base-300 h-0.25' />
+                                
+                                <div className='flex flex-row w-full gap-5 items-center'>
+                                    <div className='flex w-32 h-fit text-nowrap'>Last edited at:</div>
+                                    <div className='flex w-full text-md'>{entry.metadata.lastEditedDate.toString()}</div>
+                                </div>
+                                
+                            </div>
                     }
                     </div>
                     {showRandomPassModal && <RandomPassModal  setShowRandomPassModal={setShowRandomPassModal} setEntry={setEntry}/>}
