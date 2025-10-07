@@ -218,7 +218,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                             <div className='flex flex-col w-3/4 h-full gap-1'>
                                                 {/* name input */}
                                                 <div className='flex w-full h-8 shrink-0 items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
-                                                    <div className='flex w-24 pl-1 full bg-base-300 h-full items-center'>Name</div>
+                                                    <div className='flex w-24 pl-1 full bg-base-200 h-full items-center'>Name</div>
                                                     <input id='name' className='flex w-full h-full outline-none overflow-x-scroll' value={extraFeild.name} onChange={handleChangeExtraField} />
                                                 </div> 
                                                 <div className='flex w-full flex-col h-full py-2 items-end'>
@@ -232,7 +232,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                                 </div>
                                             </div>
                                             <div className='flex flex-col w-full h-full items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
-                                                <div className='flex w-full pl-1 bg-base-300 h-8 items-center'>data</div>
+                                                <div className='flex w-full pl-1 bg-base-200 h-8 items-center'>data</div>
                                                 <textarea id='data' className='flex w-full resize-none h-full outline-none overflow-y-auto' value={extraFeild.data.toString()} onChange={handleChangeExtraField} />
                                             </div>
                                         </div>
