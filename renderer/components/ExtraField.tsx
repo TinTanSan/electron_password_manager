@@ -57,7 +57,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
         </div>
       </div>
       <div className='flex flex-col w-full h-full'>
-        <textarea value={(!extraField.isProtected  || showData)?data:"Click reveal to show contents"}  readOnly className='flex p-1 overflow-y-auto border-2 border-base-300 resize-none h-full w-full'/>
+        <textarea value={(!extraField.isProtected  || showData)?data:"Click reveal to show contents"}  readOnly className='flex p-1 overflow-y-auto border-2 border-base-300 resize-none h-full w-full rounded-lg bg-base-100 text-base-content'/>
       </div>
     </div>
   )
