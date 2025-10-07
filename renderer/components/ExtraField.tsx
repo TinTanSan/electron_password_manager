@@ -21,6 +21,10 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   },[extraField])
 
   useEffect(()=>{
+    if (!extraField.isProtected){
+      setData(extraField.data.toString());
+      return;
+    }
     if (extraField.isProtected && showData && !data){
         entry.decryptExtraField(extraField.name, vault.kek).then((d)=>{
           if (d.status === "ERROR"){
@@ -34,7 +38,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
       setData(undefined);
     }
   },[showData])
-
+  
 
 
 
