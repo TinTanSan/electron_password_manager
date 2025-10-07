@@ -16,17 +16,18 @@ export default function EntryComponent({entry}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [decryptedPass, setDecryptedPass] = useState<string>("");
+    const [showPass, setShowPass] = useState(false);
+
     const handleShowPass = ()=>{
-        decryptedPass === ""?
         entry.decryptEntryPass(vault.kek).then((pass)=>{
             setDecryptedPass(pass.toString());
             setTimeout(() => {
-                setDecryptedPass(undefined);
+                setDecryptedPass("");
+                setShowPass(false);
             }, 10000);
         })
-        :
-        setDecryptedPass(undefined);
     }
+    
     const handleCopy = ()=>{
         if (decryptedPass){
             navigator.clipboard.writeText(decryptedPass.toString()).then(()=>{
@@ -60,6 +61,7 @@ export default function EntryComponent({entry}:props) {
         }
         
     }
+    
     const handleDelete = ()=>{
         setVault((prev)=>
             {
@@ -76,12 +78,22 @@ export default function EntryComponent({entry}:props) {
             <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center'>{entry.username? entry.username: <i>No username</i>}</div>
             <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center px-1'>
                 <div className='flex w-full h-full items-center p-1'>
-                    {decryptedPass? decryptedPass? decryptedPass:<i>No Password</i> : "*".repeat(Math.max(8, Math.random()*15))}
+                    {showPass? 
+                        decryptedPass?
+                            decryptedPass
+                            :
+                            <i>No Password</i> 
+                        : 
+                            "*".repeat(8)
+                    }
                 </div>
                 <Image onClick={()=>{handleCopy()}} src={'/images/copy.svg'} alt='copy' width={25} height={25} className='w-auto h-auto flex items-center justify-center' />
-                <Image onClick={()=>{handleShowPass()}} src={decryptedPass?'/images/hidePass.svg':'/images/showPass.svg'} alt={decryptedPass?'hide':'show'} width={15} height={15} className='w-auto h-auto flex items-center justify-center' />
+                <Image onClick={()=>{setShowPass(prev=>!prev);handleShowPass();}} src={showPass?'/images/hidePass.svg':'/images/showPass.svg'} alt={showPass?'hide':'show'} width={15} height={15} className='w-auto h-auto flex items-center justify-center' />
             </div>
-            <div className='flex w-full h-full items-center justify-center text-nowrap text-ellipsis overflow-hidden'>{entry.notes ? entry.notes :<i>No Notes</i>}</div>
+            <div className='flex w-full h-full items-center justify-center text-nowrap text-ellipsis overflow-hidden'>
+                {entry.notes ? entry.notes :<i>No Notes</i>
+                }
+            </div>
             {/* details/edit and delete buttons */}
             <div className='flex w-full max-w-80 h-full items-center gap-2'>
                 <button onClick={()=>{setShowEditModal(prev=>!prev)}} type='button' className='flex w-full h-full  items-center justify-center rounded-lg bg-primary text-primary-content'>Details/Edit</button>
