@@ -72,8 +72,9 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
-            entry.updatePass(vault.kek,entry.password).then((encryptedPass)=>{
-                setVault((prev)=>prev.mutate('entries', [...vault.entries, entry.update('password', encryptedPass)]))
+            entry.updatePass(vault.kek,entry.password).then((encryptedEntry)=>{
+                setVault((prev)=>prev.mutate('entries', [...vault.entries,             entry.updatePass(vault.kek,entry.password).then((encryptedEntry)=>{
+]))
                 setShowForm(false)
             })
         }else{
