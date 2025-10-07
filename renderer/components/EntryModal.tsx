@@ -66,7 +66,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }, 10000);
     }
 
-
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
         
@@ -85,7 +84,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleAddExtraField = ()=>{
         if (extraFeild.name){
-            entry.addExtraField(vault.kek,extraFeild).then((e)=>{
+            entry.addExtraField(vault.kek,extraFeild).then((e:Entry)=>{
                 if (!e){
                     addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
                 }else{
@@ -148,13 +147,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     
 
     useEffect(() => {
-    document.addEventListener("keydown", (escapeHandler), false);
-    addEventListener("keydown", (copyHandler), false);
-    return () => {
-      document.removeEventListener("keydown", escapeHandler, false);
-      removeEventListener("keydown", (copyHandler), false);
-    };
-  }, []);
+        document.addEventListener("keydown", (escapeHandler), false);
+        addEventListener("keydown", (copyHandler), false);
+        return () => {
+        document.removeEventListener("keydown", escapeHandler, false);
+        removeEventListener("keydown", (copyHandler), false);
+        };
+    }, []);
 
 
     return (
@@ -231,7 +230,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                                         <button onClick={()=>{handleAddExtraField()}} className='flex w-1/2 h-10 rounded-lg items-center justify-center text-primary-content bg-primary'>Add</button>
                                                     </div>
                                                 </div>
-
                                             </div>
                                             <div className='flex flex-col w-full h-full items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
                                                 <div className='flex w-full pl-1 bg-base-300 h-8 items-center'>data</div>
