@@ -5,7 +5,6 @@ import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
 import RandomPassModal from './RandomPassModal';
-import { writeEntriesToFile } from '../utils/vaultFunctions';
 import ExtraFieldComponent from './ExtraField';
 
 type props ={
@@ -70,6 +69,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
+        
         entry.updatePass(vault.kek, entryPass).then((newEntryState)=>{
             try {
                 setEntry(newEntryState)
