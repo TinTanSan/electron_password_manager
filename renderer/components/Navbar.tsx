@@ -5,6 +5,7 @@ import { addBanner } from '../interfaces/Banner';
 import FancyInput from './fancyInput';
 import NewEntryForm from './NewEntryForm';
 import SearchBar, { SearchSettings } from './searchBar';
+import { Vault } from '../interfaces/Vault';
 
 type props = {
     search:string,
@@ -26,8 +27,9 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
     }
 
     const handleLock = ()=>{
+        window.ipc.clearClipboard();
         window.ipc.openFile(vault.filePath).then((content)=>{
-            setVault(prev=>({...prev, fileContents:content.fileContents, isUnlocked:false, entries:prev.entries}))
+            setVault(prev=>(new Vault({...prev, fileContents:content.fileContents, isUnlocked:false})))
             bannerContext.setBanners([]);
             addBanner(bannerContext, 'Vault locked', 'info');
         })
