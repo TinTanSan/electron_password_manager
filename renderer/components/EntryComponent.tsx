@@ -6,6 +6,7 @@ import { VaultContext } from '../contexts/vaultContext';
 import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
 import { writeEntriesToFile } from '../utils/vaultFunctions';
+import { Vault } from '../interfaces/Vault';
 type props={
     entry: Entry
 }
@@ -14,9 +15,9 @@ export default function EntryComponent({entry}:props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
-    const [decryptedPass, setDecryptedPass] = useState<string | undefined>(undefined);
+    const [decryptedPass, setDecryptedPass] = useState<string>("");
     const handleShowPass = ()=>{
-        decryptedPass === undefined?
+        decryptedPass === ""?
         entry.decryptEntryPass(vault.kek).then((pass)=>{
             setDecryptedPass(pass.toString());
             setTimeout(() => {
@@ -61,9 +62,8 @@ export default function EntryComponent({entry}:props) {
     }
     const handleDelete = ()=>{
         setVault((prev)=>
-            
             {
-                const newState ={...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}
+                const newState =new Vault({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)})
                 writeEntriesToFile(newState);
                 return newState;
             })
