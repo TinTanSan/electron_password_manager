@@ -177,7 +177,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         </div>
                         <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
                     </div>
-                    <div className={`flex w-full h-full bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!(tab===0) && 'rounded-t-lg'}`}>
+                    <div className={`flex w-full h-full text-base-content bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!(tab===0) && 'rounded-t-lg'}`}>
                     {
                         tab===0?
                         // main tab
@@ -217,7 +217,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <div className='flex w-full h-full gap-2 grow-0'>
                                             <div className='flex flex-col w-3/4 h-full gap-1'>
                                                 {/* name input */}
-                                                <div className='flex w-full h-8 shrink-0 items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
+                                                <div className='flex w-full h-8 shrink-0 items-center  justify-center border-2 border-neutral rounded-lg overflow-hidden focus-within:border-primary'>
                                                     <div className='flex w-24 pl-1 full bg-base-200 h-full items-center'>Name</div>
                                                     <input id='name' className='flex w-full h-full outline-none overflow-x-scroll' value={extraFeild.name} onChange={handleChangeExtraField} />
                                                 </div> 
@@ -237,6 +237,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                             </div>
                                         </div>
                                     </div>
+                                    <hr className='flex h-20 text-neutral' />
                                     <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
                                         {
                                             entry.extraFields.map((ef, i)=>
