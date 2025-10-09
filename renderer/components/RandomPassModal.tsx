@@ -2,7 +2,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
 import { Entry } from '../interfaces/Entry';
 import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons';
-
+import zxcvbn from 'zxcvbn';
 
 export type RandomPassGeneratorSettings={
     length:number,
@@ -51,6 +51,7 @@ export const generateRandomPass = (settings:RandomPassGeneratorSettings):string 
             specCharsToUse-=1
         }
     }
+    console.log(zxcvbn(ret).score);
     return ret;
 
 }
@@ -108,9 +109,10 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
                 </button>
             </div>
             {/* length slider + input box */}
-            <div className='flex w-full h-fit gap-2'>
+            <div className='flex w-full h-fit gap-2 items-center'>
                 <label>Length</label>
-                <input id='length' type='range' step={1} min={8} max={50} value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-full'/>
+                <input id='length' type='range' step={1} min={8} max={50} value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} 
+                    className='flex w-full border-2 h-4  rounded-full cursor-pointer appearance-none'/>
                 <input value={randomSettings.length} type='number' onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} className='flex w-14 outline-none h-8 rounded-lg border-2 px-1'/>
             </div>
         </div>
