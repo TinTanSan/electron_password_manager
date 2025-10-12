@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
 import EntryComponent from '../components/EntryComponent';
+import Image from 'next/image';
 
 
 export default function HomePage() {
@@ -20,7 +21,7 @@ export default function HomePage() {
   // hard coded 100 should be changed to use whatever is listed in the preferences
   const maxPages = Math.floor(shownEntries.length/100);
 
-
+  const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
   useEffect(()=>{
@@ -68,62 +69,37 @@ export default function HomePage() {
   }, [page])
 
   return (
-    <div className='flex w-screen h-screen items-center justify-center bg-base-200'>
-    {(vault !== undefined && !vault.isUnlocked) && <UnlockVaultPrompt />}
+    <div className='flex w-screen h-screen items-center justify-center bg-base-200 overflow-hidden'>
+    {(vault !== undefined && !vault.isUnlocked) && 
+      <UnlockVaultPrompt />
+      
+    }
     
     {(vault !== undefined && vault.isUnlocked) && 
-    <div className='flex flex-col w-full h-screen items-center p-2 overflow-y-hidden'>
-      <div className="w-screen h-screen flex flex-col p-2 overflow-y-hidden gap-4">
-        <Navbar search={searchFilter} setSearch={setSearchFilter} searchSettings={searchSettings} setSearchSettings={setSearchSettings} />
-        <div className='flex flex-col w-full h-full text-base-content bg-base-100 rounded-xl border-2 border-base-300 overflow-y-hidden p-2 gap-2'>
-          <div className='flex w-full h-10 gap-2'>
-            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Title</div>
-            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>username</div>
-            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Password</div>
-            <div className='flex w-full h-full items-center justify-center border-2 rounded-lg border-base-300 '>Notes</div>
-            <div className='flex w-full max-w-80 h-full' />
-          </div>
-          
-          <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
-            <div className='flex flex-col w-full h-fit gap-2'>
-              {paginatedEntries.map((entry, i)=>
-                <EntryComponent entry={entry} key={i}/>
-              )}
+      <div className='flex w-full h-full '>
+        <div className={`flex w-fit h-fit transition-all border-2 ${hamburgerOpen?" items-start justify-center ":' items-center justify-start '} duration-700 gap-2 relative`}>
+          <div className={`flex flex-col py-5 pt-10 px-2 bg-white ${hamburgerOpen?' h-[99vh] w-[20vw] shadow-lg transition-all duration-500 ease-in':'h-0 w-0 collapse transition-all ease-in duration-500'} top-0`}>
+            <div className='flex flex-col w-full h-full bg-base-300' />
+            <div className='flex w-full h-12 justify-between'>
+              <div className='flex cursor-pointer hover:gap-2 group border-2 border-warning hover:bg-warning h-10 w-fit p-1 rounded-lg'>
+                <Image src={"/images/lock.svg"} alt='exit' height={10} width={10} className='flex w-6 h-auto group-hover:saturate-[5] group-hover:brightness-[15%]'/>
+                <p className='flex group-hover:visible w-0 group-hover:w-30 group-hover:h-full overflow-hidden group-hover:text-warning-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Lock Vault</p>
+              </div>
+              <div className='flex cursor-pointer hover:gap-2 group border-2 border-error hover:bg-error h-10 w-fit p-1 rounded-lg'>
+                <p className='flex group-hover:visible w-0 group-hover:w-30 group-hover:h-full  overflow-hidden group-hover:text-error-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Close &amp; Exit</p>
+                <Image src={"/images/exit.svg"} alt='exit' height={10} width={10} className='flex w-6 h-auto group-hover:saturate-[5] group-hover:brightness-[15%]'/>
+              </div>
             </div>
+          </div>  
+          <Image onClick={()=>{setHamburgerOpen(!hamburgerOpen)}} src={hamburgerOpen?"/images/close_black.svg":"/images/menu.svg"} alt='i' width={10} height={10} className={` z-10 flex transition-all duration-700 ${hamburgerOpen?"w-5 absolute right-3 top-3":"w-6"} h-auto `}/>
+        </div>
+        <div className='flex flex-col w-full h-full p-2'>
+          <div className='flex w-full h-10 bg-white'>
+
           </div>
-          {/* pagination */}
-          { maxPages >1 && 
-            <div className='flex flex-row w-full h-10 p-2 items-center justify-center border-2 border-base-300 rounded-lg gap-2'>
-              {/* show previous button if the current page isn't the first page */}
-              <div className='flex w-24 h-8'>
-               <button onClick={()=>{setPage(prev=>prev-1)}} className={`flex w-full items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content ${page == 0 && 'invisible'}`}>Previous</button>
-              </div>
-              {/*  */}
-              <div className='flex w-28 gap-2 h-8 justify-end'>
-                {
-                  Array.from({length: Math.min(3, page-0)}, (_, i)=> page+i).map((x,i)=>
-                  <button key={i} onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
-                    {x}
-                  </button>)
-                }
-              </div>
-              <div className='flex bg-neutral rounded-lg w-8 h-8 items-center text-neutral-content justify-center'>{page+1}</div>
-              <div className='flex w-28 gap-2 h-8 justify-start'>
-              {
-                Array.from({length: Math.min(3, maxPages-page)}, (_, i)=> page+1+i).map((x,i)=>
-                <button key={i} onClick={()=>{setPage(x)}} className='flex rounded-lg w-8 h-8 items-center border-2 border-neutral hover:bg-neutral hover:text-neutral-content justify-center'>
-                  {x+1}
-                </button>)
-              }
-              </div>
-              {
-                page < maxPages && <button onClick={()=>{setPage(prev=>prev+1)}} className='flex w-24 items-center justify-center border-2 border-neutral rounded-lg h-8 hover:bg-neutral hover:text-neutral-content'>Next</button>
-              }
-            </div>
-          }
         </div>
       </div>
-    </div>}
+    }
     </div>  
   )
 }
