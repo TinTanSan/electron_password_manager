@@ -6,7 +6,9 @@ module.exports = {
   images: {
     unoptimized: true,
   },
+  devIndicators: false,
   webpack: (config) => {
-    return config
+    // customize webpack if needed, then return config
+    return config;
   },
-}
+};
