@@ -20,12 +20,11 @@ export default function HomePage() {
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
   const [page, setPage] = useState(0);
   // hard coded 100 should be changed to use whatever is listed in the preferences
-  const maxPages = Math.floor(shownEntries.length/100);
+  // const maxPages = Math.floor(shownEntries.length/100);
 
-  const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
-  useEffect(()=>{
+  useEffect(()=>{ 
     // 56 is the length of the salt + wrapped VK i.e. 16 bytes for salt and 40 bytes for wrappedVK
     if(vault && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
       vault.vaultLevelDecrypt().then((decryptedVault)=>{
@@ -81,7 +80,11 @@ export default function HomePage() {
         <Sidebar />
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2 px-5'>
-            <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
+          <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
+          <div className='flex flex-col'>
+            {paginatedEntries && <EntryComponent entry={paginatedEntries.entries[0]}/>}
+          </div>
+        
         </div>
       </div>
     }
