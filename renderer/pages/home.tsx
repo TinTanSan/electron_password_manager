@@ -7,6 +7,7 @@ import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
 import EntryComponent from '../components/EntryComponent';
 import Image from 'next/image';
+import Sidebar from '../components/Sidebar';
 
 
 export default function HomePage() {
@@ -78,67 +79,7 @@ export default function HomePage() {
     {(vault !== undefined && vault.isUnlocked) && 
       <div className='flex w-full h-full gap-3 '>
         {/* sidebar */}
-        <div className={`flex flex-col relative justify-center shadow-[0rem_0_2rem_rgba(0,0,0,0.10)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/3 items-end':'w-14 items-center'} h-full transition-all duration-[400ms] bg-base-100 p-2`}>
-          <div className={`flex ${hamburgerOpen?'w-full':"w-8"} h-10 transition-all duration-[750ms] justify-end`}>
-            <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
-          </div>
-          <div className='flex flex-col  w-full h-full'>
-            {
-              hamburgerOpen? 
-              <div className='flex flex-col gap-5 w-full h-full'>
-                <div className='flex flex-col gap-5 w-full h-1/4 shrink-0 text-base-content'>
-                  <div className='flex flex-col gap-2 w-full h-fit text-lg'>
-                    <h1 className='flex w-full text-xl'>Entries</h1>  
-                    <div className='flex flex-col gap-2 w-full h-fit pl-5'>
-                      <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</h3> 
-                      <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
-                      <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</h3>
-                      <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
-                    </div>
-                  </div>
-                </div>
-                <hr className='flex w-full text-xl text-base-300' />
-                <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
-                  <h1 className='flex w-full text-xl'>Settings</h1>  
-                  <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
-                    <h3>Vault Settings</h3>
-                    <h3>Entry Settings</h3>
-                  </div>
-                </div>
-                <hr className='flex w-full text-xl text-base-300' />
-                <div className='flex flex-col gap-5 w-full text-xl h-1/5 shrink-0 text-base-content'>
-                  <h1>Preferences</h1>
-                </div>
-                <div className='flex w-full h-full items-end'>
-                  <div className='flex w-full h-10 justify-between'>
-                    <div className='flex w-fit h-fit p-0.5 items-center hover:bg-warning border-3 border-warning rounded-lg group'>
-                      <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
-                      <p className='flex group-hover:visible w-0 group-hover:w-28  h-full overflow-hidden group-hover:text-warning-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Lock Vault</p>
-                    </div>
-                    <div className='flex w-fit items-center h-fit p-0.5 border-3 border-error hover:bg-error rounded-lg group'>
-                      <p className='flex group-hover:items-center group-hover:visible w-0 h-full group-hover:w-28 overflow-hidden group-hover:text-warning-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Close & exit</p>
-                      <Image src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
-                    </div>
-                  </div>
-                </div>  
-
-
-              </div>
-              :
-              <div className='flex flex-col-reverse w-full h-full items-center py-5 gap-5 relative'>
-                <div className='flex w-fit h-fit p-0.5 border-3 border-warning rounded-lg group hover:bg-warning'>
-                  <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>lock vault</span>
-                  <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
-                </div>
-                <div className='flex w-fit h-fit p-0.5 border-3 border-error rounded-lg group hover:bg-error'>
-                  <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>close & exit vault</span>
-                  <Image src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
-                </div>
-              </div>
-            }
-          </div> 
-
-        </div>
+        <Sidebar />
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3'>
 
