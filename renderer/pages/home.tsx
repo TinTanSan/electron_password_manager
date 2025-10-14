@@ -53,7 +53,6 @@ export default function HomePage() {
               return false;
             })
             :
-            // [...vault.entries, ...Array.from({length: 1000}, (_,i)=>new Entry({title:'test_'+i, password:Buffer.from('hello'), username:'testuser', notes:'hello'}, vault.kek))]
             vault.entries
             setPaginatedEntries(entries);
             return entries;
@@ -81,8 +80,8 @@ export default function HomePage() {
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2 px-5'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
-          <div className='flex flex-col'>
-            {paginatedEntries && <EntryComponent entry={paginatedEntries.entries[0]}/>}
+          <div className='flex flex-col gap-2 '>
+            {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
           </div>
         
         </div>
