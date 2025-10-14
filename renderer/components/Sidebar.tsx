@@ -28,10 +28,10 @@ export default function Sidebar() {
                 <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
             </div>
 
-            <div className='flex flex-col  w-full h-full'>{hamburgerOpen? 
-                <div className='flex flex-col gap-5 w-full h-full'>
+            <div className='flex flex-col  w-full h-full [&_h3]:hover:text-primary [&_h3]:cursor-pointer'>{hamburgerOpen? 
+                <div className='flex flex-col gap-5 w-full h-full   '>
                     <div className='flex flex-col gap-5 w-full h-1/4 shrink-0 text-base-content'>
-                        <div className='flex flex-col gap-2 w-full h-fit text-lg'>
+                        <div className='flex flex-col gap-2 w-full h-fit text-lg '>
                             <h1 className='flex w-full text-xl'>Entries</h1>  
                             <div className='flex flex-col gap-2 w-full h-fit pl-5'>
                             <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</h3> 
@@ -49,13 +49,20 @@ export default function Sidebar() {
                         <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
                             <h3>Vault Settings</h3>
                             <h3>Entry Settings</h3>
+                            <h3>Preferences</h3>
                         </div>
                     </div>
                     
                     <hr className='flex w-full text-xl text-base-300' />
                     
-                    <div className='flex flex-col gap-5 w-full text-xl h-1/5 shrink-0 text-base-content'>
-                        <h1>Preferences</h1>
+                    <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
+                        <h1 className='flex w-full text-xl'>Help</h1>  
+                        <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
+                            <h3>Keybinds & shortcuts</h3>
+                            <h3>Helpful documentation</h3>
+                            <h3>How does this password manager work?</h3>
+                            
+                        </div>
                     </div>
                     
                     <div className='flex w-full h-full items-end'>
