@@ -78,7 +78,7 @@ export default function HomePage() {
     {(vault !== undefined && vault.isUnlocked) && 
       <div className='flex w-full h-full gap-3 '>
         {/* sidebar */}
-        <div className={`flex flex-col relative justify-center shadow-lg ${hamburgerOpen?'xs:w-1/2 sm:w-1/3 items-end':'w-14 items-center'} h-full transition-all duration-[400ms] bg-base-100 p-2`}>
+        <div className={`flex flex-col relative justify-center shadow-[0rem_0_2rem_rgba(0,0,0,0.10)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/3 items-end':'w-14 items-center'} h-full transition-all duration-[400ms] bg-base-100 p-2`}>
           <div className={`flex ${hamburgerOpen?'w-full':"w-8"} h-10 transition-all duration-[750ms] justify-end`}>
             <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
           </div>
@@ -90,8 +90,7 @@ export default function HomePage() {
                   <div className='flex flex-col gap-2 w-full h-fit text-lg'>
                     <h1 className='flex w-full text-xl'>Entries</h1>  
                     <div className='flex flex-col gap-2 w-full h-fit pl-5'>
-                      <h3 className='flex w-fit border-2'>All Entries</h3> 
-                      {/* 26.4k */}
+                      <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</h3> 
                       <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
                       <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</h3>
                       <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
