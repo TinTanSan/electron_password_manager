@@ -17,6 +17,7 @@ export default function EntryComponent({entry}:props) {
     const bannerContext = useContext(BannerContext);
     const [decryptedPass, setDecryptedPass] = useState<string>("");
     const [showPass, setShowPass] = useState(false);
+    const [extend, setExtend] = useState(false);
     const handleShowPass = ()=>{
         entry.decryptEntryPass(vault.kek).then((pass)=>{
             setDecryptedPass(pass.toString());
@@ -71,41 +72,36 @@ export default function EntryComponent({entry}:props) {
     }
     
     return (
-        // <div className='flex w-full bg-base-200 rounded-lg text-base-content h-14 py-2'>
-        //     {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
-        //     <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center'>{entry.title? entry.title: <i>No Title</i>}</div>
-        //     <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center'>{entry.username? entry.username: <i>No username</i>}</div>
-        //     <div className='flex w-full h-full items-center border-r-2 border-base-100 justify-center px-1'>
-        //         <div className='flex w-full h-full items-center p-1'>
-        //             {showPass? 
-        //                 decryptedPass?
-        //                     decryptedPass
-        //                     :
-        //                     <i>No Password</i> 
-        //                 : 
-        //                     "*".repeat(8)
-        //             }
-        //         </div>
-        //         <Image onClick={()=>{handleCopy()}} src={'/images/copy.svg'} alt='copy' width={25} height={25} className='w-auto h-auto flex items-center justify-center' />
-        //         <Image onClick={()=>{setShowPass(prev=>!prev);handleShowPass();}} src={showPass?'/images/hidePass.svg':'/images/showPass.svg'} alt={showPass?'hide':'show'} width={15} height={15} className='w-auto h-auto flex items-center justify-center' />
-        //     </div>
-        //     <div className='flex w-full h-full items-center justify-center text-nowrap text-ellipsis overflow-hidden'>
-        //         {entry.notes ? entry.notes :<i>No Notes</i>
-        //         }
-        //     </div>
-        //     {/* details/edit and delete buttons */}
-        //     <div className='flex w-full max-w-80 h-full items-center gap-2'>
-        //         <button onClick={()=>{setShowEditModal(prev=>!prev)}} type='button' className='flex w-full h-full  items-center justify-center rounded-lg bg-primary text-primary-content'>Details/Edit</button>
-        //         <button onClick={()=>{handleDelete()}} type='button' className='flex w-10 justify-center rounded-lg h-full items-center bg-error'>
-        //             <Image src={'/images/delete.svg'} alt='del' width={25} height={25} className='flex w-auto bg-error'/>
-        //         </button>
-        //     </div>
-        // </div>
-        <div className='flex w-full h-14 border-2 items-center justify-between px-2 gap-4 rounded-lg border-base-300 bg-base-100'>
-            <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-            <div className='flex w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-xl'>{entry.username}</div>
-            <div className='flex w-fit justify-end'>
-                <Image src={'/images/expand.svg'} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
+        <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center "} border-2  justify-between px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
+            <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-5'>
+                <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
+                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-xl'>{entry.username}</div>
+                <div className='flex w-fit justify-end'>
+                    <Image  src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
+                </div>
+            </div>
+            <div className={`flex flex-col w-full ${extend ? 'h-full p-2': 'h-0 collapse overflow-hidden'}`}>
+                <div className='flex flex-col w-fit h-full gap-2 overflow-hidden overflow-ellipsis'>
+                    <div className='flex w-full h-6 gap-2'>
+                        <div className='flex w-32 h-full'>Username</div>
+                        <div className='flex w-full h-full'>{entry.username}</div>
+
+                    </div>
+                    <div className='flex w-full h-6 gap-2'>
+                        <div className='flex w-32 h-full'>Password</div>
+                        <div className='flex w-full h-full'>{decryptedPass? decryptedPass : "*".repeat(8)}</div>
+
+                    </div>
+                    <div className='flex w-full h-6 gap-2'>
+                        <div className='flex w-32 h-full'>URL</div>
+                        <div className='flex w-full h-full'>This feature to come soon</div>
+
+                    </div>
+                </div>
+                <div className='flex flex-row w-full h-14 gap-2'>
+                    <button onClick={()=>{handleDelete()}} className='flex items-center justify-center text-xl rounded-lg border-error text-error hover:text-error-content hover:bg-error transition-all duration-300 border-2 w-full h-full'>Delete</button>
+                    <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>
+                </div>
             </div>
         </div>
     )
