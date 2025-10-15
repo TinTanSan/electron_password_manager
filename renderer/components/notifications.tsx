@@ -6,7 +6,7 @@ import Banner from './banner';
 export default function Notifications() {
   const banners = useContext(BannerContext);
   return (
-    <div className='flex flex-col gap-5 z-50 w-[30vw] h-fit fixed top-0 right-0 p-2 overflow-y-scroll overflow-x-hidden'>
+    <div className='flex flex-col gap-5 z-50 w-[30vw] h-fit fixed top-0 right-0 p-2 overflow-y-auto overflow-x-hidden'>
       {
         banners.banners.map((x,i)=>(
           <Banner bannerDetails={x} key={i} />
