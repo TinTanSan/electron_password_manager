@@ -75,12 +75,12 @@ export default function HomePage() {
     }
     
     {(vault !== undefined && vault.isUnlocked) && 
-      <div className='flex w-full h-full gap-3 '>
+      <div className='flex w-full h-full gap-3'>
         <Sidebar />
         {/* main section */}
-        <div className='flex w-full h-full flex-col gap-3 py-2 px-5'>
+        <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
-          <div className='flex flex-col gap-2 '>
+          <div className='flex flex-col gap-2  w-full h-full overflow-y-auto px-2'>
             {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
           </div>
         
