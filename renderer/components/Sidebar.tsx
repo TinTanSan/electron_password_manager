@@ -80,7 +80,7 @@ export default function Sidebar() {
                     </div>  
                 </div>
                 :
-                <div className='flex flex-col-reverse w-full h-full items-center py-2 gap-5 relative'>
+                <div className='flex flex-col justify-end w-full h-full items-center py-2 gap-5 relative'>
                     <div onClick={handleLock} className='flex w-fit h-fit p-0.5 border-3 border-warning rounded-lg group hover:bg-warning'>
                         <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>lock vault</span>
                         <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
