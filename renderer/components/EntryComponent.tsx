@@ -19,13 +19,20 @@ export default function EntryComponent({entry}:props) {
     const [showPass, setShowPass] = useState(false);
     const [extend, setExtend] = useState(false);
     const handleShowPass = ()=>{
-        entry.decryptEntryPass(vault.kek).then((pass)=>{
-            setDecryptedPass(pass.toString());
-            setTimeout(() => {
-                setDecryptedPass("");
-                setShowPass(false);
-            }, 10000);
-        })
+        if (!showPass)
+        {   
+            setShowPass(true);
+            entry.decryptEntryPass(vault.kek).then((pass)=>{
+                setDecryptedPass(pass.toString());
+                setTimeout(() => {
+                    setDecryptedPass("");
+                    setShowPass(false);
+                }, 10000);
+            })
+        }else{
+            setShowPass(false);
+            setDecryptedPass("")
+        }
     }
     
     const handleCopy = ()=>{
@@ -90,8 +97,9 @@ export default function EntryComponent({entry}:props) {
                     </div>
                     <div className='flex w-full h-6 gap-2'>
                         <div className='flex w-32 h-full'>Password</div>
-                        <div className='flex w-full h-full'>{decryptedPass? decryptedPass : "*".repeat(8)}</div>
-
+                        <div className={` flex w-full h-full ${(showPass && !decryptedPass) && "italic"}`}>{showPass? decryptedPass?decryptedPass : "no pass to show" : "*".repeat(8)}</div>
+                        <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                        <Image onClick={handleShowPass} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
                     </div>
                     <div className='flex w-full h-6 gap-2'>
                         <div className='flex w-32 h-full'>URL</div>
@@ -101,7 +109,7 @@ export default function EntryComponent({entry}:props) {
                 </div>
                 <div className='flex flex-row w-full h-14 gap-2'>
                     <button onClick={()=>{handleDelete()}} className='flex items-center justify-center text-xl rounded-lg border-error text-error hover:text-error-content hover:bg-error transition-all duration-300 border-2 w-full h-full'>Delete</button>
-                    <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>
+                    <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info outline-none duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>
                 </div>
             </div>
         </div>
