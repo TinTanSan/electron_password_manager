@@ -4,12 +4,30 @@ import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Image from 'next/image';
+import zxcvbn from 'zxcvbn';
 import RandomPassModal from './RandomPassModal';
 import ExtraFieldComponent from './ExtraField';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
     uuid:string
+}
+const scoreToColor = {0:'bg-error',1:'bg-error', 2:'bg-warning', 4:'bg-success', 3:'bg-info'}
+const scoreToText = {0:'text-error',1:'text-error', 2:'text-warning', 4:'text-success', 3:'text-info'}
+const scoreWidth = ['w-2','w-1/4', 'w-1/2', 'w-3/4', 'w-full'];
+function handleGetFeedback( entrypass:string, passwordScore:{score:number, feedback:string}) {
+    if (passwordScore.feedback){
+        return passwordScore.feedback
+    }else{
+        if (entrypass.length === 0){
+            return "Please enter a password to get feedback"
+        }
+        if (passwordScore.score === 4){
+            return "Strong pass"
+        }else{
+            return "Could be better"
+        }
+    }
 }
 
 export default function EntryModal({setShowModal, uuid}:props) {
@@ -22,8 +40,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string>("");
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
-
-
+    const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
+    const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});
+    
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
@@ -144,8 +163,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     }
 
-    
-
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
         addEventListener("keydown", (copyHandler), false);
@@ -155,130 +172,59 @@ export default function EntryModal({setShowModal, uuid}:props) {
         };
     }, []);
 
+    useEffect(()=>{
+        const pscore = zxcvbn(entryPass);
+        setpasswordScore({score:pscore.score, feedback:pscore.feedback.warning});
+    },[entryPass]);
+
 
     return (
-        // blurred bg parent div
-        <div className='fixed flex flex-col top-0 left-0 w-screen h-screen justify-center items-center backdrop-blur-lg z-10'>
-        
-            <div onCopy={handleCopy}  className='flex flex-col bg-base-200 border-2 border-base-300 relative shadow-base-300 z-30 w-[75vw] h-[75vh] shrink-0 grow-0 rounded-xl shadow-lg p-2 text-xl'>
-            {
-             (entry!==undefined)?
-                <div className=' h-full w-full flex flex-col'>
-                    {/* top bar */}
-                    <div className='flex flex-row w-full h-10 items-start'>
-                        {/* tab selector */}
-                        <div className='flex h-full'>
-                            <button onClick={()=>{setTab(0)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===0)?"bg-base-100 border-t-2 border-r-2 border-l-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Main</button>
-                            <button onClick={()=>{setTab(1)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===1)?"bg-base-100 border-t-2 border-l-2 border-r-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Extra</button>
-                            <button onClick={()=>{setTab(2)}} type="button" className={`flex w-18 items-center justify-center h-full text-lg ${(tab===2)?"bg-base-100 border-t-2 border-l-2 border-r-2 border-base-300 rounded-t-lg h-11 top-0.5 relative":"bg-base-200"}`}>Info</button>
-                        </div>
-                        <div className='flex w-full justify-center items-center text-2xl'>
-                            {entry.title}
-                        </div>
-                        <button onClick={()=>{setShowModal(false)}} type="button" className='flex w-10 h-8 font-bold text-2xl text-center items-center justify-center rounded-lg hover:rounded-xl duration-500'>&#x2715;</button>
-                    </div>
-                    <div className={`flex w-full h-full text-base-content bg-base-100 border-2 border-base-300 rounded-b-lg rounded-r-lg overflow-hidden ${!(tab===0) && 'rounded-t-lg'}`}>
-                    {
-                        tab===0?
-                        // main tab
-                            <form onSubmit={handleConfirm} className='flex flex-col w-full h-full p-2 gap-2'>
-                                <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200'>
-                                    <label className='flex shrink-0 w-26 border-r border-base-300 pl-2 rounded-l-lg'>Title</label>
-                                    <input type="text" value={entry.title} onChange={handleChange} id='title' className='flex w-full outline-none' />
-                                </div>
-                                <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200'>
-                                    <label className='flex shrink-0 w-26 border-r border-base-300 pl-2 rounded-l-lg'>Username</label>
-                                    <input type="text" value={entry.username} onChange={handleChange} id='username' className='flex w-full outline-none' />
-                                </div>
-                                <div className='flex flex-row w-full border-2 border-base-300 h-8 gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200 pr-2'>
-                                    <label className='flex w-26 shrink-0 border-r border-base-300 pl-2 rounded-l-lg'>Password</label>
-                                    <input type={showPass?"text":'password'} value={entryPass} onChange={handleChange} id='password' className='flex w-full h-full outline-none' />
-                                    <div className='flex flex-row gap-2 w-32'>
-                                        <Image onClick={()=>{setShowRandomPassModal(true)}} src={'/images/randomise.svg'} alt='randomise' width={25} height={25} className='h-auto flex' />
-                                        <Image onClick={()=>{handleCopy()}} src={'/images/copy.svg'} alt='copy' width={25} height={25} className='w-auto h-auto flex items-center justify-center' />
-                                        <Image onClick={()=>{setShowPass(!showPass)}} src={showPass? "/images/hidePass.svg": "/images/showPass.svg"} alt={showPass?'hide':'show'} width={25} height={25} className='w-auto h-auto cursor-pointer' title={showPass?'hide password':'show password'} />
-                                    </div>
-                                </div>
-                                <div className='flex flex-col w-full border-2 border-base-300 h-full gap-1 rounded-lg focus-within:border-primary duration-500 focus-within:bg-base-200'>
-                                    <label className='flex shrink-0 w-full border-b border-base-300 pl-2 rounded-l-lg'>Notes</label>
-                                    <textarea value={entry.notes} onChange={handleChange} id='notes' className='flex w-full outline-none h-full resize-none px-2' />
-                                </div>
-                                <div className='flex w-full h-12 justify-center'>
-                                    <button className='bg-primary w-32 items-center justify-center text-primary-content rounded-lg h-full hover:bg-primary-darken'>Confirm</button>
-                                </div>
-                            </form>  
-                        :
-                        
-                        tab===1?
-                            // extras tab
-                            <div className='flex flex-col gap-2 w-full h-full p-2 '>
-                                    <div className='flex w-full h-1/3 flex-col gap-2 shrink-0'>
-                                        <div className='flex w-full h-10 items-center justify-center'>New Extra Field</div> 
-                                        <div className='flex w-full h-full gap-2 grow-0'>
-                                            <div className='flex flex-col w-3/4 h-full gap-1'>
-                                                {/* name input */}
-                                                <div className='flex w-full h-8 shrink-0 items-center  justify-center border-2 border-neutral rounded-lg overflow-hidden focus-within:border-primary'>
-                                                    <div className='flex w-24 pl-1 full bg-base-200 h-full items-center'>Name</div>
-                                                    <input id='name' className='flex w-full h-full outline-none overflow-x-scroll' value={extraFeild.name} onChange={handleChangeExtraField} />
-                                                </div> 
-                                                <div className='flex w-full flex-col h-full py-2 items-end'>
-                                                    {/* protect button */}
-                                                    <button className={`flex w-1/2 h-10 shrink-0 border-2 items-center justify-center rounded-lg border-neutral ${extraFeild.isProtected&& "bg-neutral text-neutral-content border-none"}`} onClick={()=>{setExtraFeild(prev=>({...prev, isProtected:!prev.isProtected}))}}>{extraFeild.isProtected?"Field Protected":"Protect Field"}</button>
-                                                    {/* add / clear field button */}
-                                                    <div className='flex flex-row w-full h-full gap-4 items-end'>
-                                                        <button onClick={()=>{handleClearFields()}}   className='flex w-1/2 h-10 rounded-lg items-center justify-center text-accent-content bg-accent'>clear Inputs</button>
-                                                        <button onClick={()=>{handleAddExtraField()}} className='flex w-1/2 h-10 rounded-lg items-center justify-center text-primary-content bg-primary'>Add</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className='flex flex-col w-full h-full items-center  justify-center border-2 rounded-lg overflow-hidden focus-within:border-primary'>
-                                                <div className='flex w-full pl-1 bg-base-200 h-8 items-center'>data</div>
-                                                <textarea id='data' className='flex w-full resize-none h-full outline-none overflow-y-auto' value={extraFeild.data.toString()} onChange={handleChangeExtraField} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <hr className='flex h-20 text-neutral' />
-                                    <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
-                                        {
-                                            entry.extraFields.map((ef, i)=>
-                                                <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleDeleteExtraField}  />
-                                            )
-                                        }
-                                    </div>
-                            </div>
-                            :
-                            // info/metadata
-                            <div className='flex flex-col gap-2 w-full h-full p-2 text-lg'>
-                                <h1 className='flex flex-row w-full h-fit text-xl items-center'>
-                                    Details about this Entry
-                                </h1>
-                                <div className='flex flex-row w-full gap-5 items-center'>
-                                    <div className='flex w-32 h-fit text-nowrap'>UUID:</div>
-                                    <div className='flex w-full text-md'>{entry.metadata.uuid}</div>
-                                </div>  
-                                <div className='flex w-3/4 bg-base-300 h-0.25' />
-                                
-                                <div className='flex flex-row w-full gap-5 items-center'>
-                                    <div className='flex w-32 h-fit text-nowrap'>Created at:</div>
-                                    <div className='flex w-full text-md'>{entry.metadata.createDate.toString()}</div>
-                                </div>
-                                <div className='flex w-3/4 bg-base-300 h-0.25' />
-                                
-                                <div className='flex flex-row w-full gap-5 items-center'>
-                                    <div className='flex w-32 h-fit text-nowrap'>Last edited at:</div>
-                                    <div className='flex w-full text-md'>{entry.metadata.lastEditedDate.toString()}</div>
-                                </div>
-                                
-                            </div>
-                    }
-                    </div>
-                    {showRandomPassModal && <RandomPassModal  setShowRandomPassModal={setShowRandomPassModal} setEntry={setEntry}/>}
+        <div className='flex flex-col w-screen py-2 px-1 h-screen top-0 left-0 justify-center items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
+            <div className='flex flex-col text-base-content overflow-y-auto p-2 w-[40%] h-full bg-base-100 rounded-xl z-10' onClick={(e)=>{e.stopPropagation()}}>
+                <div className='flex w-full h-10 justify-end'>
+                    <Image src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                 </div>
-             :
-                <div className='flex w-full h-full text-4xl'>
-                    This entry does not exist
+                <div className={`flex flex-col w-full duration-100 transition-all  ${collapseLoginDetails?'h-13 border-neutral-content  delay-300 ':"h-130 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
+                    <div className={`flex flex-row w-full h-fit justify-between items-center border-2`}>
+                        <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
+                        <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-5 h-5 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
+                    </div>
+                    <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
+                        {/* username input */}
+                        <div className='flex flex-col gap-1'>
+                            <label className='flex w-full text-lg'>Username</label>
+                            <input id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
+                        </div>
+                        {/* password input */}
+                        <div className='flex flex-col gap-1'>
+                            <label className='flex w-full text-lg'>Password</label>
+                            
+                            <div className='flex border-2 border-base-300 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
+                                <input id='password' value={entryPass} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
+                                <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                                <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
+                                <Image src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                            </div>
+                            {/* password strength meter */}
+                            <div className='flex flex-col w-full h-fit shrink-0 px-2'>
+                                <div className='gap-1 flex w-full h-1 bg-base-200  rounded-lg overflow-hidden'>
+                                    <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
+                                </div>
+                                <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
+                            </div>
+                        </div>
+                        {/* notes input */}
+                        <div className='flex flex-col gap-1'>
+                            <label className='flex w-full text-lg'>Notes</label>
+                            <textarea id='notes' value={entry.notes} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-40 resize-none outline-none border-base-300 focus:border-primary duration-300 transition-all' />
+                        </div>
+                        {/* URL input to come */}
+                        <div className='flex flex-col gap-1'>
+                            <label className='flex w-full text-lg'>Website</label>
+                            <input value={"This feature coming"} readOnly className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
+                        </div>
+                    </div>
                 </div>
-            }
             </div>
         </div>
     )
