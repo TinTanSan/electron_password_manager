@@ -41,6 +41,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [entryPass, setEntryPass]= useState<string>("");
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
+    const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
+
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});
     
     useEffect(()=>{
@@ -180,12 +182,20 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     return (
         <div className='flex flex-col w-screen py-2 px-1 h-screen top-0 left-0 justify-center items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
-            <div className='flex flex-col text-base-content overflow-y-auto p-2 w-[40%] h-full bg-base-100 rounded-xl z-10' onClick={(e)=>{e.stopPropagation()}}>
+            <div className='flex flex-col text-base-content overflow-y-auto p-2 w-[40%] h-full bg-base-100 rounded-xl z-10 gap-2' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end'>
+                    <div className='flex w-full justify-center text-2xl text-base-content font-bold'>
+                        {entry.title}
+                    </div>
                     <Image src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                 </div>
+                <div className={`flex w-full h-10 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
+                    <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
+                    <input id='title' value={entry.title} onChange={handleChange} className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
+                </div>
+
                 <div className={`flex flex-col w-full duration-100 transition-all  ${collapseLoginDetails?'h-13 border-neutral-content  delay-300 ':"h-130 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
-                    <div className={`flex flex-row w-full h-fit justify-between items-center border-2`}>
+                    <div className={`flex flex-row w-full h-fit justify-between items-center`}>
                         <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
                         <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-5 h-5 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
                     </div>
