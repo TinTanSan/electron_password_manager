@@ -5,6 +5,7 @@
   --color-base-200: oklch(97.466% 0.011 259.822);
   --color-base-300: oklch(93.268% 0.016 262.751);
   --color-base-content: oklch(41.886% 0.053 255.824);
+  --color-base-darken: color-mix(in oklab, var(--color-base-300) 90%, black);
 
   --color-primary: oklch(56.86% 0.255 257.57);
   --color-primary-darken: oklch(56.86% 0.45 257.57);
