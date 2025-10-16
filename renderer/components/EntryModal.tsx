@@ -182,60 +182,75 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     return (
         <div className='flex flex-col w-screen py-2 px-1 h-screen top-0 left-0 justify-center items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
-            <div className='flex flex-col text-base-content overflow-y-auto p-2 w-[40%] h-full bg-base-100 rounded-xl z-10 gap-2' onClick={(e)=>{e.stopPropagation()}}>
-                <div className='flex w-full h-10 justify-end'>
-                    <div className='flex w-full justify-center text-2xl text-base-content font-bold'>
-                        {entry.title}
+            <div className='flex flex-col text-base-content w-[40%] h-full   bg-base-100 rounded-xl z-10 gap-2' onClick={(e)=>{e.stopPropagation()}}>
+                <div className='flex flex-col w-full h-full text-base-content overflow-y-auto gap-2 p-2'>
+                    <div className='flex w-full h-10 justify-end'>
+                        <div className='flex w-full justify-center text-2xl text-base-content font-bold'>
+                            {entry.title}
+                        </div>
+                        <Image onClick={()=>{setShowModal(false)}} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                     </div>
-                    <Image src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
-                </div>
-                <div className={`flex w-full h-10 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
-                    <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
-                    <input id='title' value={entry.title} onChange={handleChange} className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
-                </div>
+                    <div className={`flex w-full h-10 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
+                        <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
+                        <input id='title' value={entry.title} onChange={handleChange} className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
+                    </div>
 
-                <div className={`flex flex-col w-full duration-100 transition-all  ${collapseLoginDetails?'h-13 border-neutral-content  delay-300 ':"h-130 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
-                    <div className={`flex flex-row w-full h-fit justify-between items-center`}>
-                        <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
-                        <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-5 h-5 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
-                    </div>
-                    <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-                        {/* username input */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='flex w-full text-lg'>Username</label>
-                            <input id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
+                    <div className={`flex flex-col w-full duration-100 transition-all  ${collapseLoginDetails?'h-13 border-neutral-content  delay-300 ':"h-130 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
+                        <div className={`flex flex-row w-full h-fit justify-between items-center`}>
+                            <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
+                            <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
                         </div>
-                        {/* password input */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='flex w-full text-lg'>Password</label>
-                            
-                            <div className='flex border-2 border-base-300 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
-                                <input id='password' value={entryPass} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
-                                <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
-                                <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
-                                <Image src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                        <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
+                            {/* username input */}
+                            <div className='flex flex-col gap-1'>
+                                <label className='flex w-full text-lg'>Username</label>
+                                <input id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
                             </div>
-                            {/* password strength meter */}
-                            <div className='flex flex-col w-full h-fit shrink-0 px-2'>
-                                <div className='gap-1 flex w-full h-1 bg-base-200  rounded-lg overflow-hidden'>
-                                    <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
+                            {/* password input */}
+                            <div className='flex flex-col gap-1'>
+                                <label className='flex w-full text-lg'>Password</label>
+                                
+                                <div className='flex border-2 border-base-300 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
+                                    <input id='password' value={entryPass? entryPass : "no password set"} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
+                                    <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                                    <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
+                                    <Image src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
                                 </div>
-                                <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
+                                {/* password strength meter */}
+                                <div className='flex flex-col w-full h-fit shrink-0 px-2'>
+                                    <div className='gap-1 flex w-full h-1 bg-base-200  rounded-lg overflow-hidden'>
+                                        <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
+                                    </div>
+                                    <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
+                                </div>
+                            </div>
+                            {/* notes input */}
+                            <div className='flex flex-col gap-1'>
+                                <label className='flex w-full text-lg'>Notes</label>
+                                <textarea id='notes' value={entry.notes} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-40 resize-none outline-none border-base-300 focus:border-primary duration-300 transition-all' />
+                            </div>
+                            {/* URL input to come */}
+                            <div className='flex flex-col gap-1'>
+                                <label className='flex w-full text-lg'>Website</label>
+                                <input value={"This feature coming"} readOnly className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
                             </div>
                         </div>
-                        {/* notes input */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='flex w-full text-lg'>Notes</label>
-                            <textarea id='notes' value={entry.notes} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-40 resize-none outline-none border-base-300 focus:border-primary duration-300 transition-all' />
+                    </div>
+                </div>
+                {/* bottom bar with delete, cancel and save buttons */}
+                <div className='flex flex-row w-full h-14 border-t-2 border-neutral p-2'>
+                    <div className='flex w-full h-full'>
+                        <div className='flex w-fit h-fit border-2 border-error rounded-lg hover:bg-error hover:[&_*]:brightness-[25%]'>
+                            <Image src={"/images/delete_red.svg"} alt='del' width={0} height={0} className='flex w-8 h-8' />
                         </div>
-                        {/* URL input to come */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='flex w-full text-lg'>Website</label>
-                            <input value={"This feature coming"} readOnly className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
-                        </div>
+                    </div>
+                    <div className='flex w-full justify-end h-full gap-2'>
+                        <button onClick={()=>{setEntry(vault.entries.find(x=>x.metadata.uuid === uuid)); setSubmit(true)}} className='flex bg-base-300 items-center justify-center w-24 rounded-lg hover:bg-base-darken'>Cancel</button>
+                        <button onClick={handleConfirm} className='flex bg-primary hover:bg-primary-darken text-primary-content w-24 rounded-lg items-center justify-center'>Save</button>
                     </div>
                 </div>
             </div>
+            
         </div>
     )
 }
