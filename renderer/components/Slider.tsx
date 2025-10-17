@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-export default function Slider({minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6", className="", roundTo=0}:{minimum:number, maximum:number , bgStyle?:string, selectedHeight?:string,thumbDimensions?:string, className?:string, roundTo?:number}) {
+export default function Slider({value, setValue, minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6", className="", roundTo=0}:{ value:number, setValue:React.Dispatch<React.SetStateAction<number>>,minimum:number, maximum:number , bgStyle?:string, selectedHeight?:string,thumbDimensions?:string, className?:string, roundTo?:number}) {
     const [position, setPosition] = useState(maximum);
     const sliderRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
-    const [value, setValue] = useState(minimum);
     const thumbXSize = Number(thumbDimensions.substring(thumbDimensions.indexOf("w-")+2,thumbDimensions.indexOf("w-")+3))*4;
     
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -41,6 +40,7 @@ export default function Slider({minimum, maximum, selectedHeight="h-6", bgStyle=
             document.removeEventListener("mouseup", handleMouseUp);
         };
     }, []);
+
     useEffect(()=>{
         if (!sliderRef.current) return;
         const rect = sliderRef.current.getBoundingClientRect();
@@ -50,10 +50,32 @@ export default function Slider({minimum, maximum, selectedHeight="h-6", bgStyle=
         const normalized =
             minimum +
             ((position - thumbXSize / 2) / (rect.width - thumbXSize)) * range;
-
-        setValue(Number(normalized.toFixed(roundTo)));
+        setV(Number(normalized.toFixed(roundTo)));
+        setValue(Number(normalized.toFixed(roundTo)))
     } ,[position, minimum, maximum, thumbXSize])
     
+
+    const handleValueChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
+        let length = parseInt(e.target.value);
+        console.log('ru')
+        if (!Number.isNaN(length)){
+            if (length < minimum){
+                length = minimum;
+            }
+            if (length > maximum){
+                length = maximum;
+                
+            }   
+            console.log('changing val')
+            setValue(length); 
+            setPos(length);
+        }
+        setV(length)
+    }
+
+    const [v, setV] = useState(minimum);
+
+
     const setPos = (value: number)=>{
         const rect = sliderRef.current.getBoundingClientRect();
         const range = maximum - minimum;
@@ -63,13 +85,17 @@ export default function Slider({minimum, maximum, selectedHeight="h-6", bgStyle=
     }
   
   return (
-    <div  onMouseDown={handleMouseDown}  id='slider' ref={sliderRef} className={`relative flex w-60 h-6 rounded-full items-center ${className}`}>
-        <div  className={`flex w-full absolute bg-base-100 pointer-events-none ${bgStyle}`} />
-        {/* Track (fill to current position) */}
-        <div  className={`flex absolute rounded-l-full left-0 ${selectedHeight} bg-neutral transition-none pointer-events-none"`} style={{ width: `${position+(thumbXSize*0.15)}px` }} />
-        {/* Draggable handle */}
-        <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-4 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
-        <input type='number' value={value} defaultValue={minimum} className='flex w-10 border-2 z-10 absolute -right-10 h-full' onChange={(e)=>{setPos(Number(e.target.value)); setValue(Number(e.target.value));}} />
+    <div className={`flex w-full h-fit gap-2 items-center`}>
+        <div onMouseDown={handleMouseDown}  id='slider' ref={sliderRef} className={`relative flex w-full h-6 rounded-full items-center ${className}`}>
+            <div  className={`flex w-full absolute bg-base-100 pointer-events-none ${bgStyle}`} />
+            {/* Track (fill to current position) */}
+            <div  className={`flex absolute rounded-l-full left-0 ${selectedHeight} bg-neutral transition-none pointer-events-none"`} style={{ width: `${position+(thumbXSize*0.15)}px` }} />
+            {/* Draggable handle */}
+            <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-4 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
+            
+        </div>
+        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8' onChange={handleValueChange} />
     </div>
   )
 }
+
