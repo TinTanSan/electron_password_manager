@@ -8,6 +8,7 @@ import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import RandomPassModal from './RandomPassModal';
 import ExtraFieldComponent from './ExtraField';
+import Slider from './Slider';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -47,7 +48,6 @@ export const generateRandomPass = (settings:RandomPassGeneratorSettings):string 
             specCharsToUse-=1
         }
     }
-    console.log(zxcvbn(ret).score);
     return ret;
 
 }
@@ -84,9 +84,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [showPass, setShowPass] = useState(false);
     const [tab, setTab] = useState(0);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
-    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:12,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
+    
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string>("");
+    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
@@ -248,11 +249,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     },[entryPass]);
 
     useEffect(()=>{
-        if (!Number.isNaN(length)){
+        if (!Number.isNaN(randomSettings.length)){
             setEntryPass(generateRandomPass(randomSettings))
         }
     },[randomSettings])
-    const perc = ((randomSettings.length -  7) / (50 - 8)) * 100 ;
 
     return (
         <div className='flex flex-col w-screen py-2 px-1 h-screen top-0 left-0 justify-center items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
@@ -297,15 +297,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                     <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
                                 </div>
-                                <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
+                               {showRandomPassModal && <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
                                     <div className='flex flex-row w-full gap-2 items-center '>
-                                        {/* <input min={8} max={50} value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}} type="range" 
-                                        className= {"w-full h-4 rounded-full appearance-none bg-base-300 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-300 [&::-webkit-slider-thumb]:cursor-pointer"} 
-                                        style={{
-                                            background: `linear-gradient(to right, #24324A ${perc}%, #E5E7EB ${perc}%)`,}}
-                                        /> */}
-                                        
-                                        <input type='number' className='flex w-10 justify-center items-center h-6 px-1' value={randomSettings.length} onChange={(e)=>{handleRandomPassSettingChange('length', e.target.value)}}/>
+                                        <Slider bgStyle='bg-base-300 h-3.5 rounded-full ' minimum={8} maximum={50} value={randomSettings.length} setValue={(value)=>{handleRandomPassSettingChange('length', value.toString())}}  />
                                     </div>
                                     <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center'>
                                         <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowCapitals&& 'bg-neutral border-none text-neutral-content'}`}>
@@ -318,7 +312,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                             special chars
                                         </button>
                                     </div>
-                                </div>
+                                </div>}
                                  
                             </div>
                             {/* notes input */}
