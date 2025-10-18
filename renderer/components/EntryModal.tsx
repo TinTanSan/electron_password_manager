@@ -1,4 +1,4 @@
-import React, { FormEvent, useContext, useEffect, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext';
 import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
@@ -82,25 +82,24 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const bannerContext = useContext(BannerContext);
     const [submit, setSubmit] = useState(true);
     const [showPass, setShowPass] = useState(false);
-    const [tab, setTab] = useState(0);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
-    
+    const vaultEntry = useRef(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string>("");
+    const [vEntPass, setVEntPass] = useState("");
+    const areEqual = vaultEntry.current.isEqual(entry) && entryPass=== vEntPass;
     const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
+    const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
 
-    const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});
-    
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
-                
+                setVEntPass(x.toString());
                 setEntryPass(x.toString());
-            }).catch((error)=>{
-                console.error(error)
+            }).catch((_)=>{
                 // consume the error
                 addBanner(bannerContext, "An Error occured when decrypting password", 'error')
             })
@@ -138,12 +137,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        
         entry.updatePass(vault.kek, entryPass).then((newEntryState)=>{
             try {
                 setEntry(newEntryState)
                 const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
                 setVault((prev)=>prev.mutate('entries', newEntries));
+                vaultEntry.current = new Entry(newEntryState);
                 addBanner(bannerContext, 'entry updated successfully', 'success')
                 setShowModal(false);    
             } catch (error) {
@@ -228,9 +227,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         if ( key.toLowerCase() === 'c' && ctrl || key.toLowerCase() === 'c' && cmd_h ) {
             e.preventDefault();
             
-            handleCopy()
-            
-            
+            handleCopy()            
         }
     }
 
@@ -249,7 +246,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     },[entryPass]);
 
     useEffect(()=>{
-        if (!Number.isNaN(randomSettings.length)){
+        if (!Number.isNaN(randomSettings.length) && showRandomPassModal){
             setEntryPass(generateRandomPass(randomSettings))
         }
     },[randomSettings])
@@ -288,7 +285,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <input id='password' value={entryPass? entryPass : "no password set"} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
                                     <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
                                     <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
-                                    <Image onClick={()=>{setShowRandomPassModal(prev=>!prev)}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                                    <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current); setSubmit(true)}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
                                 </div>
                                 {/* password strength meter */}
                                 <div className='flex flex-col w-full h-fit shrink-0 px-2'>
@@ -335,10 +332,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             <Image src={"/images/delete_red.svg"} alt='del' width={0} height={0} className='flex w-8 h-8' />
                         </div>
                     </div>
-                    <div className='flex w-full justify-end h-full gap-2'>
-                        <button onClick={()=>{setEntry(vault.entries.find(x=>x.metadata.uuid === uuid)); setSubmit(true)}} className='flex bg-base-300 items-center justify-center w-24 rounded-lg hover:bg-base-darken'>Cancel</button>
+                    {!areEqual && <div className='flex w-full justify-end h-full gap-2'>
+                        <button onClick={()=>{setEntry(vaultEntry.current); setSubmit(true)}} className='flex bg-base-300 items-center justify-center w-24 rounded-lg hover:bg-base-darken'>Discard</button>
                         <button onClick={handleConfirm} className='flex bg-primary hover:bg-primary-darken text-primary-content w-24 rounded-lg items-center justify-center'>Save</button>
-                    </div>
+                    </div>}
                 </div>
             </div>
             
