@@ -7,6 +7,7 @@ import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
 import EntryComponent from '../components/EntryComponent';
 import Image from 'next/image';
+import Sidebar from '../components/Sidebar';
 
 
 export default function HomePage() {
@@ -75,6 +76,7 @@ export default function HomePage() {
     
     {(vault !== undefined && vault.isUnlocked) && 
       <div className='flex w-full h-full gap-3'>
+        <Sidebar />
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
