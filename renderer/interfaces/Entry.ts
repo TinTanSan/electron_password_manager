@@ -85,7 +85,6 @@ export class Entry{
         return new Entry({...this, [field]: value})
     }
 
-
     serialise(){
         return this.title+"|" + 
             this.username + "|" + 
@@ -137,8 +136,6 @@ export class Entry{
         })
         return entry
     }
-
-
 
     async decryptEntryPass(kek:KEKParts){
         if (typeof window !== 'undefined'){
@@ -230,5 +227,33 @@ export class Entry{
             }
         }
         throw new Error("Window is not defined")
+    }
+
+
+    isEqual(other:Entry){
+        if (!other) false;
+
+        if (this.title !== other.title || this.username !== other.username || this.notes !== other.notes) return false;
+        
+        if (!this.dek.equals(other.dek) || !this.password.equals(other.password)) return false;
+        const metaA = this.metadata;
+        const metaB = other.metadata;
+
+        if (
+            metaA.uuid !== metaB.uuid || metaA.version !== metaB.version ||metaA.createDate.getTime() !== metaB.createDate.getTime() ||
+            metaA.lastEditedDate.getTime() !== metaB.lastEditedDate.getTime() || metaA.lastRotate.getTime() !== metaB.lastRotate.getTime()
+        ) return false;
+
+        // Compare extra fields
+        if (this.extraFields.length !== other.extraFields.length) return false;
+        
+        for (let i = 0; i < this.extraFields.length; i++) {
+            const a = this.extraFields[i];
+            const b = other.extraFields[i];
+            // assuming ExtraField is a simple object (e.g. {key:string,value:string})
+            if (a.name !== b.name || a.data !== b.data) return false;
+        }
+
+        return true;
     }
 }
