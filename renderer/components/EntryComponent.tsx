@@ -83,7 +83,7 @@ export default function EntryComponent({entry}:props) {
             {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
             <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-5'>
                 <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-xl'>{entry.username}</div>
+                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-xl'>{entry.title? entry.title : <i>No title</i>}</div>
                 <div className='flex w-fit justify-end'>
                     <Image  src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
                 </div>
