@@ -7,6 +7,7 @@ import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } fro
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import Slider from './Slider';
+import ExtraFieldComponent from './ExtraField';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -330,10 +331,16 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     <div className={`flex flex-col w-full duration-100 transition-all  ${collapseExtraFeilds?'h-13 border-neutral-content  delay-300 ':"h-160 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
                         <div className={`flex flex-row w-full h-fit justify-between items-center`}>
                             <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Extra Fields</h1>
-                            <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseExtraFields(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
+                            <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseExtraFields(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
                         </div>
                         <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-
+                                <div className='flex flex-col w-full h-full border-2 overflow-y-auto'>
+                                    <div className='flex flex-col w-full h-fit'>
+                                        {entry.extraFields.map((x)=>
+                                            <ExtraFieldComponent extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
+                                        )}
+                                    </div>
+                                </div>
                         </div>
                     </div>
                     </div>
