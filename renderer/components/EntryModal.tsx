@@ -286,9 +286,11 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 
                                 <div className='flex border-2 border-base-300 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
                                     <input id='password' value={entryPass? entryPass : "no password set"} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
-                                    <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
-                                    <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6'/>
-                                    <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current); setSubmit(true)}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 ' />
+                                    <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 cursor-pointer' />
+                                    <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6 cursor-pointer'/>
+                                    <div className={` h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
+                                        <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current); setSubmit(true)}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className={`flex w-full h-full cursor-pointer`}/>
+                                    </div>
                                 </div>
                                 {/* password strength meter */}
                                 <div className='flex flex-col w-full h-fit shrink-0 px-2'>
