@@ -93,6 +93,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
 
+    const [collapseNewEf, setCollapseNewEf] = useState(true);
+
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
@@ -270,9 +272,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     </div>
                     {/* main login details section */}
                     <div className={`flex shrink-0 flex-col w-full duration-100 transition-all  ${collapseLoginDetails?'h-13 border-neutral-content  delay-300 ':"h-160 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
-                        <div className={`flex flex-row w-full h-fit justify-between items-center`}>
+                        <div  onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
                             <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
-                            <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
+                            <Image src={"/images/up_arrow.svg"} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
                         </div>
                         <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
                             {/* username input */}
@@ -285,10 +287,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 <label className='flex w-full text-lg'>Password</label>
                                 
                                 <div className='flex border-2 border-base-300 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
-                                    <input id='password' value={entryPass? entryPass : "no password set"} type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
+                                    <input id='password' value={entryPass} placeholder='No password set' type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
                                     <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 cursor-pointer' />
                                     <Image onClick={()=>{setShowPass(prev=>!prev)}} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6 cursor-pointer'/>
-                                    <div className={` h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
+                                    <div className={`h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
                                         <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current); setSubmit(true)}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className={`flex w-full h-full cursor-pointer`}/>
                                     </div>
                                 </div>
@@ -331,18 +333,35 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     </div>
                     {/* extra Fields section */}
                     <div className={`flex flex-col w-full duration-100 transition-all  ${collapseExtraFeilds?'h-13 border-neutral-content  delay-300 ':"h-160 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
-                        <div className={`flex flex-row w-full h-fit justify-between items-center`}>
+                        <div onClick={()=>{setCollapseExtraFields(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
                             <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Extra Fields</h1>
-                            <Image src={"/images/up_arrow.svg"} onClick={()=>{setCollapseExtraFields(prev=>!prev)}} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
+                            <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
                         </div>
                         <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-                                <div className='flex flex-col w-full h-full border-2 overflow-y-auto'>
-                                    <div className='flex flex-col w-full h-fit'>
-                                        {entry.extraFields.map((x)=>
-                                            <ExtraFieldComponent extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
-                                        )}
-                                    </div>
+                            <div className='flex flex-col w-full h-full border-2 overflow-y-auto'>
+                                <div className='flex flex-col w-full h-fit'>
+                                    {entry.extraFields.map((x)=>
+                                        <ExtraFieldComponent extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
+                                    )}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* New extra Field section */}
+                    <div className={`flex flex-col w-full duration-100 transition-all  ${collapseNewEf?'h-13 border-neutral-content  delay-300 ':"h-100 border-base-content "} gap-2 p-2 border-2 rounded-lg `}>
+                        <div onClick={()=>{setCollapseNewEf(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
+                            <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Create Extra Field</h1>
+                            <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseNewEf? "rotate-180" : "rotate-0"}`} />
+                        </div>
+                        <div className={`duration-300 transition-all ${collapseNewEf?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
+                            <div className="flex flex-col w-full h-fit gap-2">
+                                <div>Name of field</div>
+                                <input value={extraFeild.name} onChange={handleChangeExtraField} className='flex border-2 outline-none rounded-lg h-8 focus:border-primary px-1' />
+                            </div>
+                            <div>
+                                <div>Data</div>
+                                <textarea value={extraFeild.data.toString()} onChange={handleChangeExtraField}  className='flex border-2 outline-none rounded-lg  w-full h-40 resize-none focus:border-primary px-1' />
+                            </div>
                         </div>
                     </div>
                     </div>
