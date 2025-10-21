@@ -57,20 +57,21 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
 
     const handleValueChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
         let length = parseInt(e.target.value);
-        console.log('ru')
+        setV(length);
         if (!Number.isNaN(length)){
             if (length < minimum){
                 length = minimum;
             }
-            if (length > maximum){
+            else if (length > maximum){
                 length = maximum;
                 
-            }   
+            }else{
+                setValue(length); 
+            } 
             console.log('changing val')
-            setValue(length); 
             setPos(length);
         }
-        setV(length)
+        
     }
 
     const [v, setV] = useState(minimum);
@@ -94,7 +95,7 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
             <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-4 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
             
         </div>
-        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8' onChange={handleValueChange} />
+        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8 outline-none' onChange={handleValueChange} />
     </div>
   )
 }
