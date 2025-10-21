@@ -17,11 +17,6 @@ interface MetaData{
     version  : string; 
 } 
 
-export interface EntryGroup{
-    groupName:string,
-    entries: Array<string>
-}
-
 export class Entry{
     dek: Buffer;
     title    : string;
@@ -30,6 +25,7 @@ export class Entry{
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
     metadata : MetaData;
     extraFields: Array<ExtraField>;
+    group: string;
     
 
     constructor(init: PartialWithRequired<Entry, "title"|"password"|"username">, kek?:KEKParts){
@@ -54,6 +50,9 @@ export class Entry{
                 uuid: createUUID(),
                 version: '0.1.0'
             }
+        }
+        if (!init.group){
+            this.group = "default";
         }
     }
 
@@ -101,14 +100,9 @@ export class Entry{
     }
     
     static deserialise(content:string){
-        const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,...extraFields] = Buffer.from(content).toString('utf8').split("|");
+        const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,version,...extraFields] = content.split("|");
         let efs = [];
-        let version = undefined;
         if (extraFields[0]){
-            if (!extraFields[0].includes("_")){
-                version = extraFields[0];
-                extraFields.splice(0);
-            }
             efs = extraFields.map((x):ExtraField=>{
                 const [name, data, isProtected] = x.split("_");
                 return {
