@@ -302,13 +302,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <Slider bgStyle='bg-base-300 h-3.5 rounded-full ' minimum={8} maximum={50} value={randomSettings.length} setValue={(value)=>{handleRandomPassSettingChange('length', value.toString())}}  />
                                     </div>
                                     <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center'>
-                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowCapitals&& 'bg-neutral border-none text-neutral-content'}`}>
+                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-primary  border-2 h-10 ${randomSettings.allowCapitals&& 'bg-primary border-none text-primary-content'}`}>
                                             capital letters
                                         </button>
-                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowNumbers&& 'bg-neutral border-none text-neutral-content'}`}>
+                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-primary border-2 h-10 ${randomSettings.allowNumbers&& 'bg-primary border-none text-primary-content'}`}>
                                             numbers
                                         </button>
-                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-neutral border-none text-neutral-content'}`}>
+                                        <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-primary border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-primary border-none text-primary-content'}`}>
                                             special chars
                                         </button>
                                     </div>
