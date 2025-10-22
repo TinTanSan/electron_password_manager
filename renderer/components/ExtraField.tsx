@@ -45,7 +45,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
 
   return (
-    <div className='flex flex-row w-full h-40 shrink-0 border-2 border-base-300 bg-base-200 rounded-lg p-2 gap-2'>
+    <div className='flex flex-row w-full h-40 shrink-0 border-2 border-base-300 bg-base-100 rounded-lg p-2 gap-2'>
       <div className='flex flex-col w-full h-full gap-2'>
         <div className='flex flex-row border-2 border-base-300 rounded-lg focus-within:border-primary'>
           <div className='flex border-r-2 border-base-300 px-1'>Name</div>
@@ -53,7 +53,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
         </div>
         <div className='flex flex-row w-full h-fit gap-2'>
           <button onClick={()=>{handleDelete()}} className='flex w-1/2 items-center justify-center rounded-lg h-8 bg-error hover:bg-error-darken hover:text-white text-white'>Delete</button>
-          {extraField.isProtected && <button onClick={()=>{setShowData(prev=>!prev)}} className={`flex border-2 w-1/2 items-center justify-center rounded-lg h-8 border-neutral ${showData&& "bg-neutral text-neutral-content"}`}>{showData?"Protect" : "Reveal"}</button>}
+          {extraField.isProtected && <button onClick={()=>{setShowData(prev=>!prev)}} className={`flex border-2 w-1/2 items-center justify-center rounded-lg h-8 border-neutral ${showData&& "bg-neutral text-neutral-content"}`}>{showData?"Hide" : "Reveal"}</button>}
         </div>
       </div>
       <div className='flex flex-col w-full h-full'>
