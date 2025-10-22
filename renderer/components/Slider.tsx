@@ -95,7 +95,7 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
             <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-4 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
             
         </div>
-        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8 outline-none' onChange={handleValueChange} />
+        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8 outline-none bg-base-100' onChange={handleValueChange} />
     </div>
   )
 }
