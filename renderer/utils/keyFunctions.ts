@@ -3,6 +3,7 @@
 import { VaultType } from "../interfaces/Vault";
 import { Entry } from "../interfaces/Entry";
 import { vaultLevelEncrypt } from "./vaultFunctions";
+import { encrypt } from "./commons";
 
 /*
     user chooses password
@@ -181,8 +182,7 @@ export async function rotateDEK(entry:Entry, kek:KEKParts){
         dek: wrappedDek
     })
     e.extraFields = [];
-    e.password = Buffer.from(decryptedPass);
-    e.password = await e.encryptPass(kek);
+    e.password = await encrypt(decryptedPass, newDek);
     await Promise.all(decryptedExtraFields.map(async (x)=>{
         e = await e.addExtraField(kek,x);
     })).catch((error)=>{
