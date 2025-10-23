@@ -41,7 +41,7 @@ export async function decrypt(content:Buffer| string, key: CryptoKey, iv?:Buffer
             }
         } catch (error) {
             return{
-                data:Buffer.from(error),
+                data:Buffer.from(error.toString()),
                 status:"ERROR"
             }
         }
