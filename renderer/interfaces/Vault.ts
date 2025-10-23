@@ -20,7 +20,7 @@ type vaultMetaData = {
     version: string
 }
 
-interface EntryGroup{
+export interface EntryGroup{
     groupID: string;
     groupName: string;
     entries: Array<String>
@@ -123,6 +123,32 @@ export class Vault{
         }
     }
 
+
+    serialiseGroups(){
+        const content = this.entryGroups.map((group)=>{
+            return group.groupID.toString() + "|" + group.groupName +"|"+ group.entries.join(",")
+        }).join("_")+"_GROUPS"
+        return "GROUPS_"+content
+    }
+    deserialiseGroups(content:string):Array<EntryGroup>{
+        console.log(content)
+        // if we encounter only 'G_' then there were no groups created
+        if (content.length === 14){
+            return [];
+        }
+        const groups = content.substring(7).split("_");
+        console.log(groups)
+        return groups.map((group)=>{
+            const [groupID, groupName, entries] = group.split("|")
+            console.log(groupID, groupName, entries);
+            return {
+                groupID,
+                groupName, 
+                entries: entries.split(",")
+            }
+        })
+    }
+
     async vaultLevelEncrypt(){
         if (typeof window !=="undefined"){
             const VK = await window.crypto.subtle.unwrapKey(
@@ -137,6 +163,7 @@ export class Vault{
             const enc = Buffer.concat([
                     this.kek.salt,
                     this.wrappedVK,
+                    Buffer.from(this.serialiseGroups()),
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
             return enc
@@ -166,7 +193,20 @@ export class Vault{
                 false, 
                 ['encrypt', 'decrypt']
             );
-            const {data, status} = await decrypt(toDecrypt.subarray(56),vk);
+
+            let idx = toDecrypt.findIndex((x,i)=>{
+                // skip over the wrapped kek salt, vk and the first instance of GROUPS_ which delimits the starting of the groups string
+                return (i > (56+7) && toDecrypt.subarray(i+1, i+7).toString() === "GROUPS");
+            })
+            let groups = []
+            if (idx === -1){
+                console.warn("group not found in vault content, this may be a vault version mismatch")
+                idx = 56;
+            }else{
+                idx +=7;
+                groups = this.deserialiseGroups(toDecrypt.subarray(56, idx).toString());
+            }
+            const {data, status} = await decrypt(toDecrypt.subarray(idx),vk);
             if (status === "OK"){
                 const [decryptedItems, metadata] = data.toString().split("MD");
                 let entries_raw = decryptedItems.split("$").filter(x=>x!=="");
@@ -182,6 +222,7 @@ export class Vault{
                 return new Vault({
                     ...this,
                     entries,
+                    entryGroups: groups,
                     vaultMetadata:vaultMetadata? vaultMetadata : undefined
                 })
             }
