@@ -1,8 +1,7 @@
 // a file to hold all the crypto key related functions
 
-import { VaultType } from "../interfaces/Vault";
+import { Vault, VaultType } from "../interfaces/Vault";
 import { Entry } from "../interfaces/Entry";
-import { vaultLevelEncrypt } from "./vaultFunctions";
 import { encrypt } from "./commons";
 
 /*
@@ -133,41 +132,39 @@ export async function wrapDEK(dek:CryptoKey, kek:KEKParts):Promise<Buffer>{
     ))
 }
 
-export async function rotateVK( vault:VaultType){
+export async function rotateVK( vault:Vault):Promise<Vault>{
     const wrappedVk = await wrapDEK(await makeNewDEK(), vault.kek);
-    const newState:VaultType = 
-    { entries: structuredClone(vault.entries), // deep copy entries
-        wrappedVK:wrappedVk,
-        ...vault}
-    const newFileContents = await vaultLevelEncrypt(newState);
-    const newVault: VaultType = {
-        ...structuredClone(vault), // deep copy vault
-        wrappedVK: wrappedVk,
-        fileContents: newFileContents,
-    };
-    return newVault;
+
+    let newState = vault.mutate('wrappedVK', wrappedVk);
+    const newFileContents = await newState.vaultLevelEncrypt();
+    newState.mutate('fileContents', newFileContents);
+    return newState;
 }
 
 export async function rotateKEK(vault:VaultType, password:string): Promise<VaultType>{
     let vk = await unwrapDEK(vault.kek, vault.wrappedVK);
+    
     const deks = await Promise.all(
         vault.entries.map(async (x)=>await unwrapDEK(vault.kek, x.dek))
     )
+    
     const newKek = await makeNewKEK(password);
+    
     const newWrappedVK = await wrapDEK(vk, newKek);
     vk = undefined;
+
     const newEntries = await Promise.all(
         vault.entries.map(async (entry, i):Promise<Entry> => (
             entry.cloneMutate('dek', await wrapDEK(deks[i], newKek))
         ))
     );
-    let newState:VaultType = {
+    let newState = new Vault({
         ...structuredClone(vault),
         kek: newKek,
         wrappedVK: newWrappedVK,
         entries: newEntries,
-    }
-    newState.fileContents = await vaultLevelEncrypt(newState);
+    })
+    newState.fileContents = await newState.vaultLevelEncrypt();
     return newState;
 }
 
