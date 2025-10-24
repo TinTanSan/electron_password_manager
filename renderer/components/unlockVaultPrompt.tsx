@@ -6,11 +6,10 @@ import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
 import { isStrongPassword } from '../utils/commons';
 import { makeNewKEK, validateKEK } from '../utils/keyFunctions';
-import { commitKEK } from '../utils/vaultFunctions';
 import { Vault } from '../interfaces/Vault';
 // this component will handle the initial create of the vault KEK and subsequent unlocks
 export default function UnlockVaultPrompt() {
-    const vaultContext = useContext(VaultContext);
+    const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const navigate = useRouter();
     // the password will only be required at this time
@@ -20,7 +19,7 @@ export default function UnlockVaultPrompt() {
     // 2 cases when we would want to show the initialisation prompt, 1. acutal initialisation of the vault, 2. Master password changes
     // by default we want to check initial requirement, if this is false then we can run a extra function
   
-    const initialiseRequired= vaultContext.vault.fileContents.length === 0;
+    const initialiseRequired= vault.fileContents.length === 0;
     const handleEnter = (e:FormEvent)=>{
       e.preventDefault();
       if (initialiseRequired){
@@ -33,10 +32,11 @@ export default function UnlockVaultPrompt() {
           const passMessage = isStrongPassword(password)
           if(passMessage.length === 0){
               makeNewKEK(password).then((x:KEKParts)=>{ 
-                commitKEK(vaultContext.vault.filePath, vaultContext.vault.fileContents, x).then((wrappedVK)=>{
-                  vaultContext.setVault(prev=>new Vault({...prev, wrappedVK, kek:x, isUnlocked:true}))
+                const newVaultState = vault.mutate('kek',x);
+                setVault(newVaultState);
+                newVaultState.commitKEK().then((wrappedVK)=>{
+                  setVault(newVaultState.mutate('wrappedVK', wrappedVK));
                   addBanner(bannerContext, "Vault unlocked", 'success');
-                  // set vault to be unlocked
                 })
               });
           }else{
@@ -49,13 +49,13 @@ export default function UnlockVaultPrompt() {
       }else{
         // simple unlock
         if(password !==""){
-          validateKEK(vaultContext.vault.fileContents, password).then((response)=>{
+          validateKEK(vault.fileContents, password).then((response)=>{
             if (response === undefined){
               
               addBanner(bannerContext, "Incorrect password", 'error')
             }else{
               addBanner(bannerContext, "Vault unlocked", 'success');
-              vaultContext.setVault(prev=>new Vault({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
+              setVault(prev=>new Vault({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
             }
           })
         }else{
@@ -92,7 +92,7 @@ export default function UnlockVaultPrompt() {
             {initialiseRequired && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
           </div>
           <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
-            <button type='button' onClick={()=>{vaultContext.setVault(undefined); navigate.push('/loadFile'); addBanner(bannerContext, "Vault Closed successfully", 'info')}} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
+            <button type='button' onClick={()=>{setVault(undefined); navigate.push('/loadFile'); addBanner(bannerContext, "Vault Closed successfully", 'info')}} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
             <button type='submit' className='flex bg-primary text-primary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>Unlock</button>
           </div>
         </form> 
