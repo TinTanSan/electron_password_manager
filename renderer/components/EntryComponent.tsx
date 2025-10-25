@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { VaultContext } from '../contexts/vaultContext';
 import { addBanner } from '../interfaces/Banner';
 import { BannerContext } from '../contexts/bannerContext';
-import { writeEntriesToFile } from '../utils/vaultFunctions';
 import { Vault } from '../interfaces/Vault';
 type props={
     entry: Entry
@@ -73,7 +72,7 @@ export default function EntryComponent({entry}:props) {
         setVault((prev)=>
             {
                 const newState =new Vault({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)})
-                writeEntriesToFile(newState);
+                newState.writeEntriesToFile();
                 return newState;
             })
     }
