@@ -131,13 +131,10 @@ export class Vault{
         return "GROUPS_"+content
     }
     deserialiseGroups(content:string):Array<EntryGroup>{
-        console.log(content)
-        // if we encounter only 'G_' then there were no groups created
         if (content.length === 14){
             return [];
         }
         const groups = content.substring(7).split("_");
-        console.log(groups)
         return groups.map((group)=>{
             const [groupID, groupName, entries] = group.split("|")
             console.log(groupID, groupName, entries);
@@ -194,19 +191,19 @@ export class Vault{
                 ['encrypt', 'decrypt']
             );
 
-            let idx = toDecrypt.findIndex((x,i)=>{
+            let idx = toDecrypt.findIndex((_,i)=>{
                 // skip over the wrapped kek salt, vk and the first instance of GROUPS_ which delimits the starting of the groups string
-                return (i > (56+7) && toDecrypt.subarray(i+1, i+7).toString() === "GROUPS");
+                return (i > (56+7) && Buffer.from(toDecrypt.subarray(i, i+6)).toString('utf8') === "GROUPS");
             })
-            let groups = []
+            let groups:Array<EntryGroup> = [{groupID:createUUID(), groupName:"default", entries:[]}];
             if (idx === -1){
-                console.warn("group not found in vault content, this may be a vault version mismatch")
-                idx = 56;
+                console.warn("groups not found in vault content, this may be a vault version mismatch, trying to auto-update to latest")
             }else{
-                idx +=7;
-                groups = this.deserialiseGroups(toDecrypt.subarray(56, idx).toString());
+                idx +=6;
+                groups = this.deserialiseGroups(Buffer.from(toDecrypt.subarray(56, idx)).toString('utf8'));
             }
-            const {data, status} = await decrypt(toDecrypt.subarray(idx),vk);
+            const dataIdx = idx !== -1? idx : 56;
+            const {data, status} = await decrypt(toDecrypt.subarray(dataIdx),vk);
             if (status === "OK"){
                 const [decryptedItems, metadata] = data.toString().split("MD");
                 let entries_raw = decryptedItems.split("$").filter(x=>x!=="");
@@ -218,13 +215,24 @@ export class Vault{
                 const entries = entries_raw.map(
                     (x)=>Entry.deserialise(x)
                 );
-                
-                return new Vault({
+
+                const newState = new Vault({
                     ...this,
                     entries,
                     entryGroups: groups,
                     vaultMetadata:vaultMetadata? vaultMetadata : undefined
-                })
+                });
+                if (idx === -1){
+                    const updateStatus = await newState.writeEntriesToFile();
+                    if (updateStatus.status === "Error"){
+                        console.error("Unable to update vault to latest version")
+                    }else{
+                        console.info("Auto-updated vault to new version")
+                    }
+                    
+                }
+                
+                return  newState;
             }
             else{
                 throw new Error("Soemthing went wrong when decrypting the vault, possible KEK mismatch")
