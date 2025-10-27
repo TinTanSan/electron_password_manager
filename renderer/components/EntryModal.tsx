@@ -339,7 +339,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             </div>
                             <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
                                 <div className='flex flex-col w-full h-full border-2 overflow-y-auto'>
-                                    <div className='flex flex-col w-full h-fit'>
+                                    <div className='flex flex-col w-full h-fit p-1'>
                                         {entry.extraFields.map((x,i)=>
                                             <ExtraFieldComponent key={i} extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
                                         )}
