@@ -154,7 +154,7 @@ export class Entry{
         throw new Error("window is not defined, cannot encrypt entry pass")
     }
 
-    async encryptField(kek:KEKParts, name:string, data:string | Buffer):Promise<ExtraField>{
+    private async encryptField(kek:KEKParts, name:string, data:string | Buffer):Promise<ExtraField>{
         if (typeof window !== 'undefined'){
             var unwrappedDEK = await window.crypto.subtle.unwrapKey('raw', Buffer.from(this.dek), kek.kek, {name:'AES-KW'}, {name:'AES-GCM'}, false, ['encrypt', 'decrypt']);
             const d = data instanceof Buffer? data : Buffer.from(data);
