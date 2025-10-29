@@ -1,10 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Entry, ExtraField } from '../interfaces/Entry'
-import { VaultContext } from '../contexts/vaultContext'
-import Image from 'next/image';
+import { VaultContext } from '../contexts/vaultContext' 
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
-import { encrypt } from '../utils/commons';
 
 type props = {
     extraField: ExtraField,
@@ -19,14 +17,15 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   const [showData, setShowData] = useState(false);
   const [ef, setEf] = useState<ExtraField>({...extraField});
   const [encryptedData, setEncryptedData] = useState<undefined | Buffer>(ef.isProtected?ef.data : undefined);
-  const hasChanged = (ef.name === extraField.name && extraField.data.equals(ef.data) && ef.isProtected == extraField.isProtected);
-  console.log(ef.name === extraField.name , extraField.data.equals(ef.data) , ef.isProtected == extraField.isProtected);
+  const hasChanged = (ef.name === extraField.name && (extraField.data.equals(ef.data)) && ef.isProtected == extraField.isProtected);
+  console.log(hasChanged, extraField.data.toString(), ef.data.toString(), encryptedData?.equals(extraField.data))
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
     setEf(prev=>({
         ...prev,
         [e.target.id] : e.target.id === 'data'? Buffer.from(e.target.value): e.target.value
       })
     )
+    setData(e.target.value)
   }
 
   const handleConfirm = (e:React.MouseEvent)=>{
@@ -92,24 +91,24 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
 
   return (
-    <div className='flex flex-col w-full h-80 shrink-0 border-2 rounded-lg border-base-300 p-2 gap-2 bg-base-100'>
+    <div className='flex flex-col w-full h-80 shrink-0 border-2 text-base-content rounded-lg border-base-300 p-2 gap-2 bg-base-100'>
       <div className='flex flex-col w-full h-full'>
         <div className='flex flex-col w-full gap-2'>
           <div>Name</div>
-          <input className='flex border-2 rounded-md items-center px-1 h-8 border-base-300' readOnly value={ef.name}/>
+          <input id='name' onChange={handleChange} className='flex border-2 rounded-md items-center px-1 h-8 border-base-300' value={ef.name}/>
         </div>
         <div className='flex flex-col w-full h-full gap-2'>
           <div>Data</div>
-          <textarea className='flex border-2 rounded-lg h-full resize-none px-1' readOnly value={data ? data: "Click Reveal to show "} />
+          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 rounded-lg h-full resize-none px-1' value={showData ? data: "Click Reveal to show "} />
           <div className='flex w-full h-8 gap-2'>
           {ef.isProtected && <button className='flex border-2 border-neutral rounded-lg h-8 items-center justify-center w-1/2' onClick={()=>{setShowData(!showData)}}>Reveal</button>}
           <button onClick={handleChangeProtection} className='flex border-2 border-warning text-warning-content w-1/2 items-center justify-center rounded-lg hover:bg-warning '>{ef.isProtected? "Expose":"Protect"}</button>
           </div>
         </div>
       </div>
-      <div className='flex flex-row w-full h-10 gap-2'>
-        <button onClick={()=>{handleDelete()}} className='flex w-1/2 items-center cursor-pointer justify-center rounded-lg h-8 bg-error hover:bg-error-darken hover:text-white text-white'>Delete</button>
-        {!hasChanged && <button className='flex justify-center items-center w-1/2 border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>}
+      <div className='flex flex-row w-full h-10 gap-2 duration-300 transition-all'>
+        <button onClick={()=>{handleDelete()}} className='flex w-full items-center cursor-pointer justify-center rounded-lg h-8 bg-error hover:bg-error-darken hover:text-white text-white'>Delete</button>
+        {!hasChanged && <button className='flex justify-center items-center w-full border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>}
       </div>
     </div>
 
