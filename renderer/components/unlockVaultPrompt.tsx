@@ -28,39 +28,41 @@ export default function UnlockVaultPrompt() {
           addBanner(bannerContext, "Password cannot be empty", "warning")
           return;
         }
-        if (password === confirmPassword){
-          const passMessage = isStrongPassword(password)
-          if(passMessage.length === 0){
-              makeNewKEK(password).then((x:KEKParts)=>{ 
-                const newVaultState = vault.mutate('kek',x);
-                setVault(newVaultState);
-                newVaultState.commitKEK().then((wrappedVK)=>{
-                  setVault(newVaultState.mutate('wrappedVK', wrappedVK));
-                  addBanner(bannerContext, "Vault unlocked", 'success');
-                })
-              });
-          }else{
-            // give the user a warning about unsafe master pass
-            addBanner(bannerContext,passMessage, 'warning' )
-          }
-        }else{
-          addBanner(bannerContext, "The two password fields were not the same", 'error')
+
+        if (password !== confirmPassword){
+          addBanner(bannerContext, "The two password fields were not the same", 'error');
+          return;
+        } 
+        const passMessage = isStrongPassword(password)
+        if (passMessage.length !== 0){
+          // give the user a warning about unsafe master pass
+          addBanner(bannerContext,passMessage, 'warning' )
+          return;
         }
+        makeNewKEK(password).then((x:KEKParts)=>{ 
+          let newVaultState = vault.mutate('kek',x);
+          newVaultState.commitKEK().then((wrappedVK)=>{
+            newVaultState = newVaultState.mutate('wrappedVK', wrappedVK);
+            newVaultState = newVaultState.mutate('isUnlocked', true, true);
+            setVault(newVaultState);
+            addBanner(bannerContext, "Vault unlocked", 'success');
+          })
+        });
+        
       }else{
         // simple unlock
-        if(password !==""){
-          validateKEK(vault.fileContents, password).then((response)=>{
-            if (response === undefined){
-              
-              addBanner(bannerContext, "Incorrect password", 'error')
-            }else{
-              addBanner(bannerContext, "Vault unlocked", 'success');
-              setVault(prev=>new Vault({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
-            }
-          })
-        }else{
-          addBanner(bannerContext, "Password cannot be empty", "warning")
+        if (!password){
+          addBanner(bannerContext, "Password cannot be empty", "warning");
+          return;
         }
+        validateKEK(vault.fileContents, password).then((response)=>{
+          if (!response){
+            addBanner(bannerContext, "Incorrect password", 'error');
+            return;
+          }
+          addBanner(bannerContext, "Vault unlocked", 'success');
+          setVault(prev=>new Vault({...prev, kek:response, wrappedVK:prev.fileContents.subarray(16,56), isUnlocked:true}))
+        })
 
       }
       
