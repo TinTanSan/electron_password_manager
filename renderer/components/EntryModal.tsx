@@ -11,7 +11,8 @@ import ExtraFieldComponent from './ExtraField';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
-    uuid:string
+    uuid:string,
+    groups:Array<string>
 }
 export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
     /*
@@ -76,7 +77,7 @@ export type RandomPassGeneratorSettings={
     allowSpecChars:boolean,
     excludedChars: string,
 }
-export default function EntryModal({setShowModal, uuid}:props) {
+export default function EntryModal({setShowModal, uuid, groups}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [submit, setSubmit] = useState(true);
@@ -92,8 +93,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
-
     const [collapseNewEf, setCollapseNewEf] = useState(true);
+    const [groupSearch, setGroupSearch] = useState("");
 
     useEffect(()=>{
         if (submit){
@@ -143,13 +144,24 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 setEntry(newEntryState)
                 const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
                 setVault((prev)=>prev.mutate('entries', newEntries));
-                vaultEntry.current = new Entry(newEntryState);
+                vaultEntry.current = newEntryState;
                 addBanner(bannerContext, 'entry updated successfully', 'success')
                 setShowModal(false);    
             } catch (error) {
                 addBanner(bannerContext, 'unable to update entry '+error, 'error');
             }
         })
+    }
+
+    const changeFavourite = ()=>{
+        const newState = entry.update('isFavourite', !entry.isFavourite);
+        setEntry(newState);
+        const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newState : x)
+        setVault((prev)=>prev.mutate('entries', newEntries));
+        vaultEntry.current = newState;
+        addBanner(bannerContext, 'entry updated successfully', 'success')
+        // setShowModal(false); 
+
     }
 
     const handleAddExtraField = ()=>{
@@ -231,6 +243,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
             handleCopy()            
         }
     }
+    const handleGroupChange=(e:React.ChangeEvent<HTMLDataListElement>)=>{
+
+    }
 
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
@@ -239,6 +254,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         document.removeEventListener("keydown", escapeHandler, false);
         removeEventListener("keydown", (copyHandler), false);
         };
+        console.log(entry.verifySerailisable())
     }, []);
 
     useEffect(()=>{
@@ -270,6 +286,21 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
                             <input id='title' value={entry.title} onChange={handleChange} className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
                         </div>
+
+                        {/* Group section */}
+                        <div className='flex flex-col px-2 items-center'>
+                            <div className='flex w-full text-lg'>Group</div>
+                            <div className='flex flex-col w-full h-fit group relative border-2 p-1 pb-2 rounded-lg '>
+                                <input value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group outline-none rounded-lg h-fit px-1 items-start flex appearance-none' />
+                                <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-8 bg-base-100 group-focus-within:visible group-focus-within:h-fit`}>
+                                    {groups.filter(x=>x.toLowerCase().includes(groupSearch.toLowerCase())).map((group, i)=>
+                                        <div className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</div>
+                                    )}
+
+                                </div>
+                            </div>
+                        </div>
+
                         {/* main login details section */}
                         <div className={`flex shrink-0 flex-col bg-base-200 border-base-300 l w-full duration-100 transition-all  ${collapseLoginDetails?'h-13   delay-300 ': showRandomPassModal? "h-155 " : 'h-130'} gap-2 p-2 border-2 rounded-lg `}>
                             <div  onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
@@ -377,9 +408,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
                 {/* bottom bar with delete, cancel and save buttons */}
                 <div className='flex flex-row w-full  h-14 border-t-2 border-base-300 p-2'>
-                    <div className='flex w-full h-full'>
+                    <div className='flex w-full h-full gap-2'>
                         <div className='flex w-fit h-fit border-2 border-error rounded-lg hover:bg-error hover:[&_*]:brightness-[25%]'>
                             <Image src={"/images/delete_red.svg"} alt='del' width={0} height={0} className='flex w-8 h-8' />
+                        </div>
+                        <div className='flex items-center w-12 h-10 justify-center'>
+                            <Image onClick={changeFavourite} title='favourite this entry to have it shown at the top of the list everytime' src={entry.isFavourite?"/images/starFill.svg": "/images/starNoFill.svg"} alt='nofav' width={50} height={50} className={`flex ${entry.isFavourite && "w-10 h-10"}`}/>
                         </div>
                     </div>
                     {!areEqual && <div className='flex w-full justify-end h-full gap-2'>
