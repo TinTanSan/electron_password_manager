@@ -21,7 +21,7 @@ export default function HomePage() {
   const [page, setPage] = useState(0);
   // hard coded 100 should be changed to use whatever is listed in the preferences
   // const maxPages = Math.floor(shownEntries.length/100);
-
+  const [groups, setGroups] = useState([]);
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
   useEffect(()=>{ 
@@ -33,6 +33,13 @@ export default function HomePage() {
       })
     }
   },[vault?.isUnlocked])
+
+
+  useEffect(()=>{
+    if (vault && vault.isUnlocked){
+      setGroups(vault.entryGroups.map(x=>x.groupName))
+    }
+  }, [vault?.entryGroups])
 
   useEffect(()=>{
     if (vault !== undefined && vault.isUnlocked){
@@ -81,7 +88,7 @@ export default function HomePage() {
         <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
           <div className='flex flex-col gap-2  w-full h-full overflow-y-auto px-2'>
-            {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
+            {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent groups={groups} key={i} entry={entry}/>)}
           </div>
         
         </div>
