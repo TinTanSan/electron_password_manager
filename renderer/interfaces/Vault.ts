@@ -47,6 +47,9 @@ export class Vault{
                 version: "0.1.0"
             }
         }
+        if (!init.entryGroups){
+            this.entryGroups = [];
+        }
         if (!init.entries){
             this.entries = [];
         }
@@ -90,11 +93,11 @@ export class Vault{
     }
 
     async commitKEK(){
-    // remove the first line, which contains important content retaining to the KEK
-        const content = this.fileContents.subarray(48);
+        
         if (typeof window !== "undefined"){
             const VK = await makeNewDEK();
             const wrappedVK = Buffer.from(await window.crypto.subtle.wrapKey('raw', VK, this.kek.kek, {name:'AES-KW'}));
+            const content = this.fileContents.subarray(56);
             const allContent = Buffer.concat([this.kek.salt,wrappedVK,content]);
             window.ipc.writeFile(this.filePath,allContent);
             return wrappedVK
@@ -130,6 +133,7 @@ export class Vault{
         }).join("_")+"_GROUPS"
         return "GROUPS_"+content
     }
+    
     deserialiseGroups(content:string):Array<EntryGroup>{
         if (content.length === 14){
             return [];
@@ -164,14 +168,21 @@ export class Vault{
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
             return enc
+        }else{
+            throw new Error("Window object was undefined")
         }
     }
 
     async writeEntriesToFile(){
         if (typeof window !=="undefined"){
-            const content = Buffer.from(await this.vaultLevelEncrypt());
-            const result = await window.ipc.writeFile(this.filePath, content);
-            return result === "OK" ? {content, status:result} : {content:undefined, status:result};
+            try {
+                console.log(this.wrappedVK, this.kek)
+                const content = Buffer.from(await this.vaultLevelEncrypt());    
+                const result = await window.ipc.writeFile(this.filePath, content);
+                return result === "OK" ? {content, status:result} : {content:undefined, status:result};
+            } catch (error) {
+                console.warn(error)
+            }   
         }
         
     }
