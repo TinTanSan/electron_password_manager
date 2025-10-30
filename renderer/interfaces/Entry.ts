@@ -23,6 +23,7 @@ export class Entry{
     username : string;
     password : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
+    isFavourite: boolean;
     metadata : MetaData;
     extraFields: Array<ExtraField>;
     group: string;
@@ -90,17 +91,19 @@ export class Entry{
             this.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
                                                  //  improperly delimit the encrypted text, which would have serious implications when decrypting
             this.notes + "|"+ 
+            (this.isFavourite ? "1" : "0" ) +"|"+
             this.metadata.createDate.toISOString()+ "|" + 
             this.metadata.lastEditedDate.toISOString()+ "|"+
             this.metadata.lastRotate.toISOString()+ "|"+
             this.metadata.uuid + "|"+
             this.metadata.version + "|"+
-            this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
+            this.extraFields.map((ef)=>(ef.name+"_"+ef.data. toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
     }
     
     static deserialise(content:string){
-        const [title, username,dek, password, notes, createDate, lastEditedDate,lastRotateDate,uuid,version,...extraFields] = content.split("|");
+        const [title, username,dek, password, notes, isFavouritebool, createDate, lastEditedDate,lastRotateDate,uuid,version,...extraFields] = content.split("|");
         let efs = [];
+        console.log(content)
         if (extraFields[0]){
             efs = extraFields.map((x):ExtraField=>{
                 const [name, data, isProtected] = x.split("_");
@@ -118,6 +121,7 @@ export class Entry{
             dek:Buffer.from(dek, 'base64'),
             password: Buffer.from(password, 'base64'),
             notes,
+            isFavourite: isFavouritebool === "1",
             extraFields:efs,
             metadata:{
                 createDate:new Date(createDate),
@@ -128,6 +132,13 @@ export class Entry{
             }
         })
         return entry
+    }
+
+    verifySerailisable(){
+        const serailisedEntry =this.serialise();
+        const deserialised = Entry.deserialise(serailisedEntry);
+        return this.isEqual(deserialised);
+
     }
 
     async decryptEntryPass(kek:KEKParts){
