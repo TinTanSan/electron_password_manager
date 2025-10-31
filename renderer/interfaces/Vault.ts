@@ -176,7 +176,6 @@ export class Vault{
     async writeEntriesToFile(){
         if (typeof window !=="undefined"){
             try {
-                console.log(this.wrappedVK, this.kek)
                 const content = Buffer.from(await this.vaultLevelEncrypt());    
                 const result = await window.ipc.writeFile(this.filePath, content);
                 return result === "OK" ? {content, status:result} : {content:undefined, status:result};
