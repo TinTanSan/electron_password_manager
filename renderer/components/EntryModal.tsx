@@ -160,8 +160,6 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
         setVault((prev)=>prev.mutate('entries', newEntries));
         vaultEntry.current = newState;
         addBanner(bannerContext, 'entry updated successfully', 'success')
-        // setShowModal(false); 
-
     }
 
     const handleAddExtraField = ()=>{
@@ -254,7 +252,7 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
         document.removeEventListener("keydown", escapeHandler, false);
         removeEventListener("keydown", (copyHandler), false);
         };
-        console.log(entry.verifySerailisable())
+        
     }, []);
 
     useEffect(()=>{
