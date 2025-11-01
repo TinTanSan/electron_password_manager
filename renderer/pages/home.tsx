@@ -55,6 +55,13 @@ export default function HomePage() {
             })
             :
           vault.entries;
+
+          entries = entries.sort((a,b)=>{
+            if (a.isFavourite === b.isFavourite)return 0;
+            return a.isFavourite? -1 : 1;
+          })
+          console.log(entries);
+
           setPaginatedEntries(entries);
           return entries;
         }
