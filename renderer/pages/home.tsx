@@ -46,23 +46,17 @@ export default function HomePage() {
       const sf = searchFilter.toLowerCase();
       setShownEntires(
         ()=>{
-          const entries = sf !== "" ?
+          let entries = sf !== "" ?
             vault.entries.filter((x)=>{
-              if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)){
-                return true
-              }
-              if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)){
-                return true;
-              }
-              if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)){
-                return true;
-              }
+              if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)) return true
+              if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)) return true;
+              if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)) return true;
               return false;
             })
             :
-            vault.entries
-            setPaginatedEntries(entries);
-            return entries;
+          vault.entries;
+          setPaginatedEntries(entries);
+          return entries;
         }
       )
       setPage(0);
