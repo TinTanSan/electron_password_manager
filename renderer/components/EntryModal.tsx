@@ -95,6 +95,7 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
     const [groupSearch, setGroupSearch] = useState("");
+    const filteredGroups = vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
 
     useEffect(()=>{
         if (submit){
@@ -241,9 +242,9 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
             handleCopy()            
         }
     }
-    const handleGroupChange=(e:React.ChangeEvent<HTMLDataListElement>)=>{
-
-    }
+    const handleGroupChange=(groupName: string)=>{
+        vault.addEntryToGroup(uuid, groupName);
+    }   
 
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
@@ -291,10 +292,15 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                             <div className='flex flex-col w-full h-fit group relative border-2 p-1 pb-2 rounded-lg '>
                                 <input value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group outline-none rounded-lg h-fit px-1 items-start flex appearance-none' />
                                 <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-8 bg-base-100 group-focus-within:visible group-focus-within:h-fit`}>
-                                    {groups.filter(x=>x.toLowerCase().includes(groupSearch.toLowerCase())).map((group, i)=>
-                                        <div className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</div>
+                                    {filteredGroups.map((group, i)=>
+                                        <div onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</div>
                                     )}
-
+                                    {
+                                        (filteredGroups.length === 0 && groupSearch.length> 0 ) && 
+                                        <div onClick={()=>{handleGroupChange(groupSearch)}} className='flex w-full items-center justify-start px-5 bg-base-300'>
+                                            Create new Group '{groupSearch}'
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
