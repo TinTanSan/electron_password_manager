@@ -21,7 +21,6 @@ type vaultMetaData = {
 }
 
 export interface EntryGroup{
-    groupID: string;
     groupName: string;
     entries: Array<String>
 }
@@ -76,20 +75,18 @@ export class Vault{
         return newState
     }
 
-    addEntryToGroup(uuid:string,groupName: string, groupId:string | undefined ){
-        // try and find entrygroup first, if not found then create
-        if (groupId){
-            const group = this.entryGroups.find((x)=>x.groupID === groupId);
-            if (group){
-                this.mutate("entryGroups",[...this.entryGroups.filter(x=>x.groupID !== groupId), {groupName, groupID: createUUID(), entries: [uuid]}])
-            }else{
-                console.warn("group not found, creating group");
-                this.mutate("entryGroups",[...this.entryGroups, {groupName, groupID: createUUID(), entries: [uuid]}])
-            }
-        }else{
-            // just add new entry group
-            this.mutate("entryGroups", [...this.entryGroups,{groupName, groupID: createUUID(), entries: [uuid]}]);
+    addEntryToGroup(uuid:string,groupName: string){
+        if (groupName === ""){
+            console.warn("will not create new group without a name");
+            return;
         }
+        this.mutate("entryGroups", [
+            ...this.entryGroups.filter(x => x.groupName !== groupName),
+            {
+                groupName,
+                entries: [...(this.entryGroups.find(x => x.groupName === groupName)?.entries ?? []), uuid]
+            }
+        ]);
     }
 
     async commitKEK(){
@@ -105,7 +102,6 @@ export class Vault{
             throw new Error('window object was undefined')
         }
     }
-
 
     serialiseMetadata(){
         return  "MD"+this.vaultMetadata.version +"_"
@@ -129,7 +125,7 @@ export class Vault{
 
     serialiseGroups(){
         const content = this.entryGroups.map((group)=>{
-            return group.groupID.toString() + "|" + group.groupName +"|"+ group.entries.join(",")
+            return  group.groupName +"|"+ group.entries.join(",")
         }).join("_")+"_GROUPS"
         return "GROUPS_"+content
     }
@@ -140,10 +136,8 @@ export class Vault{
         }
         const groups = content.substring(7).split("_");
         return groups.map((group)=>{
-            const [groupID, groupName, entries] = group.split("|")
-            console.log(groupID, groupName, entries);
+            const [groupName, entries] = group.split("|")
             return {
-                groupID,
                 groupName, 
                 entries: entries.split(",")
             }
@@ -205,7 +199,7 @@ export class Vault{
                 // skip over the wrapped kek salt, vk and the first instance of GROUPS_ which delimits the starting of the groups string
                 return (i > (56+7) && Buffer.from(toDecrypt.subarray(i, i+6)).toString('utf8') === "GROUPS");
             })
-            let groups:Array<EntryGroup> = [{groupID:createUUID(), groupName:"default", entries:[]}];
+            let groups = [];
             if (idx === -1){
                 console.warn("groups not found in vault content, this may be a vault version mismatch, trying to auto-update to latest")
             }else{
