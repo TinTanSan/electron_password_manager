@@ -79,7 +79,7 @@ export default function EntryComponent({entry, groups}:props) {
     }
     
     return (
-        <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center "} border-2  justify-between px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
+        <div className={`flex flex-col w-full transition-all duration-500 overflow-hidden ${extend?'h-56':"h-14 items-center "} border-2  justify-between px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
             {showEditModal && <EntryModal groups={groups} setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
             <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-5'>
                 <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
