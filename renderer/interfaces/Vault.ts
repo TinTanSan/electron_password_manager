@@ -70,7 +70,6 @@ export class Vault{
             }
         })
         if (!inPlace){
-            console.log('writing to file')
             newState.writeEntriesToFile();
         }
         return newState
@@ -152,7 +151,7 @@ export class Vault{
                 const [groupName, entriesStr] = group.split("|");
                 return {
                     groupName,
-                    entries: entriesStr.split(",")
+                    entries: entriesStr ? entriesStr.split(",") : []
                 }
             }
         )
@@ -175,7 +174,6 @@ export class Vault{
                     Buffer.from(this.serialiseGroups()),
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
-            console.log(enc)
             return enc
         }else{
             throw new Error("Window object was undefined")
@@ -221,7 +219,6 @@ export class Vault{
                 idx +=6;
                 
                 groups = this.deserialiseGroups(Buffer.from(toDecrypt.subarray(56, idx)).toString('utf8'));
-                console.log('got groups', groups);
             }
             const dataIdx = idx !== -1? idx : 56;
             const {data, status} = await decrypt(toDecrypt.subarray(dataIdx),vk);
