@@ -80,14 +80,18 @@ export class Vault{
         if (groupName === ""){
             console.warn("will not create new group without a name");
             return;
-        }
-        return this.mutate("entryGroups", [
-            ...this.entryGroups.filter(x => x.groupName !== groupName),
-            {
-                groupName,
-                entries: [...(this.entryGroups.find(x => x.groupName === groupName)?.entries ?? []), uuid]
+        }        
+        let existingGroupFound = false;
+        const updatedGroups = this.entryGroups.map((group:EntryGroup)=>{
+            const existingEntry = group.entries.findIndex((entryuuid)=>entryuuid === uuid);
+            if (group.groupName === groupName){
+                existingGroupFound = true;
+                return existingEntry!==-1? group: { ...group,  entries: [...group.entries, uuid]}
             }
-        ]);
+            return existingEntry !==-1 ? { ...group,  entries: this.entries.toSpliced(existingEntry,1)} : group;
+        })
+        const finalGroups = existingGroupFound ? updatedGroups : [...updatedGroups, { groupName, entries: [uuid] }];
+        return this.mutate('entryGroups', finalGroups);
     }
 
     async commitKEK(){
