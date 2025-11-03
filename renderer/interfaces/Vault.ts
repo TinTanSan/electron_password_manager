@@ -93,6 +93,13 @@ export class Vault{
         const finalGroups = existingGroupFound ? updatedGroups : [...updatedGroups, { groupName, entries: [uuid] }];
         return this.mutate('entryGroups', finalGroups);
     }
+    removeEntryFromGroup(uuid:string){
+        const updatedGroups = this.entryGroups.map((group:EntryGroup)=>{
+            const existingEntry = group.entries.findIndex((entryuuid) =>entryuuid===uuid);
+            return existingEntry !==-1 ? { ...group,  entries: group.entries.toSpliced(existingEntry,1)} : group;
+        })
+        return this.mutate('entryGroups', updatedGroups);
+    }
 
     async commitKEK(){
         
