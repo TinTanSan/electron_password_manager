@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-export default function Slider({value, setValue, minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6", className="", roundTo=0}:{ value:number, setValue:React.Dispatch<React.SetStateAction<number>>,minimum:number, maximum:number , bgStyle?:string, selectedHeight?:string,thumbDimensions?:string, className?:string, roundTo?:number}) {
+export default function Slider({value, setValue, minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6 border-4", className="", roundTo=0}:{ value:number, setValue:React.Dispatch<React.SetStateAction<number>>,minimum:number, maximum:number , bgStyle?:string, selectedHeight?:string,thumbDimensions?:string, className?:string, roundTo?:number}) {
     const [position, setPosition] = useState(maximum);
     const sliderRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
@@ -87,15 +87,15 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
   
   return (
     <div className={`flex w-full h-fit gap-2 items-center`}>
-        <div onMouseDown={handleMouseDown}  id='slider' ref={sliderRef} className={`relative flex w-full h-6 rounded-full items-center ${className}`}>
+        <div onMouseDown={handleMouseDown}  id='slider' ref={sliderRef} className={`relative flex w-full h-4 rounded-full items-center ${className}`}>
             <div  className={`flex w-full absolute bg-base-100 pointer-events-none ${bgStyle}`} />
             {/* Track (fill to current position) */}
             <div  className={`flex absolute rounded-l-full left-0 ${selectedHeight} bg-neutral transition-none pointer-events-none"`} style={{ width: `${position+(thumbXSize*0.15)}px` }} />
             {/* Draggable handle */}
-            <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-4 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
+            <div onMouseDown={(e) => {e.stopPropagation(); handleMouseDown(e);}}  className={`absolute ${thumbDimensions} bg-base-100 border-neutral rounded-full cursor-pointer `} style={{ left: `${position - 8}px` }} />
             
         </div>
-        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8 outline-none bg-base-100' onChange={handleValueChange} />
+        <input  value={Number.isNaN(v)?"":v} className='flex w-10 rounded-lg border-2 px-1 h-8 items-center text-md outline-none bg-base-100' onChange={handleValueChange} />
     </div>
   )
 }
