@@ -18,7 +18,6 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   const [ef, setEf] = useState<ExtraField>({...extraField});
   const [encryptedData, setEncryptedData] = useState<undefined | Buffer>(ef.isProtected?ef.data : undefined);
   const hasChanged = (ef.name === extraField.name && (extraField.data.equals(ef.data)) && ef.isProtected == extraField.isProtected);
-  console.log(hasChanged, extraField.data.toString(), ef.data.toString(), encryptedData?.equals(extraField.data))
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
     setEf(prev=>({
         ...prev,

@@ -103,7 +103,6 @@ export class Entry{
     static deserialise(content:string){
         const [title, username,dek, password, notes, isFavouritebool, createDate, lastEditedDate,lastRotateDate,uuid,version,...extraFields] = content.split("|");
         let efs = [];
-        console.log(content)
         if (extraFields[0]){
             efs = extraFields.map((x):ExtraField=>{
                 const [name, data, isProtected] = x.split("_");
