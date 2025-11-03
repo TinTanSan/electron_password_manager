@@ -1,4 +1,4 @@
-import { createUUID, decrypt, encrypt } from "../utils/commons";
+import { decrypt, encrypt } from "../utils/commons";
 import { makeNewDEK } from "../utils/keyFunctions";
 import { Entry } from "./Entry"
 type PartialWithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
@@ -70,6 +70,7 @@ export class Vault{
             }
         })
         if (!inPlace){
+            console.log('writing to file')
             newState.writeEntriesToFile();
         }
         return newState
@@ -80,7 +81,7 @@ export class Vault{
             console.warn("will not create new group without a name");
             return;
         }
-        this.mutate("entryGroups", [
+        return this.mutate("entryGroups", [
             ...this.entryGroups.filter(x => x.groupName !== groupName),
             {
                 groupName,
@@ -134,14 +135,16 @@ export class Vault{
         if (content.length === 14){
             return [];
         }
-        const groups = content.substring(7).split("_");
-        return groups.map((group)=>{
-            const [groupName, entries] = group.split("|")
-            return {
-                groupName, 
-                entries: entries.split(",")
+        const groups = content.substring(7,content.length-7).split("_");
+        return groups.map((group):EntryGroup=> 
+            {
+                const [groupName, entriesStr] = group.split("|");
+                return {
+                    groupName,
+                    entries: entriesStr.split(",")
+                }
             }
-        })
+        )
     }
 
     async vaultLevelEncrypt(){
@@ -161,6 +164,7 @@ export class Vault{
                     Buffer.from(this.serialiseGroups()),
                     Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
             ]);
+            console.log(enc)
             return enc
         }else{
             throw new Error("Window object was undefined")
@@ -204,7 +208,9 @@ export class Vault{
                 console.warn("groups not found in vault content, this may be a vault version mismatch, trying to auto-update to latest")
             }else{
                 idx +=6;
+                
                 groups = this.deserialiseGroups(Buffer.from(toDecrypt.subarray(56, idx)).toString('utf8'));
+                console.log('got groups', groups);
             }
             const dataIdx = idx !== -1? idx : 56;
             const {data, status} = await decrypt(toDecrypt.subarray(dataIdx),vk);
