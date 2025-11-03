@@ -88,7 +88,7 @@ export class Vault{
                 existingGroupFound = true;
                 return existingEntry!==-1? group: { ...group,  entries: [...group.entries, uuid]}
             }
-            return existingEntry !==-1 ? { ...group,  entries: this.entries.toSpliced(existingEntry,1)} : group;
+            return existingEntry !==-1 ? { ...group,  entries: group.entries.toSpliced(existingEntry,1)} : group;
         })
         const finalGroups = existingGroupFound ? updatedGroups : [...updatedGroups, { groupName, entries: [uuid] }];
         return this.mutate('entryGroups', finalGroups);
