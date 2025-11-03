@@ -94,7 +94,7 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
-    const [groupSearch, setGroupSearch] = useState("");
+    const [groupSearch, setGroupSearch] = useState(vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "");
     const filteredGroups = vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
 
     useEffect(()=>{
@@ -243,15 +243,22 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
         }
     }
     const handleGroupChange=(groupName: string)=>{
-        vault.addEntryToGroup(uuid, groupName);
+        console.log("handling group change", groupName)
+        const newVaultState = vault.addEntryToGroup(uuid, groupName);
+        console.log(newVaultState);
+        setVault(newVaultState);
+        
     }   
 
     useEffect(() => {
+        console.log(vault.entryGroups, uuid)
+
+
         document.addEventListener("keydown", (escapeHandler), false);
         addEventListener("keydown", (copyHandler), false);
         return () => {
-        document.removeEventListener("keydown", escapeHandler, false);
-        removeEventListener("keydown", (copyHandler), false);
+            document.removeEventListener("keydown", escapeHandler, false);
+            removeEventListener("keydown", (copyHandler), false);
         };
         
     }, []);
@@ -293,13 +300,13 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                                 <input value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group outline-none rounded-lg h-fit px-1 items-start flex appearance-none' />
                                 <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-8 bg-base-100 group-focus-within:visible group-focus-within:h-fit`}>
                                     {filteredGroups.map((group, i)=>
-                                        <div onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</div>
+                                        <button onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</button>
                                     )}
                                     {
                                         (filteredGroups.length === 0 && groupSearch.length> 0 ) && 
-                                        <div onClick={()=>{handleGroupChange(groupSearch)}} className='flex w-full items-center justify-start px-5 bg-base-300'>
+                                        <button onClick={()=>{console.log("running");handleGroupChange(groupSearch)}} className='flex group w-full items-center justify-start px-5 bg-base-300'>
                                             Create new Group '{groupSearch}'
-                                        </div>
+                                        </button>
                                     }
                                 </div>
                             </div>
