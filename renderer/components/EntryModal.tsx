@@ -96,7 +96,6 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [collapseNewEf, setCollapseNewEf] = useState(true);
     const [groupSearch, setGroupSearch] = useState(vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "");
     const filteredGroups = vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
-
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
@@ -247,7 +246,6 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
         const newVaultState = vault.addEntryToGroup(uuid, groupName);
         console.log(newVaultState);
         setVault(newVaultState);
-        
     }   
 
     useEffect(() => {
@@ -294,13 +292,13 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                         </div>
 
                         {/* Group section */}
-                        <div className='flex flex-col px-2 items-center'>
-                            <div className='flex w-full text-lg'>Group</div>
-                            <div className='flex flex-col w-full h-fit group relative border-2 p-1 pb-2 rounded-lg '>
-                                <input value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group outline-none rounded-lg h-fit px-1 items-start flex appearance-none' />
-                                <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-8 bg-base-100 group-focus-within:visible group-focus-within:h-fit`}>
+                        <div className='flex flex-col items-center text-md'>
+                            <div className='flex w-full'>Group</div>
+                            <div className='flex flex-col w-full h-fit group relative p-1 rounded-lg '>
+                                <input value={groupSearch} id='groupSearchInput' onChange={(e)=>{setGroupSearch(e.target.value)}} className='group border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
+                                <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-1 relative bg-base-100 group-focus-within:visible group-focus-within:h-fit group-focus-within:mb-1`}>
                                     {filteredGroups.map((group, i)=>
-                                        <button onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 bg-base-300' key={i} >{group}</button>
+                                        <button onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
                                     )}
                                     {
                                         (filteredGroups.length === 0 && groupSearch.length> 0 ) && 
@@ -313,21 +311,20 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                         </div>
 
                         {/* main login details section */}
-                        <div className={`flex shrink-0 flex-col bg-base-200 border-base-300 l w-full duration-100 transition-all  ${collapseLoginDetails?'h-13   delay-300 ': showRandomPassModal? "h-155 " : 'h-130'} gap-2 p-2 border-2 rounded-lg `}>
+                        <div className={`flex shrink-0 flex-col bg-base-200 border-base-300 l w-full duration-100 transition-all  ${collapseLoginDetails?'h-12   delay-300 ': showRandomPassModal? "h-145 " : 'h-120'} gap-2 p-2 border-2 rounded-lg `}>
                             <div  onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Login Details</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Login Details</h1>
                                 <Image src={"/images/up_arrow.svg"} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
                                 {/* username input */}
-                                <div className='flex flex-col gap-1'>
-                                    <label className='flex w-full text-lg'>Username</label>
+                                <div className='flex flex-col text-md'>
+                                    <label className='flex w-full'>Username</label>
                                     <input id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 bg-base-100 outline-none focus:border-primary duration-300 transition-all' />
                                 </div>
                                 {/* password input */}
-                                <div className='flex flex-col gap-1'>
-                                    <label className='flex w-full text-lg'>Password</label>
-                                    
+                                <div className='flex flex-col text-md'>
+                                    <label className='flex w-full'>Password</label>
                                     <div className='flex border-2 border-base-300  bg-base-100 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
                                         <input id='password' value={entryPass} placeholder='No password set' type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
                                         <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 cursor-pointer' />
@@ -337,50 +334,51 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                                         </div>
                                     </div>
                                     {/* password strength meter */}
-                                    <div className='flex flex-col w-full h-fit shrink-0 px-2'>
+                                    <div className='flex flex-col w-full h-fit shrink-0 px-1 mt-1'>
                                         <div className='gap-1 flex w-full h-1 bg-base-300  rounded-lg overflow-hidden'>
                                             <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
                                         </div>
                                         <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
                                     </div>
-                                {showRandomPassModal && <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
-                                        <div className='flex flex-row w-full gap-2 items-center '>
-                                            <Slider bgStyle='bg-base-300 h-3.5 rounded-full ' minimum={8} maximum={50} value={randomSettings.length} setValue={(value)=>{handleRandomPassSettingChange('length', value.toString())}}  />
+                                    {showRandomPassModal && 
+                                        <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
+                                            <div className='flex flex-row w-full gap-2 items-center '>
+                                                <Slider bgStyle='bg-base-300 h-3.5 rounded-full ' selectedHeight='h-5' thumbDimensions='w-5 h-5 border-[3px]' minimum={8} maximum={50} value={randomSettings.length} setValue={(value)=>{handleRandomPassSettingChange('length', value.toString())}}  />
+                                            </div>
+                                            <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center text-md'>
+                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-neutral  border-2 h-8 ${randomSettings.allowCapitals&& 'bg-neutral border-none text-neutral-content'}`}>
+                                                    capital letters
+                                                </button>
+                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-neutral border-2 h-8 ${randomSettings.allowNumbers&& 'bg-neutral border-none text-neutral-content'}`}>
+                                                    numbers
+                                                </button>
+                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-neutral border-2 h-8 ${randomSettings.allowSpecChars&& 'bg-neutral border-none text-neutral-content'}`}>
+                                                    special chars
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center'>
-                                            <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-primary  border-2 h-10 ${randomSettings.allowCapitals&& 'bg-primary border-none text-primary-content'}`}>
-                                                capital letters
-                                            </button>
-                                            <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-primary border-2 h-10 ${randomSettings.allowNumbers&& 'bg-primary border-none text-primary-content'}`}>
-                                                numbers
-                                            </button>
-                                            <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-primary border-2 h-10 ${randomSettings.allowSpecChars&& 'bg-primary border-none text-primary-content'}`}>
-                                                special chars
-                                            </button>
-                                        </div>
-                                    </div>}
-                                    
+                                    }
                                 </div>
                                 {/* notes input */}
-                                <div className='flex flex-col gap-1'>
-                                    <label className='flex w-full text-lg'>Notes</label>
+                                <div className='flex flex-col text-md'>
+                                    <label className='flex w-full'>Notes</label>
                                     <textarea id='notes' value={entry.notes} onChange={handleChange} className='flex w-full  bg-base-100 border-2 rounded-lg px-1 h-40 resize-none outline-none border-base-300 focus:border-primary duration-300 transition-all' />
                                 </div>
                                 {/* URL input to come */}
-                                <div className='flex flex-col gap-1'>
-                                    <label className='flex w-full text-lg'>Website</label>
+                                <div className='flex flex-col text-md'>
+                                    <label className='flex w-full'>Website</label>
                                     <input value={"This feature coming"} readOnly className='flex w-full border-2 rounded-lg px-1 h-9  bg-base-100 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
                                 </div>
                             </div>
                         </div>
                         {/* extra Fields section */}
-                        <div className={`flex flex-col w-full duration-100 transition-all  ${collapseExtraFeilds?'h-13  delay-300 ':"h-160 "} border-base-300 bg-base-200 gap-2 p-2 border-2 rounded-lg `}>
+                        <div className={`flex flex-col w-full duration-100 transition-height  ${collapseExtraFeilds?'h-12  delay-300 ':"h-160 "} border-base-300 bg-base-200 gap-2 p-2 border-2 rounded-lg `}>
                             <div onClick={()=>{setCollapseExtraFields(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Extra Fields</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Extra Fields</h1>
                                 <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-                                <div className='flex flex-col w-full h-full border-2 overflow-y-auto'>
+                                <div className='flex flex-col w-full h-full border-2 border-base-300 overflow-y-auto'>
                                     <div className='flex flex-col w-full h-fit p-1'>
                                         {entry.extraFields.map((x,i)=>
                                             <ExtraFieldComponent key={i} extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
@@ -390,9 +388,9 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                             </div>
                         </div>
                         {/* New extra Field section */}
-                        <div className={`flex flex-col text-base-content  w-full duration-100 transition-all bg-base-200  ${collapseNewEf?'h-13 delay-300 ':"h-100 "} border-base-300 gap-2 p-2 border-2 rounded-lg `}>
+                        <div className={`flex flex-col text-base-content  w-full duration-100 transition-all bg-base-200  ${collapseNewEf?'h-12 delay-300 ':"h-100 "} border-base-300 gap-2 p-2 border-2 rounded-lg `}>
                             <div onClick={()=>{setCollapseNewEf(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-xl font-semibold'>Create Extra Field</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Create Extra Field</h1>
                                 <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseNewEf? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseNewEf?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-4 delay-100"} `}>
