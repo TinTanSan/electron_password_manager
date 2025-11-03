@@ -1,4 +1,4 @@
-import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext';
 import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
@@ -94,6 +94,10 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
+    const existingGroupName = useMemo(()=>{
+        return vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "";
+    }, [vault.entryGroups])
+
     const [groupSearch, setGroupSearch] = useState(vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "");
     const filteredGroups = vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
     useEffect(()=>{
@@ -241,12 +245,16 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
             handleCopy()            
         }
     }
+    
     const handleGroupChange=(groupName: string)=>{
         console.log("handling group change", groupName)
         const newVaultState = vault.addEntryToGroup(uuid, groupName);
         console.log(newVaultState);
         setVault(newVaultState);
     }   
+    const handleRemoveFromGroup = ()=>{
+        setVault(vault.removeEntryFromGroup(uuid));
+    }
 
     useEffect(() => {
         console.log(vault.entryGroups, uuid)
@@ -288,14 +296,20 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                         {/* title section */}
                         <div className={`flex shrink-0 w-full h-10 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
                             <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
-                            <input id='title' value={entry.title} onChange={handleChange} className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
+                            <input id='title' value={entry.title} onChange={handleChange}  className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
                         </div>
 
                         {/* Group section */}
                         <div className='flex flex-col items-center text-md'>
                             <div className='flex w-full'>Group</div>
-                            <div className='flex flex-col w-full h-fit group relative p-1 rounded-lg '>
-                                <input value={groupSearch} id='groupSearchInput' onChange={(e)=>{setGroupSearch(e.target.value)}} className='group border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
+                            <div className='flex flex-col w-full h-fit group relative rounded-lg '>
+                                <div className='flex w-full h-8 gap-2'>
+                                    <input value={groupSearch} id='groupSearchInput' onBlur={()=>{setGroupSearch(existingGroupName??"")}} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
+                                    <div className='flex w-fit h-full relative'>
+                                        <Image onClick={handleRemoveFromGroup} className='peer' src={"/images/close_black.svg"} alt='X' width={14} height={14}/>
+                                        <span className='peer collapse border-base-300 rounded-md px-2 peer-hover:visible absolute top-10 z-10 w-50 border-2 right-2 text-nowrap bg-slate-200'>remove entry from group</span>
+                                    </div>
+                                </div>
                                 <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-1 relative bg-base-100 group-focus-within:visible group-focus-within:h-fit group-focus-within:mb-1`}>
                                     {filteredGroups.map((group, i)=>
                                         <button onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
