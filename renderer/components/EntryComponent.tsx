@@ -83,12 +83,12 @@ export default function EntryComponent({entry, groups}:props) {
             {showEditModal && <EntryModal groups={groups} setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
             <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-5'>
                 <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-xl'>{entry.title? entry.title : <i>No title</i>}</div>
+                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-[500]'>{entry.title? entry.title : <i>No title</i>}</div>
                 <div className='flex w-fit justify-end'>
                     <Image  src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
                 </div>
             </div>
-            <div className={`flex flex-col w-full ${extend ? 'h-full p-2': 'h-0 collapse overflow-hidden'}`}>
+            <div className={`flex text-md font-normal flex-col w-full text-base-content ${extend ? 'h-full p-2': 'h-0 collapse overflow-hidden'}`}>
                 <div className='flex flex-col w-fit h-full gap-2 overflow-hidden overflow-ellipsis'>
                     <div className='flex w-full h-6 gap-2'>
                         <div className='flex w-32 h-full'>Username</div>
@@ -104,7 +104,6 @@ export default function EntryComponent({entry, groups}:props) {
                     <div className='flex w-full h-6 gap-2'>
                         <div className='flex w-32 h-full'>URL</div>
                         <div className='flex w-full h-full'>This feature to come soon</div>
-
                     </div>
                 </div>
                 <div className='flex flex-row w-full h-14 gap-2'>
