@@ -8,10 +8,9 @@ import { BannerContext } from '../contexts/bannerContext';
 import { Vault } from '../interfaces/Vault';
 type props={
     entry: Entry,
-    groups: Array<string>
 }
 
-export default function EntryComponent({entry, groups}:props) {
+export default function EntryComponent({entry}:props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
@@ -79,16 +78,19 @@ export default function EntryComponent({entry, groups}:props) {
     }
     
     return (
-        <div className={`flex flex-col w-full transition-all duration-500 overflow-hidden ${extend?'h-56':"h-14 items-center "} border-2  justify-between px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
-            {showEditModal && <EntryModal groups={groups} setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
+        <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center"} overflow-hidden border-2 relative px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
+            {entry.isFavourite && <Image  src={"/images/starFill.svg"} alt='fav' width={20} height={20} className='flex absolute -left-1.5 z-10'/>    }
+            {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
             <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2'>
                 <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-[500]'>{entry.title? entry.title : <i>No title</i>}</div>
+                <div className='flex h-12 w-full grow shrink text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-[500]'>
+                    {entry.title? entry.title : <i>No title</i>}
+                </div>
                 <div className='flex w-fit justify-end'>
-                    <Image  src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
+                    <Image src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
                 </div>
             </div>
-            <div className={`flex text-md font-normal flex-col w-full text-base-content ${extend ? 'h-full p-2': 'h-0 collapse overflow-hidden'}`}>
+            <div className={`flex text-md font-normal flex-col w-full text-base-content p-2 border-2 overflow-hidden ${extend ? 'h-full visible': 'collapse'}`}>
                 <div className='flex flex-col w-fit h-full gap-2 overflow-hidden overflow-ellipsis'>
                     <div className='flex w-full h-6 gap-2'>
                         <div className='flex w-32 h-full'>Username</div>

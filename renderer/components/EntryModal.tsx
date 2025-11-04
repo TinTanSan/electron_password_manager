@@ -11,8 +11,7 @@ import ExtraFieldComponent from './ExtraField';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
-    uuid:string,
-    groups:Array<string>
+    uuid:string
 }
 export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
     /*
@@ -77,7 +76,7 @@ export type RandomPassGeneratorSettings={
     allowSpecChars:boolean,
     excludedChars: string,
 }
-export default function EntryModal({setShowModal, uuid, groups}:props) {
+export default function EntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
     const [submit, setSubmit] = useState(true);
@@ -94,15 +93,21 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
-    const existingGroupName = useMemo(()=>{
-        return vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "";
-    }, [vault.entryGroups, uuid])
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
+
+    const existingGroupName = useMemo(()=>{
+        console.log('memo existgroup run',vault.entryGroups)
+        const foundValue = vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "";
+        setGroupSearch(foundValue);
+        return foundValue;
+    }, [vault.entryGroups, uuid])
+
+    
 
     const filteredGroups = useMemo(()=>{
         return vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
     }, [vault.entryGroups, groupSearch])
-    
+
     
     useEffect(()=>{
         if (submit){
@@ -251,9 +256,7 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     }
     
     const handleGroupChange=(groupName: string)=>{
-        console.log("handling group change", groupName)
         const newVaultState = vault.addEntryToGroup(uuid, groupName);
-        console.log(newVaultState);
         setVault(newVaultState);
     }   
     const handleRemoveFromGroup = ()=>{
@@ -298,9 +301,9 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                     {/* header */}
                     <div className="flex flex-col w-full h-fit gap-3">
                         {/* title section */}
-                        <div className={`flex shrink-0 w-full h-10 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
-                            <label className='flex w-fit text-xl font-bold border-r-2 px-2 h-full items-center'>Title</label>
-                            <input id='title' value={entry.title} onChange={handleChange}  className='flex w-full rounded-lg text-xl h-9 outline-none pr-1' />
+                        <div className={`flex group shrink-0 w-full h-8 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
+                            <label className='flex group w-fit text-lg border-r-2 px-2 h-full items-center group-focus-within:border-primary'>Title</label>
+                            <input id='title' value={entry.title} onChange={handleChange}  className='flex w-full rounded-lg text-md h-full outline-none pr-1' />
                         </div>
 
                         {/* Group section */}
@@ -316,11 +319,11 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
                                 </div>
                                 <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-1 relative bg-base-100 group-focus-within:visible group-focus-within:h-fit group-focus-within:mb-1`}>
                                     {filteredGroups.map((group, i)=>
-                                        <button onClick={()=>{handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
+                                        <button onClick={()=>{console.log(group);handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
                                     )}
                                     {
                                         (filteredGroups.length === 0 && groupSearch.length> 0 ) && 
-                                        <button onClick={()=>{console.log("running");handleGroupChange(groupSearch)}} className='flex group w-full items-center justify-start px-5 bg-base-300'>
+                                        <button onClick={()=>{handleGroupChange(groupSearch)}} className='flex group w-full items-center justify-start px-5 bg-base-300'>
                                             Create new Group '{groupSearch}'
                                         </button>
                                     }
