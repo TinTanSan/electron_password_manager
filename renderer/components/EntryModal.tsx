@@ -96,10 +96,14 @@ export default function EntryModal({setShowModal, uuid, groups}:props) {
     const [collapseNewEf, setCollapseNewEf] = useState(true);
     const existingGroupName = useMemo(()=>{
         return vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "";
-    }, [vault.entryGroups])
+    }, [vault.entryGroups, uuid])
+    const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
 
-    const [groupSearch, setGroupSearch] = useState(vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "");
-    const filteredGroups = vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
+    const filteredGroups = useMemo(()=>{
+        return vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
+    }, [vault.entryGroups, groupSearch])
+    
+    
     useEffect(()=>{
         if (submit){
             entry.decryptEntryPass(vault.kek).then((x)=>{
