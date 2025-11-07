@@ -19,8 +19,11 @@ export default function HomePage() {
   // for pagination
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
   const [page, setPage] = useState(0);
-  // hard coded 100 should be changed to use whatever is listed in the preferences
-  // const maxPages = Math.floor(shownEntries.length/100);
+  
+  // singleton vairable for entriesPerPage which will eventually be supplied by the preferences context/ hook
+  const entriesPerPage = 100;  
+  const maxPages = Math.ceil(shownEntries.length/entriesPerPage);
+
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
   useEffect(()=>{ 
@@ -64,7 +67,7 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    setPaginatedEntries(shownEntries.slice(page*100, (page*100)+100))
+    setPaginatedEntries(shownEntries.slice(page*entriesPerPage, (page*entriesPerPage)+entriesPerPage))
   }, [page])
 
   return (
@@ -80,8 +83,22 @@ export default function HomePage() {
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
-          <div className='flex flex-col gap-2  w-full h-full overflow-y-auto p-2'>
+          <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2 px-3'>
             {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
+          </div>
+        
+          {/* bottom pages bar  */}
+          <div className='flex relative w-full h-10 shrink-0 px-3 mb-2 justify-center items-center text-base-content'>
+            <div className='flex w-1/2 bg-base-100 h-full rounded-lg items-center  shadow-xl border-2 border-base-300'>
+              <button className='flex'>
+                <Image src={"/images/up_arrow.svg"} alt='<' width={25} height={30} className='flex rotate-[270deg]'/>
+                <p>Previous</p>
+              </button>
+            </div>
+            <p className='flex w-fit right-3  absolute'>
+              showing entries {(entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), paginatedEntries.length)} of {shownEntries.length}
+            </p>
+
           </div>
         
         </div>
