@@ -21,7 +21,7 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
 
 
     return (
-        <div className='flex flex-row w-full h-12 items-center justify-between p-1 gap-5'>
+        <div className='flex flex-row w-full h-12 items-center justify-between p-1 px-3 gap-5'>
             {showEntryForm && <NewEntryForm setShowForm={setShowEntryForm}/>}
             <SearchBar value={search} setValue={setSearch} settings={searchSettings} setSearchSettings={setSearchSettings}/>
             <button onClick={()=>{setShowEntryForm(true)}} className='flex bg-neutral hover:bg-neutral-darken text-neutral-content sm:w-30 md:w-48 shrink h-full justify-center items-center rounded-md text-nowrap'>+ New Entry</button>
