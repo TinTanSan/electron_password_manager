@@ -288,7 +288,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     },[randomSettings])
 
     return (
-        <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
+        <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
             <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 ' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
                         <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
