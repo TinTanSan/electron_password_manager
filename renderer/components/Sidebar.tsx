@@ -4,6 +4,7 @@ import { VaultContext } from '../contexts/vaultContext';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import { Vault } from '../interfaces/Vault';
+import Link from 'next/link';
 export default function Sidebar() {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const bannerContext = useContext(BannerContext);
@@ -28,15 +29,15 @@ export default function Sidebar() {
                 <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
             </div>
 
-            <div className='flex flex-col  w-full h-full [&_h3]:hover:text-primary [&_h3]:cursor-pointer'>{hamburgerOpen? 
+            <div className='flex flex-col  w-full h-full [&_a]:hover:text-primary [&_a]:cursor-pointer'>{hamburgerOpen? 
                 <div className='flex flex-col gap-5 w-full h-full   '>
                     <div className='flex flex-col gap-5 w-full h-1/4 shrink-0 text-base-content'>
                         <div className='flex flex-col gap-2 w-full h-fit text-lg '>
                             <h1 className='flex w-full text-xl'>Entries</h1>  
                             <div className='flex flex-col gap-2 w-full h-fit pl-5'>
-                            <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</h3> 
+                            <Link href={"/home"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</Link> 
                             <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
-                            <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</h3>
+                            <Link href={"/groups"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</Link>
                             <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
                             </div>
                         </div>
