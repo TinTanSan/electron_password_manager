@@ -89,12 +89,13 @@ export default function HomePage() {
         
           {/* bottom pages bar  */}
           <div className='flex relative w-full h-10 shrink-0 px-3 mb-2 justify-center items-center text-base-content'>
-            <div className='flex w-1/2 bg-base-100 h-full rounded-lg items-center  shadow-xl border-2 border-base-300'>
+            {maxPages > 1 && 
+              <div className='flex w-1/2 bg-base-100 h-full rounded-lg items-center  shadow-xl border-2 border-base-300'>
               <button className='flex'>
                 <Image src={"/images/up_arrow.svg"} alt='<' width={25} height={30} className='flex rotate-[270deg]'/>
                 <p>Previous</p>
               </button>
-            </div>
+            </div>}
             <p className='flex w-fit right-3  absolute'>
               showing entries {(entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), paginatedEntries.length)} of {shownEntries.length}
             </p>
