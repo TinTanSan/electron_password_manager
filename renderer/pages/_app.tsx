@@ -35,7 +35,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     <VaultContext.Provider value={{vault, setVault}}>
       <BannerContext.Provider value={{banners, setBanners}}>
         <Notifications />
-        <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
         <Component {...pageProps} />
       </BannerContext.Provider>
     </VaultContext.Provider>

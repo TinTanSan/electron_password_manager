@@ -14,7 +14,7 @@ export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const [searchFilter, setSearchFilter] = useState("");
   const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
-  
+  console.log(vault)
   
   // for pagination
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
@@ -72,6 +72,7 @@ export default function HomePage() {
 
   return (
     <div className='flex w-screen h-screen items-center justify-center bg-gradient-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
+      <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
     {(vault !== undefined && !vault.isUnlocked) && 
       <UnlockVaultPrompt />
       
