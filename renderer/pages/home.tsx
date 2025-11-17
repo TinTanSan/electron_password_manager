@@ -14,7 +14,6 @@ export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const [searchFilter, setSearchFilter] = useState("");
   const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
-  console.log(vault)
   
   // for pagination
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
