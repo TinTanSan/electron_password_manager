@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 // which fields to search through
 export type SearchSettings = {
@@ -15,12 +15,24 @@ type props ={
 }
 
 export default function SearchBar({value, setValue, settings, setSearchSettings}:props) {
+  useEffect(()=>{
+    if (!settings.searchNotes && !settings.searchTitle && !settings.searchUsername){
+      setTimeout(() => {
+        setSearchSettings({
+          searchNotes: true,
+          searchTitle: true,
+          searchUsername: true
+        })  
+      }, 300);
+      
+    }
+  },[settings])
   return (
     <div className='flex w-full shrink grow border-2 rounded-md items-center px-1 h-full gap-1 focus-within:border-primary'>
         <input value={value} onChange={(e)=>{setValue(e.target.value)}} className='w-full outline-none placeholder:font-semibold placeholder:text-neutral placeholder:opacity-50 ' placeholder='search' />
-        <button title='allow searching through titles' onClick={()=>{setSearchSettings((prev)=>({...prev, searchTitle:!prev.searchTitle}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg ${settings.searchTitle&& 'bg-neutral text-white border-none font-bold'}`}>T</button>
-        <button title='allow searching through usernames' onClick={()=>{setSearchSettings((prev)=>({...prev, searchUsername:!prev.searchUsername}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg ${settings.searchUsername&& 'bg-neutral text-white border-none font-bold'}`}>U</button>
-        <button title='allow searching through notes' onClick={()=>{setSearchSettings((prev)=>({...prev, searchNotes:!prev.searchNotes}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg ${settings.searchNotes&& 'bg-neutral text-white border-none font-bold'}`}>N</button>
+        <button title='allow searching through titles' onClick={()=>{setSearchSettings((prev)=>({...prev, searchTitle:!prev.searchTitle}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg transition-colors duration-300 ${settings.searchTitle&& 'bg-neutral text-white border-none font-bold'}`}>T</button>
+        <button title='allow searching through usernames' onClick={()=>{setSearchSettings((prev)=>({...prev, searchUsername:!prev.searchUsername}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg transition-colors duration-300 ${settings.searchUsername&& 'bg-neutral text-white border-none font-bold'}`}>U</button>
+        <button title='allow searching through notes' onClick={()=>{setSearchSettings((prev)=>({...prev, searchNotes:!prev.searchNotes}))}} className={`w-6 h-6 text-sm border-2 flex items-center justify-center rounded-lg transition-colors duration-300 ${settings.searchNotes&& 'bg-neutral text-white border-none font-bold'}`}>N</button>
     </div>
   )
 }
