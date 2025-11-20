@@ -3,6 +3,7 @@ import { app, clipboard, dialog, ipcMain, Menu } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import fs from 'fs';
+import { MenuItem } from 'electron';
 
 const isProd = process.env.NODE_ENV === 'production'
 const data_path = app.getPath('userData');
@@ -17,6 +18,22 @@ if (isProd) {
 
 (async () => {
   await app.whenReady()
+  const menu = new Menu()
+
+  // The first submenu needs to be the app menu on macOS
+  if (process.platform === 'darwin') {
+    const appMenu = new MenuItem({ role: 'appMenu' })
+    menu.append(appMenu)
+  }
+
+  const submenu = Menu.buildFromTemplate([{
+    label: 'Open a Vault',
+    click: () => dialog.showMessageBox({ message: 'Hello World!' }),
+    accelerator: 'CommandOrControl+Alt+O'
+  }])
+  menu.append(new MenuItem({ label: 'File', submenu }))
+
+  Menu.setApplicationMenu(menu)
   const mainWindow = createWindow('main', {
     width: 1000,
     height: 600,
@@ -42,7 +59,7 @@ app.on('window-all-closed', () => {
   app.quit()
 })
 
-ipcMain.handle('message', async (event, arg) => {
+ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
 })
 
