@@ -1,5 +1,5 @@
 import path from 'path'
-import { app, clipboard, dialog, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import fs from 'fs';
@@ -20,18 +20,18 @@ if (isProd) {
   await app.whenReady()
   const menu = new Menu()
 
-  // The first submenu needs to be the app menu on macOS
+  // The first fileSubmenu needs to be the app menu on macOS
   if (process.platform === 'darwin') {
     const appMenu = new MenuItem({ role: 'appMenu' })
     menu.append(appMenu)
   }
 
-  const submenu = Menu.buildFromTemplate([{
+  const fileSubmenu = Menu.buildFromTemplate([{
     label: 'Open a Vault',
     click: () => dialog.showMessageBox({ message: 'Hello World!' }),
     accelerator: 'CommandOrControl+Alt+O'
   }])
-  menu.append(new MenuItem({ label: 'File', submenu }))
+  menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
 
   Menu.setApplicationMenu(menu)
   const mainWindow = createWindow('main', {
@@ -63,7 +63,7 @@ ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
 })
 
-ipcMain.handle('openFileDialog', async()=>{
+ipcMain.handle('fileDialog:open', async()=>{
   const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
   const fileOpened = ( fileDialog).filePaths[0];
   if (!fileDialog.canceled){    
@@ -101,8 +101,7 @@ ipcMain.handle('writeFile', async(event, args)=>{
 
 })
 
-
-ipcMain.handle('createFileDialog', async()=>{
+ipcMain.handle('fileDialog:create', async()=>{
   const fileDialog = await dialog.showSaveDialog({title:"Create new file"
     ,filters:[{
       name:'vault', extensions:['.vlt']
@@ -120,7 +119,7 @@ ipcMain.handle('createFileDialog', async()=>{
   return undefined;
 })
 
-ipcMain.handle("getRecent", ()=>{
+ipcMain.handle('recents:get', ()=>{
   const recentsPath = path.join(data_path , "/recents.json");
     if (fs.existsSync(recentsPath)){
       // read file 
@@ -141,11 +140,23 @@ ipcMain.handle("getRecent", ()=>{
     }
 })
 
-ipcMain.on('addRecent', (_,filepath)=>{
+ipcMain.on('recents:add', (_,filepath)=>{
     handleAddRecent(filepath);
 })
 
-ipcMain.handle('removeClipboard', ()=>{
+ipcMain.on('updatePreference', (_,args)=>{
+
+})
+
+ipcMain.on('addPreference', (_,args)=>{})
+
+ipcMain.on('deletePreference', (_,args)=>{})
+
+ipcMain.on('getPreferences', ()=>{
+
+})
+
+ipcMain.handle('clipboard:clear', ()=>{
   console.log(clipboard.read('ascii'))
   clipboard.clear();
   console.log('clipboard cleared')
@@ -168,4 +179,15 @@ const handleAddRecent = (filePath:string)=>{
   // only add file if we can't find it
   content.unshift(filePath);
   fs.writeFileSync(path.join(data_path+"/recents.json"), JSON.stringify(content));
+}
+
+
+// main -> renderer channel funcs
+
+const handleGlobOpenVault = ()=>{
+  // this function will send a 
+  if (process.platform === 'darwin' && BrowserWindow.getAllWindows()[0]) {
+    
+  }
+  
 }
