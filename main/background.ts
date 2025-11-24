@@ -19,34 +19,12 @@ if (isProd) {
 const handleGlobOpenVault = ()=>{
   const win = BrowserWindow.getAllWindows()[0];
   if (!win) return;
+  console.log('vault:open handler called')
   win.webContents.send('vault:open')
 }
 
 
-const handleAddGlobalShortcuts = ()=>{
-  let ret = globalShortcut.register('CommandOrControl+O', handleGlobOpenVault)
-  if (!ret){
-    console.log('failed to register cmd/ctrl+O shortcut')
-  }
-  ret = globalShortcut.register('CommandOrControl+N', ()=>{
-    const win = BrowserWindow.getAllWindows()[0];
-    if(!win){
-      // open a new window
-      createNextronWindow();
-    }else{
-      // create new vault
-      console.log("triggered new vault")
-    }
 
-  })
-  if (!ret){
-    console.log('failed to register cmd/ctrl+N shortcut')
-  }
-
-  ret = globalShortcut.register("CommandOrControl+W", ()=>{
-
-  })
-}
 
 const setupMenus = ()=>{
   const menu = new Menu()
@@ -58,8 +36,8 @@ const setupMenus = ()=>{
 
   const fileSubmenu = Menu.buildFromTemplate([{
     label: 'Open a Vault',
-    click: () => dialog.showMessageBox({ message: 'Hello World!' }),
-    accelerator: 'CommandOrControl+Alt+O'
+    click: handleGlobOpenVault,
+    accelerator: 'CommandOrControl+O'
   }])
   menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
 
@@ -69,7 +47,6 @@ const setupMenus = ()=>{
 const createNextronWindow = async () => {
   await app.whenReady()
 
-  handleAddGlobalShortcuts();
   setupMenus();
   
   const mainWindow = createWindow('main', {
