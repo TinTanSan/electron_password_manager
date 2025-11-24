@@ -7,6 +7,8 @@ export type PreferenceType = {
     entriesPerPage: number;
     maxGeneratedPassLength: number; //characters
     clearClipboardTime: number; //seconds
+    fontSize: number;
+    fontSpacing: number;
 }
 
 type PreferenceCTXType = {
