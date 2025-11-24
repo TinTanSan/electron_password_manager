@@ -13,6 +13,7 @@ const handler = {
   updatePreference: (prefName:string, newValue:any)=>ipcRenderer.invoke('updatePreference', ({prefName, newValue})),
   addPreference: (prefName:string, newValue:any)=>ipcRenderer.invoke('addPreference', ({prefName, newValue})),
   delete: (prefName:string)=>ipcRenderer.invoke('deletePreference', ({prefName})),
+  vaultOpen:(cb:Function)=>{ipcRenderer.on('vault:open', (_, payload)=>cb(payload))}
 }
 
 
