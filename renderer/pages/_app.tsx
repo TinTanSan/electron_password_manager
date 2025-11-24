@@ -19,9 +19,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
     let timeout:NodeJS.Timeout;
     if (vault !== undefined && vault.isUnlocked){
-      // timeout = setTimeout(() => {
-      //   setVault(prev=>({...prev, isUnlocked:false}));
-      // }, 30000);
+      timeout = setTimeout(() => {
+        setVault(vault.mutate('isUnlocked',false,true));
+      }, 60*60*24);
     }
     return ()=>{
       if(timeout !== undefined){
@@ -31,8 +31,13 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 
   useEffect(()=>{
+    
     window.ipc.vaultOpen(()=>{
-      if (!vault) return;
+      console.log('run')
+      if (!vault) {
+        console.log('no vault');
+        return;
+      };
       console.log('v was: ',vault)
       if (vault){
         vault.vaultLevelEncrypt().then((response)=>{
