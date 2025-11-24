@@ -1,5 +1,5 @@
 import path from 'path'
-import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, globalShortcut, ipcMain, Menu } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import fs from 'fs';
@@ -16,11 +16,41 @@ if (isProd) {
 };
 
 
-(async () => {
-  await app.whenReady()
+const handleGlobOpenVault = ()=>{
+  const win = BrowserWindow.getAllWindows()[0];
+  if (!win) return;
+  win.webContents.send('vault:open')
+}
+
+
+const handleAddGlobalShortcuts = ()=>{
+  let ret = globalShortcut.register('CommandOrControl+O', handleGlobOpenVault)
+  if (!ret){
+    console.log('failed to register cmd/ctrl+O shortcut')
+  }
+  ret = globalShortcut.register('CommandOrControl+N', ()=>{
+    const win = BrowserWindow.getAllWindows()[0];
+    if(!win){
+      // open a new window
+      createNextronWindow();
+    }else{
+      // create new vault
+      console.log("triggered new vault")
+    }
+
+  })
+  if (!ret){
+    console.log('failed to register cmd/ctrl+N shortcut')
+  }
+
+  ret = globalShortcut.register("CommandOrControl+W", ()=>{
+
+  })
+}
+
+const setupMenus = ()=>{
   const menu = new Menu()
 
-  // The first fileSubmenu needs to be the app menu on macOS
   if (process.platform === 'darwin') {
     const appMenu = new MenuItem({ role: 'appMenu' })
     menu.append(appMenu)
@@ -34,6 +64,14 @@ if (isProd) {
   menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
 
   Menu.setApplicationMenu(menu)
+}
+
+const createNextronWindow = async () => {
+  await app.whenReady()
+
+  handleAddGlobalShortcuts();
+  setupMenus();
+  
   const mainWindow = createWindow('main', {
     width: 1000,
     height: 600,
@@ -53,11 +91,10 @@ if (isProd) {
     await mainWindow.loadURL(`http://localhost:${port}/loadFile`)
     mainWindow.webContents.openDevTools()
   }
-})()
+}
 
-app.on('window-all-closed', () => {
-  app.quit()
-})
+createNextronWindow()
+
 
 ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
@@ -181,13 +218,3 @@ const handleAddRecent = (filePath:string)=>{
   fs.writeFileSync(path.join(data_path+"/recents.json"), JSON.stringify(content));
 }
 
-
-// main -> renderer channel funcs
-
-const handleGlobOpenVault = ()=>{
-  // this function will send a 
-  if (process.platform === 'darwin' && BrowserWindow.getAllWindows()[0]) {
-    
-  }
-  
-}
