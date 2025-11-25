@@ -22,8 +22,20 @@ const handleGlobOpenVault = ()=>{
   console.log('vault:open handler called')
   win.webContents.send('vault:open')
 }
+const handleCloseWindow = ()=>{
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) return;
+  win.close();
+}
 
-
+const handleCreateVaultOrWindow = ()=>{
+  const windows = BrowserWindow.getAllWindows();
+  if (windows.length > 0){
+    // create new vault;
+  }else{
+    createNextronWindow();
+  }
+}
 
 
 const setupMenus = ()=>{
@@ -34,11 +46,25 @@ const setupMenus = ()=>{
     menu.append(appMenu)
   }
 
-  const fileSubmenu = Menu.buildFromTemplate([{
-    label: 'Open a Vault',
-    click: handleGlobOpenVault,
-    accelerator: 'CommandOrControl+O'
-  }])
+  const fileSubmenu = Menu.buildFromTemplate([
+    {
+      label: 'Open a Vault',
+      click: handleGlobOpenVault,
+      accelerator: 'CommandOrControl+O'
+    },
+    {
+      label:"Close window",
+      click:  handleCloseWindow,
+      accelerator: 'CommandOrControl+W'
+    },
+    {
+      label:"New Vault",
+      click : handleCreateVaultOrWindow,
+      accelerator: 'CommandOrControl+N'
+    }
+
+
+  ])
   menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
 
   Menu.setApplicationMenu(menu)
@@ -132,6 +158,13 @@ ipcMain.handle('fileDialog:create', async()=>{
   }
   return undefined;
 })
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
 
 ipcMain.handle('recents:get', ()=>{
   const recentsPath = path.join(data_path , "/recents.json");
