@@ -34,16 +34,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     
     window.ipc.vaultOpen(()=>{
       console.log('run')
-      if (!vault) {
-        console.log('no vault');
-        return;
-      };
-      console.log('v was: ',vault)
-      if (vault){
-        vault.vaultLevelEncrypt().then((response)=>{
+      if (!vault) return;
+      
+      
+      vault.vaultLevelEncrypt().then((response)=>{
         if (vault.fileContents === response){
-          console.log('eq')
-          console.log("set vault ")
           setVault(undefined);
         }else{
           console.log("hello")
@@ -56,7 +51,6 @@ function MyApp({ Component, pageProps }: AppProps) {
           })
         }
       })
-      }
     })
   },[])
 
