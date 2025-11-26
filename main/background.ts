@@ -4,7 +4,7 @@ import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import fs from 'fs';
 import { MenuItem } from 'electron';
-
+import {setupMenus} from './helpers/setupMenus';
 const isProd = process.env.NODE_ENV === 'production'
 const data_path = app.getPath('userData');
 
@@ -16,61 +16,7 @@ if (isProd) {
 };
 
 
-const handleGlobOpenVault = ()=>{
-  const win = BrowserWindow.getAllWindows()[0];
-  if (!win) return;
-  console.log('vault:open handler called')
-  win.webContents.send('vault:open')
-}
-const handleCloseWindow = ()=>{
-  const win = BrowserWindow.getFocusedWindow();
-  if (!win) return;
-  win.close();
-}
-
-const handleCreateVaultOrWindow = ()=>{
-  const windows = BrowserWindow.getAllWindows();
-  if (windows.length > 0){
-    // create new vault;
-  }else{
-    createNextronWindow();
-  }
-}
-
-
-const setupMenus = ()=>{
-  const menu = new Menu()
-
-  if (process.platform === 'darwin') {
-    const appMenu = new MenuItem({ role: 'appMenu' })
-    menu.append(appMenu)
-  }
-
-  const fileSubmenu = Menu.buildFromTemplate([
-    {
-      label: 'Open a Vault',
-      click: handleGlobOpenVault,
-      accelerator: 'CommandOrControl+O'
-    },
-    {
-      label:"Close window",
-      click:  handleCloseWindow,
-      accelerator: 'CommandOrControl+W'
-    },
-    {
-      label:"New Vault",
-      click : handleCreateVaultOrWindow,
-      accelerator: 'CommandOrControl+N'
-    }
-
-
-  ])
-  menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
-
-  Menu.setApplicationMenu(menu)
-}
-
-const createNextronWindow = async () => {
+export const createNextronWindow = async () => {
   await app.whenReady()
 
   setupMenus();
@@ -98,6 +44,11 @@ const createNextronWindow = async () => {
 
 createNextronWindow()
 
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
 
 ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
@@ -159,11 +110,7 @@ ipcMain.handle('fileDialog:create', async()=>{
   return undefined;
 })
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+
 
 
 ipcMain.handle('recents:get', ()=>{
