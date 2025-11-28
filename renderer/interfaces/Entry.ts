@@ -89,7 +89,7 @@ export class Entry{
             this.username + "|" + 
             this.dek.toString('base64')+ "|" +
             this.password.toString('base64')+ "|" + //we base64 encode the DEK and password because they can possibly contain the '|' symbol which would
-                                                 //  improperly delimit the encrypted text, which would have serious implications when decrypting
+                                                    // improperly delimit the encrypted text, which would have serious implications when decrypting
             this.notes + "|"+ 
             (this.isFavourite ? "1" : "0" ) +"|"+
             this.metadata.createDate.toISOString()+ "|" + 
@@ -97,7 +97,7 @@ export class Entry{
             this.metadata.lastRotate.toISOString()+ "|"+
             this.metadata.uuid + "|"+
             this.metadata.version + "|"+
-            this.extraFields.map((ef)=>(ef.name+"_"+ef.data. toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
+            this.extraFields.map((ef)=>(ef.name+"_"+ef.data.toString('base64')+"_" + (ef.isProtected?'1':'0'))).join("|");
     }
     
     static deserialise(content:string){
