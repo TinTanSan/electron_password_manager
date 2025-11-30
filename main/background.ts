@@ -56,17 +56,6 @@ ipcMain.handle('message', async (_, arg) => {
 })
 
 
-ipcMain.on('updatePreference', (_,args)=>{
-
-})
-
-ipcMain.on('addPreference', (_,args)=>{})
-
-ipcMain.on('deletePreference', (_,args)=>{})
-
-ipcMain.on('getPreferences', ()=>{
-
-})
 
 ipcMain.handle('clipboard:clear', ()=>{
   console.log(clipboard.read('ascii'))
