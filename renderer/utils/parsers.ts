@@ -10,17 +10,44 @@ const vaultMDVersionConstituents:Record<string, string[]> = {
 }
 
 const vaultVersionConstituents:Record<string, string[]> ={
-    '1.0.0':['']
+    '1.0.0':['']    
+}
+
+
+const entryConstituents = {
+    '1.0.0':[
+        {'split':"|"},
+        {'username':"string"},
+        {'dek':'bufferToStrFromB64'},
+        {'password':'bufferToStrFromB64'},
+        {'notes':"string"},
+        {'isFavourite':"isFavToBool"},
+        {
+            'createDate':'date'
+        },
+        {
+            'lastEditDate':'date'
+        },
+        {'lastRotateDate':'date'},
+        {'uuid':'string'},
+        {'version':'string'},
+        {'extraFields':'extraFields'}
+    ]
+
 }
 
 
 export const parsers = {
+    // primitive parsers
     'string':(s:string):String=>s,
     'date': (d:string):Date=>new Date(d),
+    'bufferToStrFromB64': (str:Buffer):String=>str.toString('base64'),
+    'isFavToBool': (str:string)=>str==="1",
+
+    // constituent parsers
     'entryMD': (md:string, version: string):any | undefined=>{
         const split = md.split(entryMDVersionConstituents[version][0][1]);
         let ret:any;
-        // Object.keys(EntryMetadata)
         const parsersToUse = entryMDVersionConstituents[version];
         
         for (let i = 1; i<parsersToUse.length; i++){
@@ -28,7 +55,7 @@ export const parsers = {
         }
         return ret;
     },
-    'bufferToStrFromB64': (str:Buffer):String=>str.toString('base64'),
+    
     'entryGroup':(str:string):EntryGroup=>{
         const [groupName, entriesStr]=str.split("|")
         return {
@@ -36,4 +63,8 @@ export const parsers = {
             entries: entriesStr? entriesStr.split(",") : []
         }
     }
+    
+    
+    
+    // entry/vault level parsers
 }
