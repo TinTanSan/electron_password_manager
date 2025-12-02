@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { encrypt, makeDEK } from "../crypto/commons";
+import { encrypt } from "../crypto/commons";
 import ElectronStore from 'electron-store';
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import { deriveKEK } from "../crypto/keyFunctions";
