@@ -36,18 +36,17 @@ ipcMain.handle('fileDialog:open', async()=>{
   return {fileContents:undefined, filePath:fileOpened, status:"CANCELLED"}
   
 })  
-
-ipcMain.handle('openFile', async(event, args)=>{
-  if (fs.existsSync(args)){
-    handleAddRecent(args);
-    
-    return {fileContents:Buffer.from(fs.readFileSync(args)), filePath: args, status:"OK"};
+export const openFile  = (filePath)=>{
+   if (fs.existsSync(filePath)){
+    handleAddRecent(filePath);
+    return {fileContents:Buffer.from(fs.readFileSync(filePath)), filePath: filePath, status:"OK"};
   }else{
-    return {fileContents:undefined, filePath:args, status:"NOTFOUND"};
+    return {fileContents:undefined, filePath:filePath, status:"NOTFOUND"};
   }
-  
-  
-})
+
+}
+
+ipcMain.handle('openFile', async(_, filePath)=>openFile(filePath))
 
 ipcMain.handle('writeFile', async(event, args)=>{
   const {filePath, toWrite} = args;
