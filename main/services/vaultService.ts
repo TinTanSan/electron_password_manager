@@ -121,7 +121,6 @@ class VaultService extends EventEmitter{
     }
 
     addEntry(title:string, username:string, password:string, notes:string, extraFields:Array<ExtraField> ){
-        const newDEK = makeDEK();
         const encryptedPass = encrypt(Buffer.from(password), this.vault.kek);
 
     }
