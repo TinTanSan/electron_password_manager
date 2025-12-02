@@ -48,51 +48,7 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
     throw new Error("Unable to generate a new key, browser mode not detected")
 }
 
-// derive the KEK from a password and test wrapped DEK
-async function deriveKEK(password:string, salt:Buffer,digest:Buffer):Promise<{kek:KEKParts | undefined, status:string}>{ 
-    const encoder = new TextEncoder();
-    const passwordKey = await crypto.subtle.importKey(
-        'raw',
-        encoder.encode(password),
-        'PBKDF2',
-        false,
-        ['deriveKey']
-    );
 
-    const kek = await crypto.subtle.deriveKey(
-        {
-        name: 'PBKDF2',
-        salt: Buffer.from(salt),
-        iterations: 1_000_000,
-        hash: 'SHA-256',
-        },
-        passwordKey,
-        {
-        name: 'AES-KW',
-        length: 256,
-        },
-        false,
-        ['wrapKey', 'unwrapKey']
-    );
-    try{
-        await crypto.subtle.unwrapKey('raw',Buffer.from(digest), kek, {name:'AES-KW'}, {name:"AES-GCM"}, false, ['encrypt', 'decrypt']);
-        return {kek:{kek, salt}, status:"OK"};
-    }catch(error){
-        return {kek:undefined, status:"INCORRECTPASSASS"}
-    }
-    
-
-    
-}
-
-
-// given filecontents of a vault that is being opened, and a password, validate and return kek
-export async function validateKEK(fileContents:Buffer, password:string): Promise<KEKParts | undefined>{
-    const salt = fileContents.subarray(0,16);
-    const kekDigest = fileContents.subarray(16,56);
-    const kek = await deriveKEK(password, salt, kekDigest);
-    return kek.status === "OK"? kek.kek: undefined
-}
 
 // create entirely new DEK, this is to be used per entry can also be used to generate a VK 
 export async function makeNewDEK():Promise<CryptoKey>{
