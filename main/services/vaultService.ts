@@ -3,7 +3,9 @@ import * as argon2 from 'argon2';
 import { encrypt } from "../crypto/commons";
 import ElectronStore from 'electron-store';
 import { preferenceStore } from "../helpers/store/preferencesStore";
-import { deriveKEK } from "../crypto/keyFunctions";
+import {  makeNewKEK } from "../crypto/keyFunctions";
+import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
+import { ipcMain } from "electron";
 interface EntryMetaData{
     createDate:Date,
     lastEditedDate:Date,
@@ -110,6 +112,17 @@ class VaultService extends EventEmitter{
         };
     }
 
+    openVault(filePath:string){
+        const results = openFile(filePath);
+        if (results.status === "OK"){
+            this.setInitialVaultState(filePath, results.fileContents);
+            return "OK";
+        }else{
+            console.error("could not find vault")
+            return "VAULT_NOT_FOUND";
+        }
+    }
+
     closeVault(){
         this.vault = undefined; 
         this.vaultInitialised = false;
@@ -119,6 +132,22 @@ class VaultService extends EventEmitter{
         this.vault.kek = undefined;
         this.vault.isUnlocked = false;
     }
+    async setMasterPassword(password){
+        const [passHash, kek] = await makeNewKEK(password);
+        this.vault.kek = kek;
+        const toWrite = Buffer.concat([Buffer.from(passHash+"|"), kek]);
+        const response = writeToFile({filePath: this.vault.filePath, toWrite});
+        if (response === "OK"){
+            this.vault.fileContents = toWrite;
+            console.log("ok");
+            return "OK"
+        }else{
+            return "ERROR_ON_WRITE"
+        }
+        
+
+    }
+
 
     addEntry(title:string, username:string, password:string, notes:string, extraFields:Array<ExtraField> ){
         const encryptedPass = encrypt(Buffer.from(password), this.vault.kek);
@@ -138,6 +167,7 @@ class VaultService extends EventEmitter{
 
         })
     }
+
     private deserialiseEntries(){
 
     }
