@@ -16,9 +16,9 @@ ipcMain.handle('vault:open', (_,filePath)=>{
         }
         if (fileContents.status === "OK"){
             vaultService.setInitialVaultState(filePath, fileContents.filecontents);
-            return true;
+            return {message:fileContents.length > 0? "PASS_SET":"SET_PASS"};
         }else{
-            return false;
+            return {message:"NOT_OK"};
         }
     }catch(e:any){
         console.log('could not handle vault:open ipc channel, filepath given was not in the format expected, please give only filepath in args to the channel');
