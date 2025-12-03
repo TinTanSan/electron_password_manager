@@ -28,15 +28,12 @@ export interface EntryGroup{
 
 export class Vault{
     filePath:string;
-    fileContents:Buffer;
     isUnlocked:boolean;
-    wrappedVK: Buffer;
-    kek: KEKParts | undefined;
     entries: Array<Entry>;
     vaultMetadata: vaultMetaData;
     entryGroups: Array<EntryGroup>;
 
-    constructor(init:PartialWithRequired<Vault, "filePath"| "fileContents" | "isUnlocked" | "wrappedVK">){
+    constructor(init:PartialWithRequired<Vault, "filePath" | "isUnlocked">){
         Object.assign(this, init);
         if (!init.vaultMetadata){
             this.vaultMetadata = {
@@ -55,7 +52,7 @@ export class Vault{
     }
 
     mutate(field:string, value:any, inPlace:boolean = false):Vault{
-        
+        throw new Error("Implement with calls to IPC main")
         const newState = new Vault({
             ...this, 
             [field] : value, 
@@ -69,13 +66,11 @@ export class Vault{
                     
             }
         })
-        if (!inPlace){
-            newState.writeEntriesToFile();
-        }
         return newState
     }
 
     addEntryToGroup(uuid:string,groupName: string){
+        throw new Error("Implement with calls to IPC main")
         if (groupName === ""){
             console.warn("will not create new group without a name");
             return;
@@ -93,171 +88,12 @@ export class Vault{
         return this.mutate('entryGroups', finalGroups);
     }
     removeEntryFromGroup(uuid:string){
+        throw new Error("Implement with calls to IPC main")
         const updatedGroups = this.entryGroups.map((group:EntryGroup)=>{
             const existingEntry = group.entries.findIndex((entryuuid) =>entryuuid===uuid);
             return existingEntry !==-1 ? { ...group,  entries: group.entries.toSpliced(existingEntry,1)} : group;
         })
         return this.mutate('entryGroups', updatedGroups);
-    }
-
-    async commitKEK(){
-        
-        if (typeof window !== "undefined"){
-            const VK = await makeNewDEK();
-            const wrappedVK = Buffer.from(await window.crypto.subtle.wrapKey('raw', VK, this.kek.kek, {name:'AES-KW'}));
-            const content = this.fileContents.subarray(56);
-            const allContent = Buffer.concat([this.kek.salt,wrappedVK,content]);
-            window.ipc.writeFile(this.filePath,allContent);
-            return wrappedVK
-        }else{
-            throw new Error('window object was undefined')
-        }
-    }
-
-    serialiseMetadata(){
-        return  "MD"+this.vaultMetadata.version +"_"
-            + this.vaultMetadata.createDate.toISOString()
-            + this.vaultMetadata.lastEditDate.toISOString() 
-            + this.vaultMetadata.lastRotateDate.toISOString()
-        ;
-    }
-
-    deserialiseMetadata(content:string):vaultMetaData{
-        const [version, datesString] = content.split("_");
-        const [createDate, lastEditDate, lastRotateDate] = datesString.split("Z").map((x)=>new Date(x));
-        return {
-            version,
-            createDate,
-            lastEditDate,
-            lastRotateDate
-        }
-    }
-
-
-    serialiseGroups(){
-        const content = this.entryGroups.map((group)=>{
-            return  group.groupName +"|"+ group.entries.join(",")
-        }).join("_")+"_GROUPS"
-        return "GROUPS_"+content
-    }
-    
-    deserialiseGroups(content:string):Array<EntryGroup>{
-        if (content.length === 14){
-            return [];
-        }
-        const groups = content.substring(7,content.length-7).split("_");
-        return groups.map((group):EntryGroup=> 
-            {
-                const [groupName, entriesStr] = group.split("|");
-                return {
-                    groupName,
-                    entries: entriesStr ? entriesStr.split(",") : []
-                }
-            }
-        )
-    }
-
-    async vaultLevelEncrypt(){
-        if (typeof window !=="undefined"){
-            const VK = await window.crypto.subtle.unwrapKey(
-                'raw', 
-                Buffer.from(this.wrappedVK), 
-                this.kek.kek,
-                {name:"AES-KW"},
-                {name:"AES-GCM"},
-                false, 
-                ['encrypt', 'decrypt']
-            )
-            const enc = Buffer.concat([
-                    this.kek.salt,
-                    this.wrappedVK,
-                    Buffer.from(this.serialiseGroups()),
-                    Buffer.from(await encrypt(Buffer.from(this.entries.map((x)=>x.serialise()).join("$")+this.serialiseMetadata()), VK)), // actual ciphertext
-            ]);
-            return enc
-        }else{
-            throw new Error("Window object was undefined")
-        }
-    }
-
-    async writeEntriesToFile(){
-        if (typeof window !=="undefined"){
-            try {
-                const content = Buffer.from(await this.vaultLevelEncrypt());    
-                const result = await window.ipc.writeFile(this.filePath, content);
-                return result === "OK" ? {content, status:result} : {content:undefined, status:result};
-            } catch (error) {
-                console.warn(error)
-            }   
-        }
-        
-    }
-
-    async vaultLevelDecrypt(encryptedText:Buffer = undefined){
-        
-        if (typeof window !== "undefined"){
-            const toDecrypt = encryptedText ? encryptedText : this.fileContents;
-            const wrappedVK = toDecrypt.subarray(16,56);
-            const vk = await window.crypto.subtle.unwrapKey(
-                'raw',
-                Buffer.from(wrappedVK),
-                this.kek.kek,
-                {name:"AES-KW"},
-                {name:"AES-GCM", length:256}, 
-                false, 
-                ['encrypt', 'decrypt']
-            );
-
-            let idx = toDecrypt.findIndex((_,i)=>{
-                // skip over the wrapped kek salt, vk and the first instance of GROUPS_ which delimits the starting of the groups string
-                return (i > (56+7) && Buffer.from(toDecrypt.subarray(i, i+6)).toString('utf8') === "GROUPS");
-            })
-            let groups = [];
-            if (idx === -1){
-                console.warn("groups not found in vault content, this may be a vault version mismatch, trying to auto-update to latest")
-            }else{
-                idx +=6;
-                
-                groups = this.deserialiseGroups(Buffer.from(toDecrypt.subarray(56, idx)).toString('utf8'));
-            }
-            const dataIdx = idx !== -1? idx : 56;
-            const {data, status} = await decrypt(toDecrypt.subarray(dataIdx),vk);
-            if (status === "OK"){
-                const [decryptedItems, metadata] = data.toString().split("MD");
-                let entries_raw = decryptedItems.split("$").filter(x=>x!=="");
-                let vaultMetadata = undefined;
-                if (metadata){
-                    vaultMetadata = this.deserialiseMetadata(metadata);
-                }
-                
-                const entries = entries_raw.map(
-                    (x)=>Entry.deserialise(x)
-                );
-
-                const newState = new Vault({
-                    ...this,
-                    entries,
-                    entryGroups: groups,
-                    vaultMetadata:vaultMetadata? vaultMetadata : undefined
-                });
-                if (idx === -1){
-                    const updateStatus = await newState.writeEntriesToFile();
-                    if (updateStatus.status === "Error"){
-                        console.error("Unable to update vault to latest version")
-                    }else{
-                        console.info("Auto-updated vault to new version")
-                    }
-                    
-                }
-                
-                return  newState;
-            }
-            else{
-                throw new Error("Soemthing went wrong when decrypting the vault, possible KEK mismatch")
-            }
-            
-        }
-        throw new Error("Window object was undefined")
     }
 
 }
