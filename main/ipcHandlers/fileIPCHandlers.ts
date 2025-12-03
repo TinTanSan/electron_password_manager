@@ -48,16 +48,20 @@ export const openFile  = (filePath)=>{
 
 ipcMain.handle('openFile', async(_, filePath)=>openFile(filePath))
 
-ipcMain.handle('writeFile', async(event, args)=>{
+export const writeToFile = (args:{filePath:string, toWrite: Buffer})=>{
   const {filePath, toWrite} = args;
-  if (fs.existsSync(filePath)){
-    fs.writeFileSync(filePath, toWrite);
-    return "OK";
-  }else{
-    return "NOTFOUND"
+    if (fs.existsSync(filePath)){
+      fs.writeFileSync(filePath, toWrite);
+      return "OK";
+    }else{
+      return "NOTFOUND"
+    }
   }
 
-})
+ipcMain.handle('writeFile', (_, args)=>{
+  writeToFile(args);  
+}    
+)
 
 ipcMain.handle('fileDialog:create', async()=>{
   const fileDialog = await dialog.showSaveDialog({title:"Create new file"
