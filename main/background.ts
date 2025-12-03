@@ -3,7 +3,6 @@ import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {setupMenus} from './helpers/setupMenus';
-import {preferenceStore} from './helpers/store/preferencesStore';
 import { vaultService } from './services/vaultService';
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -38,12 +37,11 @@ export const createNextronWindow = async () => {
   } else {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/loadFile`)
-    mainWindow.webContents.openDevTools()
   }
 }
-import * as fs from 'fs';
 
 createNextronWindow()
+
 app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   const openVResult = vaultService.openVault('test1.vlt');
