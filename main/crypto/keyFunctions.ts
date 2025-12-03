@@ -2,8 +2,7 @@ import * as argon2 from 'argon2';
 
 import * as crypto from 'node:crypto';
 // Create entirely new KEK based on a password, this can be used for key rotation and initial set up
-export async function makeNewKEK(password:string, timeCost:number=3, memoryCost:number=65536, parallelism:number=4, hashLength:number=32):Promise<KEKParts>{
-        const salt = crypto.randomBytes(16);
+export async function makeNewKEK(password:string, timeCost:number=3, memoryCost:number=65536, parallelism:number=4, hashLength:number=32):Promise<[string,Buffer]>{
         const passHash = await argon2.hash(password, {
             type: argon2.argon2id,
             timeCost,
@@ -12,6 +11,7 @@ export async function makeNewKEK(password:string, timeCost:number=3, memoryCost:
             hashLength,
         });
 
+        const salt = crypto.randomBytes(16);
         const kekHash = await argon2.hash(password, {
             type: argon2.argon2id,
             salt:Buffer.from(salt),
@@ -22,15 +22,8 @@ export async function makeNewKEK(password:string, timeCost:number=3, memoryCost:
             raw:true
         });
         console.log(passHash);
-        const kek = await window.crypto.subtle.importKey(
-            'raw',
-            Buffer.from(kekHash),
-            { name: "AES-KW" },
-            true,
-            ["wrapKey", "unwrapKey"]
-        );
 
-        return {kek, salt:Buffer.from(salt)};
+        return [passHash, kekHash];
 }
 
 // derive the KEK from a password and test wrapped DEK
