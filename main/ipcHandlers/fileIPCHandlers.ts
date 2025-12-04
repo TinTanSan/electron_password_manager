@@ -71,7 +71,6 @@ ipcMain.handle('fileDialog:create', async()=>{
   });
   if (!fileDialog.canceled){
     const filePath = fileDialog.filePath;
-    // we expect this to error because the file doesn't exist yet, so this call will actually only cerate the file
     handleAddRecent(filePath);
     fs.open(filePath,'w+', (_)=>{
     })
