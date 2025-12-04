@@ -35,5 +35,8 @@ ipcMain.on('vault:close', ()=>{
     vaultService.closeVault();
 })
 
+ipcMain.on('vault:setPass', async (_,password)=>{
+    return await vaultService.setMasterPassword(password);
+})
 
 
