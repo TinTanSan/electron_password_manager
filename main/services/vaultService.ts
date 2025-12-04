@@ -52,7 +52,7 @@ interface Vault {
 
 class VaultService extends EventEmitter{
     private vault:Vault | undefined = undefined;
-    private vaultInitialised = false;
+    vaultInitialised = false;
 
     constructor(){
         super();
@@ -85,8 +85,11 @@ class VaultService extends EventEmitter{
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
         const hash = this.vault.fileContents.subarray(0,idx);
+        console.log("got hash: ",hash.toString())
         // incorrect password
-        if (!(await argon2.verify(hash.toString(), password))){
+        const results = await argon2.verify(hash.toString(), password);
+        console.log(results)
+        if (results === false){
             return {
                 entriesToDisplay: [],
                 status: "INVALID_PASSWORD"
@@ -116,6 +119,7 @@ class VaultService extends EventEmitter{
         const results = openFile(filePath);
         if (results.status === "OK"){
             this.setInitialVaultState(filePath, results.fileContents);
+            this.vaultInitialised = results.fileContents.length > 0;
             return "OK";
         }else{
             console.error("could not find vault")
@@ -133,19 +137,22 @@ class VaultService extends EventEmitter{
         this.vault.isUnlocked = false;
     }
     async setMasterPassword(password){
-        const [passHash, kek] = await makeNewKEK(password);
+        const [passHash,kek, salt] = await makeNewKEK(password);
+        
         this.vault.kek = kek;
-        const toWrite = Buffer.concat([Buffer.from(passHash+"|"), kek]);
+        const toWrite = Buffer.from(passHash+"|"+salt);
         const response = writeToFile({filePath: this.vault.filePath, toWrite});
         if (response === "OK"){
             this.vault.fileContents = toWrite;
-            console.log("ok");
-            return "OK"
-        }else{
-            return "ERROR_ON_WRITE"
-        }
-        
+            this.deserialiseEntries();
 
+            return {
+                entriesToDisplay : this.getPaginatedEntries(1),
+                status: "OK"
+            };
+        }else{
+            return {entriesToDisplay: [], status:"ERROR_ON_WRITE"}
+        }
     }
 
 
