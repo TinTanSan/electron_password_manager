@@ -27,7 +27,7 @@ export const preferenceStore = new Store<Preferences>({defaults:{
     maxGeneratedPassLength: 50,
     clearClipboardTime: 10,
     fontSpacing: 1,
-    saltLength: 12,
+    saltLength: 16,
     loadPreviousVault: true,
     timeCost: 3,
     memoryCost:65536, 
