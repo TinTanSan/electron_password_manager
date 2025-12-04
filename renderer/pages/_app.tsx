@@ -31,27 +31,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 
   useEffect(()=>{
-    
-    window.ipc.vaultOpen(()=>{
-      console.log('run')
-      if (!vault) return;
-      
-      
-      vault.vaultLevelEncrypt().then((response)=>{
-        if (vault.fileContents === response){
-          setVault(undefined);
-        }else{
-          console.log("hello")
-          vault.writeEntriesToFile().then((response)=>{
-            if (response.status === "OK"){
-              setVault(undefined);
-            }else{
-              console.error("Couldn't write entries to file, "+ response.content);
-            }
-          })
-        }
-      })
-    })
   },[])
 
 
