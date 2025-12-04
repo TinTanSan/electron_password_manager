@@ -1,33 +1,28 @@
 import * as argon2 from 'argon2';
 
 import * as crypto from 'node:crypto';
+import { preferenceStore } from '../helpers/store/preferencesStore';
 // Create entirely new KEK based on a password, this can be used for key rotation and initial set up
-export async function makeNewKEK(password:string, timeCost:number=3, memoryCost:number=65536, parallelism:number=4, hashLength:number=32):Promise<[string,Buffer]>{
+export async function makeNewKEK(password:string):Promise<[string,Buffer,Buffer]>{
         const passHash = await argon2.hash(password, {
             type: argon2.argon2id,
-            timeCost,
-            memoryCost,
-            parallelism,
-            hashLength,
+            timeCost: preferenceStore.get('timeCost'),
+            memoryCost:preferenceStore.get('memoryCost'),
+            parallelism:preferenceStore.get('parallelism'),
+            hashLength:preferenceStore.get('hashLength'),
         });
 
-        const salt = crypto.randomBytes(16);
+        const salt = crypto.randomBytes(preferenceStore.get('saltLength'));
         const kekHash = await argon2.hash(password, {
             type: argon2.argon2id,
             salt:Buffer.from(salt),
-            timeCost,
-            memoryCost,
-            parallelism,
-            hashLength,
+            timeCost: preferenceStore.get('timeCost'),
+            memoryCost:preferenceStore.get('memoryCost'),
+            parallelism:preferenceStore.get('parallelism'),
+            hashLength:preferenceStore.get('hashLength'),
             raw:true
         });
-        console.log(passHash);
-
-        return [passHash, kekHash];
+        return [passHash, kekHash, salt];
 }
 
-// derive the KEK from a password and test wrapped DEK
-export async function deriveKEK(rawHash:Buffer, salt:Buffer):Promise<{kek:Buffer | undefined, status:string}>{ 
-    return undefined;
-}
 
