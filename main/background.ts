@@ -4,6 +4,7 @@ import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {setupMenus} from './helpers/setupMenus';
 import { vaultService } from './services/vaultService';
+import { preferenceStore } from './helpers/store/preferencesStore';
 const isProd = process.env.NODE_ENV === 'production'
 
 if (isProd) {
@@ -15,8 +16,8 @@ if (isProd) {
 
 export const createNextronWindow = async () => {
   await app.whenReady()
-
-  setupMenus();
+  
+  // setupMenus();
   
   const mainWindow = createWindow('main', {
     width: 1000,
@@ -37,6 +38,7 @@ export const createNextronWindow = async () => {
   } else {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/loadFile`)
+    mainWindow.webContents.openDevTools();
   }
 }
 
@@ -44,20 +46,8 @@ createNextronWindow()
 
 app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
-  const openVResult = vaultService.openVault('test1.vlt');
-  if (openVResult === 'OK'){
-    vaultService.setMasterPassword('Test123!').then((ret)=>{
-      if (ret === 'OK'){
-        vaultService.unlockVault('Test123!');
-      }
-      
-    })
-    
-  }else{
-    console.log("couldn't open vault")
-  }
-  
-  
+  import('./ipcHandlers/vaultIPCHandlers');
+  import("./helpers/store/preferencesStore");
 })
 
 app.on("window-all-closed", () => {
