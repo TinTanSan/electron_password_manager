@@ -21,11 +21,7 @@ export default function LoadFile() {
             
             if (filePath){
                 // since its a new file, the file content will be empty anyways
-                setVault( new Vault({
-                    filePath, 
-                    isUnlocked:false, 
-                    entries:[]
-                }));
+                setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                 window.ipc.addRecent(filePath);
                 window.ipc.openVault(filePath).then((response)=>{
                     if (response.message = 'NOT_OK'){
@@ -46,7 +42,7 @@ export default function LoadFile() {
                 if (status ==="OK"){
                     window.ipc.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
-                        setVault(new Vault({ filePath, isUnlocked:false, entries:[]}));
+                        setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
                         addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
                     })
@@ -63,7 +59,7 @@ export default function LoadFile() {
                     return;
                 }
                 setRequiresInitisalisation(response.message === "SET_PASS");
-                setVault(new Vault({filePath:filepath, isUnlocked:false}));
+                setVault({ filePath:filepath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                 console.log(response)
             })
         }
@@ -89,8 +85,14 @@ export default function LoadFile() {
               return;
             }
             window.ipc.setVaultMasterPass(password).then((response)=>{
-                
-                console.log(response)
+                if (response.status === "OK"){
+                    setVault(prev=>({...prev,entries: response.entriesToDisplay, isUnlocked:true}))
+                    navigate.push('/home');
+                }else{
+                    addBanner(banners, 'unable to write to file', 'error')
+                }
+            }).catch((error)=>{
+                addBanner(banners, 'unable to write hash to file '+error, 'error');
             })
           }else{
             // simple unlock
@@ -101,17 +103,15 @@ export default function LoadFile() {
             window.ipc.unlockVault(password).then((response)=>{
                 if (response.status === "OK"){
                     addBanner(banners, 'vault unlocked', 'success')
-                    setVault((prev)=>new Vault({...prev, isUnlocked:true}));
+                    setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
+                    navigate.push('/home');
                 }else{
                     addBanner(banners, 'incorrect password','error');
                 }
             }).catch((error)=>{
                 addBanner(banners, 'unable to verify password: '+error,'error')
             })
-            
-    
           }
-          
         }
 
     useEffect(()=>{
