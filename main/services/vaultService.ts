@@ -1,11 +1,12 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { encrypt } from "../crypto/commons";
+import { decrypt, encrypt } from "../crypto/commons";
 import ElectronStore from 'electron-store';
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {  makeNewKEK } from "../crypto/keyFunctions";
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { ipcMain } from "electron";
+import { parsers } from "../helpers/parsers/parsers";
 interface EntryMetaData{
     createDate:Date,
     lastEditedDate:Date,
@@ -176,7 +177,27 @@ class VaultService extends EventEmitter{
     }
 
     private deserialiseEntries(){
+        if (this.vault){
+            // if the length of the filecontents is 0 obviously we can do anything there
+            if (this.vault.fileContents.length === 0) return [];
+            const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 124);
+            const encryptedContent = this.vault.fileContents.subarray(idx);
+            const iv = encryptedContent.subarray(0,12);
+            const tag = encryptedContent.subarray(12,28);
+            const vaultContents = decrypt(encryptedContent, this.vault.kek,tag, iv);
+            parsers.vault(vaultContents.toString());
+            
+        }
+        else{
+            throw new Error("Cannot call deserialiseEntries without first initialising the vault");
+        }
+    }
+    private serialiseEntries(){
+        if (this.vault){
+            // no need to encrypt
+            if (this.vault.entries.length === 0 ) return true;
 
+        }
     }
 }
 
