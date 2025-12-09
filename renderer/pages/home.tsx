@@ -25,48 +25,15 @@ export default function HomePage() {
 
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
-  useEffect(()=>{ 
-    // 56 is the length of the salt + wrapped VK i.e. 16 bytes for salt and 40 bytes for wrappedVK
-    if(vault && vault.kek !== undefined && vault.isUnlocked && vault.fileContents.length > 56){
-      vault.vaultLevelDecrypt().then((decryptedVault)=>{
-        setVault(decryptedVault);
-        setSearchFilter("")
-      })
-    }
-  },[vault?.isUnlocked])
 
 
   useEffect(()=>{
-    if (vault !== undefined && vault.isUnlocked){
-      const sf = searchFilter.toLowerCase();
-      setShownEntires(
-        ()=>{
-          let entries = sf !== "" ?
-            vault.entries.filter((x)=>{
-              if (searchSettings.searchTitle && x.title.toLowerCase().includes(sf)) return true
-              if (searchSettings.searchUsername && x.username.toLowerCase().includes(sf)) return true;
-              if (searchSettings.searchNotes &&  x.notes.toLowerCase().includes(sf)) return true;
-              return false;
-            })
-            :
-          vault.entries;
-
-          entries = entries.sort((a,b)=>{
-            if (a.isFavourite === b.isFavourite)return 0;
-            return a.isFavourite? -1 : 1;
-          })
-
-          setPaginatedEntries(entries);
-          return entries;
-        }
-      )
-      setPage(0);
-    }
+    throw new Error("Implement via calls to IPCMain channels")
   }, [searchFilter, searchSettings, vault?.entries])
 
 
   useEffect(()=>{
-    setPaginatedEntries(shownEntries.slice(page*entriesPerPage, (page*entriesPerPage)+entriesPerPage))
+    throw new Error("Implement via calls to IPCMain channels")
   }, [page])
 
   return (
