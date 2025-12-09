@@ -41,8 +41,9 @@ const entryConstituents = {
 const vaultConstituents  = {
     '1.0.0' : [
         ['split',"|"],
-        ['vaultMD', "vaultMD"],
-        ['entries','entries']
+        ['vaultMetadata', "vaultMD"],
+        ['entries','entries'],
+        ['entryGroups', 'entryGroup']
     ]
 }
 
@@ -51,7 +52,7 @@ export const parsers = {
     'string':(s:string|Buffer):string=>s.toString(),
     'date': (d:string):Date=>new Date(d),
     'bufferToStrFromB64': (str:Buffer):string=>str.toString('base64'),
-    'isFavToBool': (str:string)=>str==="1",
+    'isFavToBool': (str:string):boolean=>str==="1",
 
     // constituent parsers
     'entryMD': (md:string, version: string):any | undefined=>{
@@ -76,13 +77,13 @@ export const parsers = {
         return ret;
     },
     
-    // 'entryGroup':(str:string):EntryGroup=>{
-    //     const [groupName, entriesStr]=str.split("|")
-    //     return {
-    //         groupName,
-    //         entries: entriesStr? entriesStr.split(",") : []
-    //     }
-    // }
+    'entryGroup':(str:string)=>{
+        const [groupName, entriesStr]=str.split("|")
+        return {
+            groupName,
+            entries: entriesStr? entriesStr.split(",") : []
+        }
+    },
     
     
     
@@ -102,11 +103,25 @@ export const parsers = {
                 throw new Error('Error occured whilst parsing entry: ',error);
                 
             }
-            
         }
+        return res;
     },
 
     'vault': (vaultStr: string)=>{
-
+        const version = vaultStr.substring(0, vaultStr.indexOf("$"));
+        const constituents = vaultConstituents[version];
+        const split = vaultStr.split(constituents[0][1]);
+        let counter = 1;
+        let res = {}
+        for(let str of split){
+            try {
+                res[constituents[counter]] = parsers[constituents[counter][1]](str)    
+            } catch (error) {
+                throw new Error('Error occured whilst parsing entry: ',error);
+                
+            }
+            
+        }
+        return res;
     }
 }
