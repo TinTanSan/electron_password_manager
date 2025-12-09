@@ -3,7 +3,6 @@ import * as crypto from 'node:crypto';
 
 
 export function encrypt(content:Buffer,key:Buffer){
-    
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm',key,iv);
     const encrypted = Buffer.concat([
