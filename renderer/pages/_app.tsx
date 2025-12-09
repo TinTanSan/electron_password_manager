@@ -30,10 +30,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [vault])
 
 
-  useEffect(()=>{
-  },[])
-
-
 
   return (
     <VaultContext.Provider value={{vault, setVault}}>
