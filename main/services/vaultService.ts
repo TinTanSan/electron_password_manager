@@ -20,7 +20,7 @@ export interface ExtraField{
     data: Buffer
 }
 
-interface Entry {
+export interface Entry {
     dek: Buffer;
     title    : string;
     username : string;
@@ -40,7 +40,7 @@ export type vaultMetaData = {
 }
 
 
-interface Vault {
+export interface Vault {
     filePath:string, 
     fileContents:Buffer
     isUnlocked:boolean,
