@@ -1,0 +1,81 @@
+import { entryConstituents, entryMDVersionConstituents, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+
+
+export const parsers = {
+    // primitive parsers
+    'string':(s:string|Buffer):string=>s.toString(),
+    'buffer':(s:string):Buffer=>Buffer.from(s),
+    'date': (d:string):Date=>new Date(d),
+    'isFavToBool': (str:string):boolean=>str==="1",
+
+    // constituent parsers
+    'entryMD': (md:string, version: string):any | undefined=>{
+        const split = md.split(entryMDVersionConstituents[version][0][1]);
+        let ret:any;
+        const parsersToUse = entryMDVersionConstituents[version];
+        
+        for (let i = 1; i<parsersToUse.length; i++){
+            ret.parsersToUse[i][0] = parsers[parsersToUse[i][1]](split[i-1]);
+        }
+        return ret;
+    },
+
+    'vaultMD': (md:String, version:string)=>{
+        const split = md.split(vaultMDVersionConstituents[version][0][1]);
+        let ret:any;
+        const parsersToUse = vaultMDVersionConstituents[version];
+        
+        for (let i = 1; i<parsersToUse.length; i++){
+            ret.parsersToUse[i][0] = parsers[parsersToUse[i][1]](split[i-1]);
+        }
+        return ret;
+    },
+    
+    'entryGroup':(str:string)=>{
+        const [groupName, entriesStr]=str.split("|")
+        return {
+            groupName,
+            entries: entriesStr? entriesStr.split(",") : []
+        }
+    },
+    
+    
+    
+    // entry/vault level parsers
+    'entry':(entryStr:string)=>{
+        // since we will be re-using the same symbol to split all entries regardless of version, we can simply grab the first version we see
+        // and look at it's split marker
+        const version = entryStr.substring(0,entryStr.indexOf("$"));
+        const constituents = entryConstituents[version];
+        const split = entryStr.split(constituents[0][1]);
+        let counter = 1;
+        let res = {}
+        for(let str of split){
+            try {
+                res[constituents[counter]] = parsers[constituents[counter][1]](str)    
+            } catch (error) {
+                throw new Error('Error occured whilst parsing entry: ',error);
+                
+            }
+        }
+        return res;
+    },
+
+    'vault': (vaultStr: string)=>{
+        const version = vaultStr.substring(0, vaultStr.indexOf("$"));
+        const constituents = vaultConstituents[version];
+        const split = vaultStr.split(constituents[0][1]);
+        let counter = 1;
+        let res = {}
+        for(let str of split){
+            try {
+                res[constituents[counter]] = parsers[constituents[counter][1]](str)    
+            } catch (error) {
+                throw new Error('Error occured whilst parsing entry: ',error);
+                
+            }
+            
+        }
+        return res;
+    }
+}
