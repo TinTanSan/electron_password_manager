@@ -21,3 +21,7 @@ export function decrypt(content:Buffer, key:Buffer, tag:Buffer,iv:Buffer){
         decipher.final()
     ])
 }
+
+export function generateUUID(){
+    return crypto.randomUUID();
+}
