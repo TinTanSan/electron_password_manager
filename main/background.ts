@@ -3,8 +3,9 @@ import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {setupMenus} from './helpers/setupMenus';
-import { vaultService } from './services/vaultService';
+import { Entry, vaultService } from './services/vaultService';
 import { preferenceStore } from './helpers/store/preferencesStore';
+import { generateUUID } from './crypto/commons';
 const isProd = process.env.NODE_ENV === 'production'
 
 if (isProd) {
@@ -48,6 +49,27 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/vaultIPCHandlers');
   import("./helpers/store/preferencesStore");
+
+  const entry:Entry ={
+    metadata: {
+      createDate: new Date(),
+      lastEditedDate: new Date(),
+      version: '1.0.0',
+      lastRotate: new Date(),
+      uuid: generateUUID()
+    },
+    username: 'test',
+    password: Buffer.from('test'),
+    title: 'test',
+    notes: 'test',
+    isFavourite: true,
+    extraFields: [],
+    group: ''
+
+  }
+
+
+
 })
 
 app.on("window-all-closed", () => {
