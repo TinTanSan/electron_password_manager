@@ -6,8 +6,8 @@ import { preferenceStore } from "../helpers/store/preferencesStore";
 import {  makeNewKEK } from "../crypto/keyFunctions";
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { ipcMain } from "electron";
-import { parsers } from "../helpers/parsers/parsers";
-interface EntryMetaData{
+import { parsers } from "../helpers/serialisation/parsers";
+export interface EntryMetaData{
     createDate:Date,
     lastEditedDate:Date,
     lastRotate:Date,
@@ -32,7 +32,7 @@ interface Entry {
     group: string;
 }
 
-type vaultMetaData = {
+export type vaultMetaData = {
     lastRotateDate: Date,
     createDate: Date,
     lastEditDate:Date,
