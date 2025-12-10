@@ -21,13 +21,12 @@ export interface ExtraField{
 }
 
 export interface Entry {
-    dek: Buffer;
+    metadata : EntryMetaData;
     title    : string;
     username : string;
     password : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
     isFavourite: boolean;
-    metadata : EntryMetaData;
     extraFields: Array<ExtraField>;
     group: string;
 }
