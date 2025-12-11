@@ -9,8 +9,8 @@ import { ipcMain } from "electron";
 import { parsers } from "../helpers/serialisation/parsers";
 export interface EntryMetaData{
     createDate:Date,
-    lastEditedDate:Date,
-    lastRotate:Date,
+    lastEditDate:Date,
+    lastRotateDate:Date,
     uuid: string;
     version: string; 
 } 
@@ -25,6 +25,7 @@ export interface Entry {
     title    : string;
     username : string;
     password : Buffer;
+    passHash : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
     isFavourite: boolean;
     extraFields: Array<ExtraField>;
