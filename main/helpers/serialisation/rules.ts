@@ -24,13 +24,13 @@ export const vaultMDVersionConstituents:Record<string, Array<Array<string>>> = {
 export const entryConstituents = {
     '1.0.0':[
         ['split'      , "|"],
-        ['entryMD'    , 'entryMD'],
+        ['metadata'    , 'entryMD'],
         ['username'   , "string"],
         ['password'   , 'buffer'],
         ['passHash'   , 'buffer'],
         ['notes'      , "string"],
         ['isFavourite', "isFavToBool"],
-        ['entryGroup', 'string'],
+        ['group', 'string'],
         ['extraFields', 'extraFields']
     ]
     ,
