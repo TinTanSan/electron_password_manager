@@ -6,6 +6,8 @@ import {setupMenus} from './helpers/setupMenus';
 import { Entry, vaultService } from './services/vaultService';
 import { preferenceStore } from './helpers/store/preferencesStore';
 import { generateUUID } from './crypto/commons';
+import { serialisers } from './helpers/serialisation/serialisers';
+import { parsers } from './helpers/serialisation/parsers';
 const isProd = process.env.NODE_ENV === 'production'
 
 if (isProd) {
@@ -43,7 +45,7 @@ export const createNextronWindow = async () => {
   }
 }
 
-createNextronWindow()
+// createNextronWindow()
 
 app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
@@ -53,22 +55,23 @@ app.whenReady().then(()=>{
   const entry:Entry ={
     metadata: {
       createDate: new Date(),
-      lastEditedDate: new Date(),
+      lastEditDate: new Date(),
       version: '1.0.0',
-      lastRotate: new Date(),
+      lastRotateDate: new Date(),
       uuid: generateUUID()
     },
     username: 'test',
     password: Buffer.from('test'),
+    passHash: Buffer.from('test'),
     title: 'test',
     notes: 'test',
     isFavourite: true,
     extraFields: [],
-    group: ''
-
+    group: 'testgroup'
   }
-
-
+  const serialised = serialisers.entry(entry);
+  const e = parsers.entry(serialised);
+  console.log(e)
 
 })
 
