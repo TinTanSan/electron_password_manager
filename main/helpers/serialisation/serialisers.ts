@@ -11,8 +11,9 @@ export const serialisers = {
         const consitituents = entryMDVersionConstituents[entryMetadata.version];
         let res = "";
         const joiner = consitituents[0][1];
+        console.log('got joiner', joiner)
         for (let constituent of consitituents){
-            if (constituent[0] === "split") continue;   
+            if (constituent[0] === "split") continue; 
             res += serialisers[constituent[1]](entryMetadata[constituent[0]]) + joiner;
         }
         return res;
@@ -35,11 +36,12 @@ export const serialisers = {
     },
 
     'entry' : (entry:Entry)=>{
+        console.log('attempting to serialise: ', entry)
         const serialiserToUse = entryConstituents[entry.metadata.version];
         const joiner = serialiserToUse[0][1];
         let ret = "";
         for (let i = 1; i<serialiserToUse.length; i++){
-            ret += serialiserToUse[serialiserToUse[i][1]](entry[serialiserToUse[i][0]]) + joiner;
+            ret += serialisers[serialiserToUse[i][1]](entry[serialiserToUse[i][0]]) + joiner;
         }
         return ret;
     },
