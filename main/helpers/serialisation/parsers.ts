@@ -1,4 +1,7 @@
+import { parse } from "path";
 import { entryConstituents, entryMDVersionConstituents, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { serialisers } from "./serialisers";
+import { ExtraField } from "../../services/vaultService";
 
 
 export const parsers = {
@@ -18,6 +21,17 @@ export const parsers = {
             ret.parsersToUse[i][0] = parsers[parsersToUse[i][1]](split[i-1]);
         }
         return ret;
+    },
+    // all extrafields
+    'extraFields': (efs:string)=>{
+        return efs.split('`').map((ef:string)=>{
+            const split = ef.split("_");
+            return {
+                name: split[0], 
+                data: parsers.buffer(split[1]), 
+                isProtected: parsers.isFavToBool(split[2])
+            };
+        })
     },
 
     'vaultMD': (md:String, version:string)=>{

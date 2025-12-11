@@ -1,4 +1,4 @@
-import { Entry, EntryMetaData, Vault, vaultMetaData } from "../../services/vaultService";
+import { Entry, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
 import { entryConstituents, entryMDVersionConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
@@ -28,6 +28,11 @@ export const serialisers = {
         }
         return ret;
     },
+    'extraFields': (extrafields:Array<ExtraField>)=>{
+        return extrafields.map((ef)=>{
+            ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected);
+        }).join('`');
+    },
 
     'entry' : (entry:Entry)=>{
         const serialiserToUse = entryConstituents[entry.metadata.version];
@@ -36,6 +41,7 @@ export const serialisers = {
         for (let i = 1; i<serialiserToUse.length; i++){
             ret += serialiserToUse[serialiserToUse[i][1]](entry[serialiserToUse[i][0]]) + joiner;
         }
+        return ret;
     },
     'vault': (vault:Vault)=>{
         const serialiserToUse = entryConstituents[vault.vaultMetadata.version];
@@ -44,5 +50,6 @@ export const serialisers = {
         for (let i = 1; i<serialiserToUse.length; i++){
             ret += serialiserToUse[serialiserToUse[i][1]](vault[serialiserToUse[i][0]]) + joiner;
         }
+        return ret;
     }
 }
