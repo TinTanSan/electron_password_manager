@@ -46,7 +46,6 @@ export const openFile  = (filePath)=>{
 
 }
 
-ipcMain.handle('openFile', async(_, filePath)=>openFile(filePath))
 
 export const writeToFile = (args:{filePath:string, toWrite: Buffer})=>{
   const {filePath, toWrite} = args;
@@ -58,10 +57,6 @@ export const writeToFile = (args:{filePath:string, toWrite: Buffer})=>{
     }
   }
 
-ipcMain.handle('writeFile', (_, args)=>{
-  writeToFile(args);  
-}    
-)
 
 ipcMain.handle('fileDialog:create', async()=>{
   const fileDialog = await dialog.showSaveDialog({title:"Create new file"
