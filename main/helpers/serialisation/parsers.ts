@@ -26,8 +26,6 @@ export const parsers = {
         const parsersToUse = entryMDVersionConstituents[version];
         assert(split.length === parsersToUse.length-1, 'split did not split entry metadata to the number of items expected, expected '+parsersToUse.length+" but got "+split.length);
         for (let i = 1; i<parsersToUse.length; i++){
-            console.log(parsersToUse[i])
-            console.log('using it on str val: ', parsers[parsersToUse[i][1]](split[i-1]))
             ret[parsersToUse[i][0]] = parsers[parsersToUse[i][1]](split[i-1]);
         }
         return ret;
@@ -78,6 +76,10 @@ export const parsers = {
             res[constituent[0]] = parsers[constituent[1]](split[i-1]);
         }
         return res;
+    },
+    'entries':(entriesStr:string)=>{
+        const split = entriesStr.split("#");
+        return split.map((entry)=>parsers.entry(entry))
     },
 
     'vault': (vaultStr: string)=>{
