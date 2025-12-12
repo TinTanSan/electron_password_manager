@@ -1,8 +1,9 @@
 import { parse } from "path";
 import { entryConstituents, entryMDVersionConstituents, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 import { serialisers } from "./serialisers";
-import { EntryMetaData, ExtraField } from "../../services/vaultService";
+import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import { assert } from "console";
+import { Entry } from "../../../renderer/interfaces/Entry";
 
 
 export const parsers = {
@@ -82,12 +83,26 @@ export const parsers = {
         return split.map((entry)=>parsers.entry(entry))
     },
 
-    'vault': (vaultStr: string)=>{
-        const version = vaultStr.substring(0, vaultStr.indexOf("$"));
+    'vault': (vaultStr: Buffer)=>{
+        const vs = vaultStr.toString();
+        // char code of $ is 36
+        const version = vaultStr.subarray(0, vaultStr.findIndex((char)=>char === 36)).toString();
         const constituents = vaultConstituents[version];
-        const split = vaultStr.split(constituents[0][1]);
+        const split = vs.split(constituents[0][1]);
         let counter = 1;
-        let res = {}
+        let res:Vault = {
+            filePath: '',
+            fileContents: vaultStr,
+            isUnlocked: false,
+            kek: Buffer.from(""),
+            entries:[],
+            vaultMetadata:{
+                createDate: new Date(),
+                lastEditDate: new Date(),
+                version: '1.0.0'
+            }
+            
+        }
         for(let str of split){
             try {
                 res[constituents[counter]] = parsers[constituents[counter][1]](str)    
