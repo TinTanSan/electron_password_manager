@@ -47,7 +47,7 @@ export const openFile  = (filePath)=>{
 }
 
 
-export const writeToFile = (args:{filePath:string, toWrite: Buffer})=>{
+export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
   const {filePath, toWrite} = args;
     if (fs.existsSync(filePath)){
       fs.writeFileSync(filePath, toWrite);
