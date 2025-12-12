@@ -44,6 +44,9 @@ export const serialisers = {
         }
         return ret;
     },
+    'entries': (entries:Array<Entry>)=>{
+        return entries.map((entry)=>serialisers.entry(entry)).join("#");
+    },
     'vault': (vault:Vault)=>{
         const serialiserToUse = entryConstituents[vault.vaultMetadata.version];
         const joiner = serialiserToUse[0][1];
