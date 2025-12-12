@@ -11,7 +11,6 @@ export const serialisers = {
         const consitituents = entryMDVersionConstituents[entryMetadata.version];
         let res = "";
         const joiner = consitituents[0][1];
-        console.log('got joiner', joiner)
         for (let constituent of consitituents){
             if (constituent[0] === "split") continue; 
             res += serialisers[constituent[1]](entryMetadata[constituent[0]]) + joiner;
