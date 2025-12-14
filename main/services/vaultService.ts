@@ -1,12 +1,12 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { decrypt, encrypt } from "../crypto/commons";
-import ElectronStore from 'electron-store';
+import { decrypt, encrypt, shaHash } from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {  makeNewKEK } from "../crypto/keyFunctions";
+import {KEKParts} from '../crypto/keyFunctions';
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
-import { ipcMain } from "electron";
 import { parsers } from "../helpers/serialisation/parsers";
+import { serialisers } from "../helpers/serialisation/serialisers";
 export interface EntryMetaData{
     createDate:Date,
     lastEditDate:Date,
@@ -33,7 +33,6 @@ export interface Entry {
 }
 
 export type vaultMetaData = {
-    lastRotateDate: Date,
     createDate: Date,
     lastEditDate:Date,
     version: string
@@ -41,13 +40,13 @@ export type vaultMetaData = {
 
 
 export interface Vault {
+    vaultMetadata: vaultMetaData
     filePath:string, 
     fileContents:Buffer
     isUnlocked:boolean,
-    wrappedVK: Buffer,
-    kek:Buffer | undefined, //KEK should be set to undefined when the vault is locked 
+    kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
     entries: Array<Entry>,
-    vaultMetadata: vaultMetaData
+    
 }
 
 
@@ -66,10 +65,8 @@ class VaultService extends EventEmitter{
             fileContents ,
             isUnlocked: false,
             kek : undefined,
-            wrappedVK: Buffer.from(""),
             entries: [],
             vaultMetadata: {
-                lastRotateDate: new Date(),
                 lastEditDate: new Date(),
                 createDate: new Date(),
                 version: '0.1.0'
@@ -85,10 +82,9 @@ class VaultService extends EventEmitter{
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
-        const hash = this.vault.fileContents.subarray(0,idx);
-        console.log("got hash: ",hash.toString())
+        const hash = this.vault.fileContents.subarray(0,idx).toString();
         // incorrect password
-        const results = await argon2.verify(hash.toString(), password);
+        const results = await argon2.verify(hash, password);
         console.log(results)
         if (results === false){
             return {
@@ -98,17 +94,16 @@ class VaultService extends EventEmitter{
         }
         const saltLength = preferenceStore.get('saltLength');
         const salt = this.vault.fileContents.subarray(idx, idx+saltLength);
-        
-        this.vault.kek = await argon2.hash(password, {
+        const kek=  await argon2.hash(password, {
             timeCost: preferenceStore.get('timeCost'),
             parallelism: preferenceStore.get('parallelism'),
             memoryCost: preferenceStore.get('memoryCost'),
             hashLength: 32,
             salt: salt,
             raw:true
-        });
-
-        this.deserialiseEntries();
+        })
+        this.vault.kek ={ passHash: hash, salt, kek}
+        this.vault = parsers.vault(this.vault.fileContents);
 
         return {
             entriesToDisplay : this.getPaginatedEntries(1),
@@ -138,15 +133,13 @@ class VaultService extends EventEmitter{
         this.vault.isUnlocked = false;
     }
     async setMasterPassword(password){
-        const [passHash,kek, salt] = await makeNewKEK(password);
+        const KEKParts = await makeNewKEK(password);
         
-        this.vault.kek = kek;
-        const toWrite = Buffer.from(passHash+"|"+salt);
+        this.vault.kek = KEKParts;
+        const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), KEKParts.salt,Buffer.from(serialisers.vault(this.vault))]);
         const response = writeToFile({filePath: this.vault.filePath, toWrite});
         if (response === "OK"){
-            this.vault.fileContents = toWrite;
-            this.deserialiseEntries();
-
+            this.vault.fileContents = Buffer.from(toWrite);
             return {
                 entriesToDisplay : this.getPaginatedEntries(1),
                 status: "OK"
@@ -157,9 +150,15 @@ class VaultService extends EventEmitter{
     }
 
 
-    addEntry(title:string, username:string, password:string, notes:string, extraFields:Array<ExtraField> ){
-        const encryptedPass = encrypt(Buffer.from(password), this.vault.kek);
-
+    addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
+        const encryptedPass = encrypt(Buffer.from(password), this.vault.kek.kek);
+        this.vault.entries.push({
+            title,
+            username,
+            passHash: shaHash(password),
+            password: encryptedPass,
+            
+        })
     }
 
     getPaginatedEntries(pageNumber:number){
@@ -176,28 +175,11 @@ class VaultService extends EventEmitter{
         })
     }
 
-    private deserialiseEntries(){
-        if (this.vault){
-            // if the length of the filecontents is 0 obviously we can do anything there
-            if (this.vault.fileContents.length === 0) return [];
-            const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 124);
-            const encryptedContent = this.vault.fileContents.subarray(idx);
-            const iv = encryptedContent.subarray(0,12);
-            const tag = encryptedContent.subarray(12,28);
-            const vaultContents = decrypt(encryptedContent, this.vault.kek,tag, iv);
-            parsers.vault(vaultContents.toString());
-            
-        }
-        else{
-            throw new Error("Cannot call deserialiseEntries without first initialising the vault");
-        }
-    }
-    private serialiseEntries(){
-        if (this.vault){
-            // no need to encrypt
-            if (this.vault.entries.length === 0 ) return true;
-
-        }
+    async syncToFile(filePath?:string){
+        // if the filepath is given, we use that instead, otherwise default to the one provided by vault
+        const fp = filePath? filePath:  this.vault.filePath;
+        
+        return writeToFile({filePath:fp, toWrite: serialisers.vault(this.vault)});
     }
 }
 
