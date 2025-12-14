@@ -1,6 +1,10 @@
 import * as crypto from 'node:crypto';
 
-
+export function shaHash(content:string):Buffer{
+    const hasher = crypto.createHash('sha256');
+    hasher.update(content);
+    return hasher.digest();
+}
 
 export function encrypt(content:Buffer,key:Buffer){
     const iv = crypto.randomBytes(12);
