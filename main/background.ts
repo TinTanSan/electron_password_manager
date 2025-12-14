@@ -3,7 +3,7 @@ import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {setupMenus} from './helpers/setupMenus';
-import { Entry, vaultService } from './services/vaultService';
+import { Entry, Vault, vaultService } from './services/vaultService';
 import { preferenceStore } from './helpers/store/preferencesStore';
 import { generateUUID } from './crypto/commons';
 import { serialisers } from './helpers/serialisation/serialisers';
@@ -51,8 +51,7 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/vaultIPCHandlers');
   import("./helpers/store/preferencesStore");
-
-  const entry:Entry ={
+   const entry:Entry ={
     metadata: {
       createDate: new Date(),
       lastEditDate: new Date(),
@@ -69,9 +68,26 @@ app.whenReady().then(()=>{
     extraFields: [],
     group: 'testgroup'
   }
-  const serialised = serialisers.entry(entry);
-  const e = parsers.entry(serialised);
-  console.log(e)
+
+  const vault:Vault = {
+    vaultMetadata: {
+      createDate: new Date(),
+      lastEditDate: new Date(),
+      version: '1.0.0'
+    },
+    filePath:  '/Users/t/Desktop/coding/web_dev/password_manager/test.vlt',
+    fileContents: Buffer.from(''),
+    isUnlocked: false,
+    kek: undefined,
+    entries: [entry]
+  }
+  
+  if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
+    vaultService.setMasterPassword('testPass').then((_)=>{
+      vaultService.addEntry('test','test','test','test');
+      
+    })
+  }
 
 })
 
