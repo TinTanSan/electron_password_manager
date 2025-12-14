@@ -3,7 +3,16 @@ import * as argon2 from 'argon2';
 import * as crypto from 'node:crypto';
 import { preferenceStore } from '../helpers/store/preferencesStore';
 // Create entirely new KEK based on a password, this can be used for key rotation and initial set up
-export async function makeNewKEK(password:string):Promise<[string,Buffer,Buffer]>{
+
+export type KEKParts  ={
+    passHash: string,
+    salt : Buffer,
+    kek: Buffer | undefined;
+
+}
+
+
+export async function makeNewKEK(password:string):Promise<KEKParts>{
         const passHash = await argon2.hash(password, {
             type: argon2.argon2id,
             timeCost: preferenceStore.get('timeCost'),
@@ -22,7 +31,11 @@ export async function makeNewKEK(password:string):Promise<[string,Buffer,Buffer]
             hashLength:preferenceStore.get('hashLength'),
             raw:true
         });
-        return [passHash, kekHash, salt];
+        return {
+            passHash,
+            salt,
+            kek: kekHash
+        };
 }
 
 
