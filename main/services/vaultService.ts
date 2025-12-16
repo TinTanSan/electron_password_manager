@@ -180,6 +180,8 @@ class VaultService extends EventEmitter{
             }   
             
         })
+        
+        this.syncToFile();
     }
 
     getPaginatedEntries(pageNumber:number){
