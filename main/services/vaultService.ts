@@ -7,6 +7,7 @@ import {KEKParts} from '../crypto/keyFunctions';
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
+import { createUUID } from "../../renderer/utils/commons";
 export interface EntryMetaData{
     createDate:Date,
     lastEditDate:Date,
@@ -104,7 +105,15 @@ class VaultService extends EventEmitter{
         })
         this.vault.kek ={ passHash: hash, salt, kek}
         this.vault = parsers.vault(this.vault.fileContents);
-
+        this.vault.entries.sort((a,b)=>{
+            if (a.metadata.uuid < b.metadata.uuid) {
+                return -1;
+            }
+            if (a.metadata.uuid > b.metadata.uuid) {
+                return 1;
+            }
+            return 0;
+        })
         return {
             entriesToDisplay : this.getPaginatedEntries(1),
             status: "OK"
@@ -152,11 +161,23 @@ class VaultService extends EventEmitter{
 
     addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
         const encryptedPass = encrypt(Buffer.from(password), this.vault.kek.kek);
+        const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
         this.vault.entries.push({
             title,
             username,
             passHash: shaHash(password),
-            password: encryptedPass,
+            password: encBuffConcated,
+            isFavourite: false,
+            notes,
+            extraFields,
+            group: '',
+            metadata:{
+                uuid: createUUID(),
+                createDate: new Date(),
+                lastRotateDate: new Date(),
+                lastEditDate: new Date(),
+                version: '1.0.0'
+            }   
             
         })
     }
@@ -178,8 +199,30 @@ class VaultService extends EventEmitter{
     async syncToFile(filePath?:string){
         // if the filepath is given, we use that instead, otherwise default to the one provided by vault
         const fp = filePath? filePath:  this.vault.filePath;
-        
         return writeToFile({filePath:fp, toWrite: serialisers.vault(this.vault)});
+    }
+
+
+
+
+    async updateEntry(uuid: string,fieldToUpdate:string, newValue:string){
+        let entryIdx = this.vault.entries.findIndex(x=>x.metadata.uuid === uuid);
+        let entry = this.vault.entries[entryIdx];
+        let isFieldInEntry = false;
+        for(let field in entry){
+            if (field === fieldToUpdate){
+                isFieldInEntry = true;
+                break;
+            }
+        }
+        if (!isFieldInEntry){
+            return false;
+        }
+        entry[fieldToUpdate] = newValue;
+        entry.metadata.lastEditDate = new Date();
+        this.vault.vaultMetadata.lastEditDate = new Date();
+        this.syncToFile()
+        return true;
     }
 }
 
