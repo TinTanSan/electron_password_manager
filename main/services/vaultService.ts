@@ -7,7 +7,7 @@ import {KEKParts} from '../crypto/keyFunctions';
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
-import { createUUID } from "../../renderer/utils/commons";
+import { createUUID } from "../crypto/commons";
 export interface EntryMetaData{
     createDate:Date,
     lastEditDate:Date,
@@ -38,6 +38,10 @@ export type vaultMetaData = {
     lastEditDate:Date,
     version: string
 }
+export type EntryGroup = {
+    groupName: string,
+    entries: Array<string>
+}
 
 
 export interface Vault {
@@ -47,6 +51,7 @@ export interface Vault {
     isUnlocked:boolean,
     kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
     entries: Array<Entry>,
+    entryGroups: Array<EntryGroup>
     
 }
 
@@ -70,7 +75,7 @@ class VaultService extends EventEmitter{
             vaultMetadata: {
                 lastEditDate: new Date(),
                 createDate: new Date(),
-                version: '0.1.0'
+                version: '1.0.0'
             }
         }   
         this.vaultInitialised = true;
