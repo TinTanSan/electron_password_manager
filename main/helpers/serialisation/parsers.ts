@@ -94,14 +94,14 @@ export const parsers = {
             filePath: '',
             fileContents: vaultStr,
             isUnlocked: false,
-            kek: Buffer.from(""),
+            kek: {passHash:"",salt:Buffer.from(""),kek:Buffer.from("")},
             entries:[],
             vaultMetadata:{
                 createDate: new Date(),
                 lastEditDate: new Date(),
                 version: '1.0.0'
-            }
-            
+            },
+            entryGroups:[]
         }
         for(let str of split){
             try {
