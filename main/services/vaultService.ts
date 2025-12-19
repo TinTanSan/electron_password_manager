@@ -76,7 +76,8 @@ class VaultService extends EventEmitter{
                 lastEditDate: new Date(),
                 createDate: new Date(),
                 version: '1.0.0'
-            }
+            },
+            entryGroups : []
         }   
         this.vaultInitialised = true;
     }
