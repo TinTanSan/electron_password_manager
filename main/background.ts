@@ -5,7 +5,6 @@ import { createWindow} from './helpers'
 import {setupMenus} from './helpers/setupMenus';
 import { Entry, Vault, vaultService } from './services/vaultService';
 import { preferenceStore } from './helpers/store/preferencesStore';
-import { generateUUID } from './crypto/commons';
 import { serialisers } from './helpers/serialisation/serialisers';
 import { parsers } from './helpers/serialisation/parsers';
 const isProd = process.env.NODE_ENV === 'production'
@@ -51,41 +50,13 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/vaultIPCHandlers');
   import("./helpers/store/preferencesStore");
-   const entry:Entry ={
-    metadata: {
-      createDate: new Date(),
-      lastEditDate: new Date(),
-      version: '1.0.0',
-      lastRotateDate: new Date(),
-      uuid: generateUUID()
-    },
-    username: 'test',
-    password: Buffer.from('test'),
-    passHash: Buffer.from('test'),
-    title: 'test',
-    notes: 'test',
-    isFavourite: true,
-    extraFields: [],
-    group: 'testgroup'
-  }
+  
 
-  const vault:Vault = {
-    vaultMetadata: {
-      createDate: new Date(),
-      lastEditDate: new Date(),
-      version: '1.0.0'
-    },
-    filePath:  '/Users/t/Desktop/coding/web_dev/password_manager/test.vlt',
-    fileContents: Buffer.from(''),
-    isUnlocked: false,
-    kek: undefined,
-    entries: [entry]
-  }
   
   if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
     vaultService.setMasterPassword('testPass').then((_)=>{
       vaultService.addEntry('test','test','test','test');
-      
+      vaultService.addEntry('test1','test1','test1','test1');      
     })
   }
 
