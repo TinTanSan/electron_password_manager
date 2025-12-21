@@ -42,6 +42,6 @@ export const vaultConstituents  = {
         ['split',"|"],
         ['vaultMetadata', "vaultMD"],
         ['entries','entries'],
-        ['entryGroups', 'entryGroup']
+        ['entryGroups', 'entryGroups']
     ]
 }
