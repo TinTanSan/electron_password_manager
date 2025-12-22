@@ -42,7 +42,6 @@ export const serialisers = {
     },
 
     'entry' : (entry:Entry)=>{
-        console.log('attempting to serialise: ', entry)
         const serialiserToUse = entryConstituents[entry.metadata.version];
         const joiner = serialiserToUse[0][1];
         let ret = "";
@@ -58,9 +57,7 @@ export const serialisers = {
         const serialiserToUse = vaultConstituents[vault.vaultMetadata.version];
         const joiner = serialiserToUse[0][1];
         let ret = "";
-        console.log('joiner: ',joiner);
         for (let i = 1; i<serialiserToUse.length; i++){
-            console.log(serialiserToUse[i])
             ret += serialisers[serialiserToUse[i][1]](vault[serialiserToUse[i][0]]) + joiner;
         }
         return ret;
