@@ -43,13 +43,13 @@ export const parsers = {
         }) : []
     },
 
-    'vaultMD': (md:String, version:string)=>{
+    'vaultMD': (md:String)=>{
+        const version = md.split("$")[0];
         const split = md.split(vaultMDVersionConstituents[version][0][1]);
-        let ret:any;
+        let ret:any ={};
         const parsersToUse = vaultMDVersionConstituents[version];
-        
         for (let i = 1; i<parsersToUse.length; i++){
-            ret.parsersToUse[i][0] = parsers[parsersToUse[i][1]](split[i-1]);
+            ret[parsersToUse[i][0]] = parsers[parsersToUse[i][1]](split[i-1])
         }
         return ret;
     },
@@ -105,7 +105,8 @@ export const parsers = {
         }
         for(let str of split){
             try {
-                res[constituents[counter]] = parsers[constituents[counter][1]](str)    
+                res[constituents[counter][0]] = parsers[constituents[counter][1]](str)    
+                counter +=1
             } catch (error) {
                 throw new Error('Error occured whilst parsing entry: ',error);
                 
