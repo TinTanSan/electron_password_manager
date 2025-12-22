@@ -57,7 +57,7 @@ export interface Vault {
 
 
 class VaultService extends EventEmitter{
-    private vault:Vault | undefined = undefined;
+    vault:Vault | undefined = undefined;
     vaultInitialised = false;
 
     constructor(){
@@ -207,7 +207,9 @@ class VaultService extends EventEmitter{
     async syncToFile(filePath?:string){
         // if the filepath is given, we use that instead, otherwise default to the one provided by vault
         const fp = filePath? filePath:  this.vault.filePath;
-        return writeToFile({filePath:fp, toWrite: serialisers.vault(this.vault)});
+        const toWrite = serialisers.vault(this.vault);
+        this.vault.fileContents = Buffer.from(toWrite);
+        return writeToFile({filePath:fp, toWrite});
     }
 
 
