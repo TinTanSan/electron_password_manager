@@ -1,6 +1,6 @@
 export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {    
     '1.0.0':[
-        ['split'          , '$'],
+        ['split'          , '|'],
         ["version"        , 'string'],
         ["createDate"     , 'date'],
         ['lastEditDate'   , 'date'],
@@ -23,7 +23,7 @@ export const vaultMDVersionConstituents:Record<string, Array<Array<string>>> = {
 
 export const entryConstituents = {
     '1.0.0':[
-        ['split'      , "|"],
+        ['split'      , "$"],
         ['metadata'    , 'entryMD'],
         ['username'   , "string"],
         ['password'   , 'buffer'],
