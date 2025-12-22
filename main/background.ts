@@ -57,6 +57,7 @@ app.whenReady().then(()=>{
     vaultService.setMasterPassword('testPass').then((_)=>{
       vaultService.addEntry('test','test','test','test');
       vaultService.addEntry('test1','test1','test1','test1');      
+      parsers.vault(vaultService.vault.fileContents)
     })
   }
 
