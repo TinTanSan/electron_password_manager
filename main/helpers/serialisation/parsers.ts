@@ -1,5 +1,5 @@
 import { parse } from "path";
-import { entryConstituents, entryMDVersionConstituents, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 import { serialisers } from "./serialisers";
 import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import { assert } from "console";
@@ -15,7 +15,7 @@ export const parsers = {
 
     // constituent parsers
     'entryMD': (md:string):any | undefined=>{
-        const version = md.split("$")[0];
+        const version = md.split(entryMDSplit)[0];
         const split = md.split(entryMDVersionConstituents[version][0][1]).slice(0,-1);
         let ret:EntryMetaData = {
             version: '',
@@ -61,14 +61,16 @@ export const parsers = {
             entries: entriesStr? entriesStr.split(",") : []
         }
     },
-    
+    'entryGroups':(groups:string)=>{
+        groups.split(entryGroupsSplit).map((group)=>parsers['entryGroup'](group));
+    },
     
     
     // entry/vault level parsers
     'entry':(entryStr:string)=>{
         // since we will be re-using the same symbol to split all entries regardless of version, we can simply grab the first version we see
         // and look at it's split marker
-        const version = entryStr.substring(0,entryStr.indexOf("$"));
+        const version = entryStr.substring(0,entryStr.indexOf(entryMDSplit));
         const constituents = entryConstituents[version];
         const split = entryStr.split(constituents[0][1]);
         let res = {}
@@ -79,7 +81,7 @@ export const parsers = {
         return res;
     },
     'entries':(entriesStr:string)=>{
-        const split = entriesStr.split("#");
+        const split = entriesStr.split(entrySplit);
         return split.map((entry)=>parsers.entry(entry))
     },
 
@@ -104,6 +106,7 @@ export const parsers = {
             entryGroups:[]
         }
         for(let str of split){
+            if (!str) continue;
             try {
                 res[constituents[counter][0]] = parsers[constituents[counter][1]](str)    
                 counter +=1
@@ -111,8 +114,9 @@ export const parsers = {
                 throw new Error('Error occured whilst parsing entry: ',error);
                 
             }
-            
         }
+        // console.log('finished parsing: ',res)
+        console.log('parsed vault with version: '+res.vaultMetadata.version)
         return res;
     }
 }
