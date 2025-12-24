@@ -1,6 +1,6 @@
 export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {    
     '1.0.0':[
-        ['split'          , '|'],
+        ['split'          , '\\'],
         ["version"        , 'string'],
         ["createDate"     , 'date'],
         ['lastEditDate'   , 'date'],
@@ -10,7 +10,9 @@ export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {
     // example : 1.0.0.0$25-06-2025T00:00:00Z000$25-06-2025T00:00:00Z000$25-06-2025T00:00:00Z000$ab12-cd34-ef56-gh78
 
 }
-
+export const entryMDSplit = "\\";
+export const entryGroupsSplit = "?";
+export const entrySplit = "#";
 export const vaultMDVersionConstituents:Record<string, Array<Array<string>>> = {
     '1.0.0':[
         ['split',"$"],
