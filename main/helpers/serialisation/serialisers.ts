@@ -1,5 +1,5 @@
 import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
-import { entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
     'date': (d:Date)=>d.toISOString(),
@@ -37,8 +37,8 @@ export const serialisers = {
     },
     'extraFields': (extrafields:Array<ExtraField>)=>{
         return extrafields.map((ef)=>{
-            ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected);
-        }).join('`');
+            return ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected);
+        }).join(extraFieldsSplit);
     },
 
     'entry' : (entry:Entry)=>{
