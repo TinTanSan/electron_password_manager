@@ -1,5 +1,5 @@
 import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
-import { entryConstituents, entryMDVersionConstituents, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
     'date': (d:Date)=>d.toISOString(),
@@ -30,7 +30,7 @@ export const serialisers = {
     },
     'entryGroups': (groups:Array<EntryGroup>)=>{
         if (groups.length === 0) return '';
-        return groups.map(group=>serialisers['entryGroup'](group)).join("|");
+        return groups.map(group=>serialisers['entryGroup'](group)).join(entryGroupsSplit);
     },
     'entryGroup':(group:EntryGroup)=>{
         return group.groupName + "|" + group.entries.join(",")
@@ -51,15 +51,18 @@ export const serialisers = {
         return ret;
     },
     'entries': (entries:Array<Entry>)=>{
-        return entries.map((entry)=>serialisers.entry(entry)).join("#");
+        return entries.map((entry)=>serialisers.entry(entry)).join(entrySplit);
     },
+    
     'vault': (vault:Vault)=>{
         const serialiserToUse = vaultConstituents[vault.vaultMetadata.version];
         const joiner = serialiserToUse[0][1];
         let ret = "";
+        
         for (let i = 1; i<serialiserToUse.length; i++){
             ret += serialisers[serialiserToUse[i][1]](vault[serialiserToUse[i][0]]) + joiner;
         }
+        console.log('serialised vault with version: '+vault.vaultMetadata.version)
         return ret;
     }
 }
