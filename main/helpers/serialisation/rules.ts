@@ -13,6 +13,7 @@ export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {
 export const entryMDSplit = "\\";
 export const entryGroupsSplit = "?";
 export const entrySplit = "#";
+export const extraFieldsSplit = "`";
 export const vaultMDVersionConstituents:Record<string, Array<Array<string>>> = {
     '1.0.0':[
         ['split',"$"],

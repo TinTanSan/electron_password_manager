@@ -1,5 +1,5 @@
 import { parse } from "path";
-import { entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 import { serialisers } from "./serialisers";
 import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import { assert } from "console";
@@ -33,7 +33,7 @@ export const parsers = {
     },
     // all extrafields
     'extraFields': (efs:string)=>{
-        return efs ? efs.split('`').map((ef:string)=>{
+        return efs ? efs.split(extraFieldsSplit).map((ef:string)=>{
             const split = ef.split("_");
             return {
                 name: split[0], 

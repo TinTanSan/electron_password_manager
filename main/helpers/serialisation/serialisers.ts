@@ -37,7 +37,7 @@ export const serialisers = {
     },
     'extraFields': (extrafields:Array<ExtraField>)=>{
         return extrafields.map((ef)=>{
-            return ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected);
+            return ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected); 
         }).join(extraFieldsSplit);
     },
 
