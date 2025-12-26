@@ -1,14 +1,12 @@
-import { parse } from "path";
 import { entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
-import { serialisers } from "./serialisers";
 import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import { assert } from "console";
-import { Entry } from "../../../renderer/interfaces/Entry";
 
 
 export const parsers = {
     // primitive parsers
     'string':(s:string|Buffer):string=>typeof s === 'string'? s : s.toString(),
+    'b64Buff':(b64:string)=>Buffer.from(b64, 'base64'),
     'buffer':(s:string):Buffer=>Buffer.from(s),
     'date': (d:string):Date=>new Date(d),
     'isFavToBool': (str:string):boolean=>str==="1",

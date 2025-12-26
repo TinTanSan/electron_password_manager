@@ -6,7 +6,7 @@ export const serialisers = {
     'string':(s:string|Buffer):string=>s.toString(),
     'buffer':(b:Buffer):string=>b.toString(),
     'isFavToBool': (bool:boolean) => bool ? '1' : '0',
-
+    'b64Buff': (b:Buffer) => b.toString('base64'),
     'entryMD': (entryMetadata:EntryMetaData)=>{
         const consitituents = entryMDVersionConstituents[entryMetadata.version];
         let res = "";

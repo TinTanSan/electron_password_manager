@@ -29,7 +29,7 @@ export const entryConstituents = {
         ['split'      , "$"],
         ['metadata'    , 'entryMD'],
         ['username'   , "string"],
-        ['password'   , 'buffer'],
+        ['password'   , 'b64Buff'],
         ['passHash'   , 'buffer'],
         ['notes'      , "string"],
         ['isFavourite', "isFavToBool"],
