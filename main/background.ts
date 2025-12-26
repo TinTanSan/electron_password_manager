@@ -55,8 +55,8 @@ app.whenReady().then(()=>{
   
   if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
     vaultService.setMasterPassword('testPass').then((_)=>{
-      vaultService.addEntry('test','test','test','test');
-      vaultService.addEntry('test1','test1','test1','test1');      
+      // vaultService.addEntry('test','test','test','test');
+      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);      
       parsers.vault(vaultService.vault.fileContents)
     })
   }
