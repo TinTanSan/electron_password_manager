@@ -84,7 +84,7 @@ export const parsers = {
     },
 
     'vault': (vaultStr: Buffer)=>{
-        const vs = vaultStr.toString();
+        const vs = vaultStr.toString().substring(vaultStr.findIndex(x=>x === 10));
         // char code of $ is 36
         const version = vaultStr.subarray(0, vaultStr.findIndex((char)=>char === 36)).toString();
         const constituents = vaultConstituents[version];
