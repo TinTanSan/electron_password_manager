@@ -45,7 +45,7 @@ export type EntryGroup = {
 
 
 export interface Vault {
-    vaultMetadata: vaultMetaData
+    vaultMetadata: vaultMetaData,
     filePath:string, 
     fileContents:Buffer
     isUnlocked:boolean,
@@ -83,30 +83,30 @@ class VaultService extends EventEmitter{
     }
 
     async unlockVault(password:string){
-        const idx = this.vault.fileContents.findIndex((charcode)=>{
-            return charcode === 124
-        })
+        const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 10) //124 is the vertical pipe symbol `|`
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
-        const hash = this.vault.fileContents.subarray(0,idx).toString();
+        const b64saltLength = (4*Math.ceil(preferenceStore.get('saltLength')/3));
+        const hash = Buffer.from(this.vault.fileContents.subarray(0,idx-b64saltLength)).toString();
         // incorrect password
-        const results = await argon2.verify(hash, password);
-        console.log(results)
+        const salt = Buffer.from(hash.substring(hash.length-b64saltLength),'base64')
+        const results = await argon2.verify(hash, password,{
+        });    
         if (results === false){
             return {
                 entriesToDisplay: [],
                 status: "INVALID_PASSWORD"
             };
         }
-        const saltLength = preferenceStore.get('saltLength');
-        const salt = this.vault.fileContents.subarray(idx, idx+saltLength);
+        // 4$Xb78FpM3DP6Yvo91NOjZug$zSVYEALMqpYPCaEpfyWuEDjj1WbPsm1D+kApx3aXt1Qif4HtMOA5mtG0/z5VtqL8w==
+        // 4$Xb78FpM3DP6Yvo91NOjZug$zSVYEALMqpYPCaEpfyWuEDjj1WbPsm1D+kApx3aXt1Qif4HtMOA
         const kek=  await argon2.hash(password, {
             timeCost: preferenceStore.get('timeCost'),
             parallelism: preferenceStore.get('parallelism'),
             memoryCost: preferenceStore.get('memoryCost'),
-            hashLength: 32,
-            salt: salt,
+            hashLength: preferenceStore.get('hashLength'),
+            salt,
             raw:true
         })
         this.vault.kek ={ passHash: hash, salt, kek}
@@ -151,7 +151,7 @@ class VaultService extends EventEmitter{
         const KEKParts = await makeNewKEK(password);
         
         this.vault.kek = KEKParts;
-        const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), KEKParts.salt,Buffer.from(serialisers.vault(this.vault))]);
+        const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
         const response = writeToFile({filePath: this.vault.filePath, toWrite});
         if (response === "OK"){
             this.vault.fileContents = Buffer.from(toWrite);
@@ -207,7 +207,14 @@ class VaultService extends EventEmitter{
     async syncToFile(filePath?:string){
         // if the filepath is given, we use that instead, otherwise default to the one provided by vault
         const fp = filePath? filePath:  this.vault.filePath;
-        const toWrite = serialisers.vault(this.vault);
+        const fc = this.vault.fileContents;
+        const idx = fc.findIndex(x=>x===10);
+        if (idx ===-1){
+            throw new Error('attempted to use syncToFile without having set Master password, please first use setMasterPassword to set the master password the first time')
+        }
+        const passwordComponents = this.vault.fileContents.subarray(0, idx).toString()
+        console.log('serialising password components: ',passwordComponents);
+        const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
         this.vault.fileContents = Buffer.from(toWrite);
         return writeToFile({filePath:fp, toWrite});
     }
