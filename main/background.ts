@@ -57,7 +57,9 @@ app.whenReady().then(()=>{
     vaultService.setMasterPassword('testPass').then((_)=>{
       // vaultService.addEntry('test','test','test','test');
       vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);      
-      parsers.vault(vaultService.vault.fileContents)
+      vaultService.unlockVault('testPass').then((response)=>{
+        console.log(response)
+      })
     })
   }
 
