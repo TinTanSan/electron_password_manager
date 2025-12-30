@@ -2,7 +2,7 @@ import EventEmitter from "events";
 import * as argon2 from 'argon2';
 import { decrypt, encrypt, shaHash } from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
-import {  makeNewKEK } from "../crypto/keyFunctions";
+import {  makeDEK, makeNewKEK } from "../crypto/keyFunctions";
 import {KEKParts} from '../crypto/keyFunctions';
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
@@ -20,11 +20,18 @@ export interface ExtraField{
     name: string,
     data: Buffer
 }
+export interface DataEncryptionKey{
+    wrappedKey: Buffer;
+    iv: Buffer;
+    tag: Buffer;
 
+
+}
 export interface Entry {
     metadata : EntryMetaData;
     title    : string;
     username : string;
+    dek: DataEncryptionKey;
     password : Buffer;
     passHash : Buffer;
     notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
@@ -148,6 +155,7 @@ class VaultService extends EventEmitter{
         this.vault.kek = undefined;
         this.vault.isUnlocked = false;
     }
+    
     async setMasterPassword(password){
         const KEKParts = await makeNewKEK(password);
         
@@ -166,13 +174,14 @@ class VaultService extends EventEmitter{
     }
 
 
-    addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
+    async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
         const encryptedPass = encrypt(Buffer.from(password), this.vault.kek.kek);
         const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
         this.vault.entries.push({
             title,
             username,
             passHash: shaHash(password),
+            dek : await makeDEK(this.vault.kek.kek),
             password: encBuffConcated,
             isFavourite: false,
             notes,
@@ -219,9 +228,15 @@ class VaultService extends EventEmitter{
         this.vault.fileContents = Buffer.from(toWrite);
         return writeToFile({filePath:fp, toWrite});
     }
+    
+    async decryptPassword(uuid:string) {
+        const entry = this.vault.entries.find(entry=>entry.metadata.uuid === uuid);
+        try{
 
+        }finally{
 
-
+        }
+    }
 
     async updateEntry(uuid: string,fieldToUpdate:string, newValue:string){
         let entryIdx = this.vault.entries.findIndex(x=>x.metadata.uuid === uuid);
