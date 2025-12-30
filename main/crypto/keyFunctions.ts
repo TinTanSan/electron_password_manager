@@ -2,6 +2,7 @@ import * as argon2 from 'argon2';
 
 import * as crypto from 'node:crypto';
 import { preferenceStore } from '../helpers/store/preferencesStore';
+import { encrypt } from './commons';
 // Create entirely new KEK based on a password, this can be used for key rotation and initial set up
 
 export type KEKParts  ={
@@ -38,4 +39,8 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
         };
 }
 
+export async function makeDEK(kek:Buffer){
+    const {iv, encrypted, tag}= encrypt(crypto.randomBytes(32),kek);
+    return {iv, wrappedKey:encrypted, tag}
+}
 
