@@ -83,6 +83,9 @@ class VaultService extends EventEmitter{
     }
 
     async unlockVault(password:string){
+        if (this.vault.fileContents.length === 0){
+            throw   new Error("Cannot unlock vault without any contents in the vault, are you sure you initialised it correctly?");
+        }
         const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 10) //124 is the vertical pipe symbol `|`
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
@@ -99,8 +102,6 @@ class VaultService extends EventEmitter{
                 status: "INVALID_PASSWORD"
             };
         }
-        // 4$Xb78FpM3DP6Yvo91NOjZug$zSVYEALMqpYPCaEpfyWuEDjj1WbPsm1D+kApx3aXt1Qif4HtMOA5mtG0/z5VtqL8w==
-        // 4$Xb78FpM3DP6Yvo91NOjZug$zSVYEALMqpYPCaEpfyWuEDjj1WbPsm1D+kApx3aXt1Qif4HtMOA
         const kek=  await argon2.hash(password, {
             timeCost: preferenceStore.get('timeCost'),
             parallelism: preferenceStore.get('parallelism'),
@@ -193,6 +194,7 @@ class VaultService extends EventEmitter{
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
         const paginatedEntries = this.vault.entries.slice(pageNumber*pageLen, pageNumber*pageLen + pageLen);
+        
         return{
             paginatedEntries
         }
@@ -213,7 +215,6 @@ class VaultService extends EventEmitter{
             throw new Error('attempted to use syncToFile without having set Master password, please first use setMasterPassword to set the master password the first time')
         }
         const passwordComponents = this.vault.fileContents.subarray(0, idx).toString()
-        console.log('serialising password components: ',passwordComponents);
         const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
         this.vault.fileContents = Buffer.from(toWrite);
         return writeToFile({filePath:fp, toWrite});
