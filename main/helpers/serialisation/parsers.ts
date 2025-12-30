@@ -1,6 +1,6 @@
-import { entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { dekSplit, entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
-import { assert } from "console";
+import assert from "node:assert";
 
 
 export const parsers = {
@@ -10,11 +10,14 @@ export const parsers = {
     'buffer':(s:string):Buffer=>Buffer.from(s),
     'date': (d:string):Date=>new Date(d),
     'isFavToBool': (str:string):boolean=>str==="1",
-
+    'dek':(dek:string)=>{
+        const [iv, tag, wrappedKey] = dek.split(dekSplit);
+        return {iv:parsers.b64Buff(iv), tag:parsers.b64Buff(tag), wrappedKey:parsers.b64Buff(wrappedKey)};
+    },
     // constituent parsers
     'entryMD': (md:string):any | undefined=>{
         const version = md.split(entryMDSplit)[0];
-        const split = md.split(entryMDVersionConstituents[version][0][1]).slice(0,-1);
+        const split = md.split(entryMDSplit).slice(0,-1);
         let ret:EntryMetaData = {
             version: '',
             createDate: new Date(),
@@ -66,8 +69,7 @@ export const parsers = {
     
     // entry/vault level parsers
     'entry':(entryStr:string)=>{
-        // since we will be re-using the same symbol to split all entries regardless of version, we can simply grab the first version we see
-        // and look at it's split marker
+       
         const version = entryStr.substring(0,entryStr.indexOf(entryMDSplit));
         const constituents = entryConstituents[version];
         const split = entryStr.split(constituents[0][1]);
@@ -114,7 +116,6 @@ export const parsers = {
                 
             }
         }
-        // console.log('finished parsing: ',res)
         console.log('parsed vault with version: '+res.vaultMetadata.version)
         return res;
     }

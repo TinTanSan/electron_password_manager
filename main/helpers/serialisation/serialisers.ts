@@ -1,5 +1,5 @@
-import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
-import { entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { DataEncryptionKey, Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
+import { dekSplit, entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
     'date': (d:Date)=>d.toISOString(),
@@ -7,6 +7,10 @@ export const serialisers = {
     'buffer':(b:Buffer):string=>b.toString(),
     'isFavToBool': (bool:boolean) => bool ? '1' : '0',
     'b64Buff': (b:Buffer) => b.toString('base64'),
+    'dek': (dek:DataEncryptionKey)=>{
+        return serialisers.b64Buff(dek.iv) + dekSplit + serialisers.b64Buff(dek.tag) + dekSplit + serialisers.b64Buff(dek.wrappedKey)
+    },
+
     'entryMD': (entryMetadata:EntryMetaData)=>{
         const consitituents = entryMDVersionConstituents[entryMetadata.version];
         let res = "";
@@ -15,6 +19,7 @@ export const serialisers = {
             if (constituent[0] === "split") continue; 
             res += serialisers[constituent[1]](entryMetadata[constituent[0]]) + joiner;
         }
+        console.log(res)
         return res;
     },
 
