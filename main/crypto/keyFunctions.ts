@@ -39,8 +39,4 @@ export async function makeNewKEK(password:string):Promise<KEKParts>{
         };
 }
 
-export async function makeDEK(kek:Buffer){
-    const {iv, encrypted, tag}= encrypt(crypto.randomBytes(32),kek);
-    return {iv, wrappedKey:encrypted, tag}
-}
 
