@@ -19,7 +19,6 @@ export const serialisers = {
             if (constituent[0] === "split") continue; 
             res += serialisers[constituent[1]](entryMetadata[constituent[0]]) + joiner;
         }
-        console.log(res)
         return res;
     },
 
