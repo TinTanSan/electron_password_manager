@@ -2,12 +2,14 @@ import EventEmitter from "events";
 import * as argon2 from 'argon2';
 import { decrypt, encrypt, shaHash } from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
-import {  makeDEK, makeNewKEK } from "../crypto/keyFunctions";
+import {   makeNewKEK } from "../crypto/keyFunctions";
 import {KEKParts} from '../crypto/keyFunctions';
 import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
 import { createUUID } from "../crypto/commons";
+import { randomBytes } from "crypto";
+import assert from "assert";
 export interface EntryMetaData{
     createDate:Date,
     lastEditDate:Date,
@@ -129,7 +131,7 @@ class VaultService extends EventEmitter{
             return 0;
         })
         return {
-            entriesToDisplay : this.getPaginatedEntries(1),
+            entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
         };
     }
@@ -175,13 +177,16 @@ class VaultService extends EventEmitter{
 
 
     async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
-        const encryptedPass = encrypt(Buffer.from(password), this.vault.kek.kek);
+        let dek = randomBytes(32);
+        try{
+        const encryptedPass = encrypt(Buffer.from(password), dek);
         const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
+        const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
         this.vault.entries.push({
             title,
             username,
             passHash: shaHash(password),
-            dek : await makeDEK(this.vault.kek.kek),
+            dek : {iv, tag, wrappedKey:encrypted},
             password: encBuffConcated,
             isFavourite: false,
             notes,
@@ -198,12 +203,15 @@ class VaultService extends EventEmitter{
         })
         
         this.syncToFile();
+        }finally{
+            dek.fill(0);
+            dek = undefined;
+        }
     }
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
         const paginatedEntries = this.vault.entries.slice(pageNumber*pageLen, pageNumber*pageLen + pageLen);
-        
         return{
             paginatedEntries
         }
@@ -232,7 +240,21 @@ class VaultService extends EventEmitter{
     async decryptPassword(uuid:string) {
         const entry = this.vault.entries.find(entry=>entry.metadata.uuid === uuid);
         try{
+            const dek = entry.dek;
+            // if the entry's password is empty then we do not attempt to decrypt
+            if (entry.password.length ===0 ){
+                return "";
+            }
+            const iv = entry.password.subarray(0,12);
+            const tag = entry.password.subarray(12,28);
+            const encryptedPass = entry.password.subarray(-28);
 
+            let unwrappedDEK = decrypt(dek.wrappedKey, this.vault.kek.kek, dek.tag, dek.iv);
+            
+            const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
+            unwrappedDEK.fill(0);
+            unwrappedDEK = undefined;
+            return password;
         }finally{
 
         }
