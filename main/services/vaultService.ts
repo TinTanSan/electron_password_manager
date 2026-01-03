@@ -101,10 +101,11 @@ class VaultService extends EventEmitter{
         }
         const b64saltLength = (4*Math.ceil(preferenceStore.get('saltLength')/3));
         const hash = Buffer.from(this.vault.fileContents.subarray(0,idx-b64saltLength)).toString();
-        // incorrect password
-        const salt = Buffer.from(hash.substring(hash.length-b64saltLength),'base64')
+        
+        const salt = Buffer.from(this.vault.fileContents.subarray(idx-b64saltLength,idx).toString(),'base64')
         const results = await argon2.verify(hash, password,{
         });    
+        // incorrect password
         if (results === false){
             return {
                 entriesToDisplay: [],
@@ -119,8 +120,9 @@ class VaultService extends EventEmitter{
             salt,
             raw:true
         })
-        this.vault.kek ={ passHash: hash, salt, kek}
+        
         this.vault = parsers.vault(this.vault.fileContents);
+        this.vault.kek = {passHash: hash, salt, kek}
         this.vault.entries.sort((a,b)=>{
             if (a.metadata.uuid < b.metadata.uuid) {
                 return -1;
@@ -160,7 +162,6 @@ class VaultService extends EventEmitter{
     
     async setMasterPassword(password){
         const KEKParts = await makeNewKEK(password);
-        
         this.vault.kek = KEKParts;
         const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
         const response = writeToFile({filePath: this.vault.filePath, toWrite});
@@ -211,10 +212,7 @@ class VaultService extends EventEmitter{
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
-        const paginatedEntries = this.vault.entries.slice(pageNumber*pageLen, pageNumber*pageLen + pageLen);
-        return{
-            paginatedEntries
-        }
+        return this.vault.entries.slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
     searchEntries(title:string, username:string, notes:string){
@@ -247,14 +245,12 @@ class VaultService extends EventEmitter{
             }
             const iv = entry.password.subarray(0,12);
             const tag = entry.password.subarray(12,28);
-            const encryptedPass = entry.password.subarray(-28);
-
+            const encryptedPass = entry.password.subarray(28);
             let unwrappedDEK = decrypt(dek.wrappedKey, this.vault.kek.kek, dek.tag, dek.iv);
-            
             const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
             unwrappedDEK.fill(0);
             unwrappedDEK = undefined;
-            return password;
+            return password.toString();
         }finally{
 
         }
