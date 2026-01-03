@@ -58,8 +58,16 @@ app.whenReady().then(()=>{
       // vaultService.addEntry('test','test','test','test');
       vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);      
       vaultService.unlockVault('testPass').then((response)=>{
-        console.log(response)
+        // console.log(response.entriesToDisplay)
+        const firstEntry = response.entriesToDisplay[0];
+        const uuid = firstEntry.metadata.uuid;
+        // console.log(firstEntry.dek.wrappedKey.length)
+        vaultService.decryptPassword(uuid).then((password)=>{
+          console.log(password)
+        })
       })
+
+      
     })
   }
 
