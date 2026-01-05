@@ -68,7 +68,8 @@ export interface Vault {
 class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
     vaultInitialised = false;
-
+    toSync = Buffer.from("");
+    lastSync = -1;
     constructor(){
         super();
 
@@ -88,6 +89,7 @@ class VaultService extends EventEmitter{
             },
             entryGroups : []
         }   
+        this.lastSync = Math.floor(new Date().getTime()/1000);
         this.vaultInitialised = true;
     }
 
@@ -163,10 +165,10 @@ class VaultService extends EventEmitter{
     async setMasterPassword(password){
         const KEKParts = await makeNewKEK(password);
         this.vault.kek = KEKParts;
+    
         const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
         const response = writeToFile({filePath: this.vault.filePath, toWrite});
         if (response === "OK"){
-            this.vault.fileContents = Buffer.from(toWrite);
             return {
                 entriesToDisplay : this.getPaginatedEntries(1),
                 status: "OK"
@@ -203,7 +205,7 @@ class VaultService extends EventEmitter{
             
         })
         
-        this.syncToFile();
+        return await this.syncToFile(false);
         }finally{
             dek.fill(0);
             dek = undefined;
@@ -220,10 +222,34 @@ class VaultService extends EventEmitter{
 
         })
     }
-
-    async syncToFile(filePath?:string){
+    
+    addToWriteQueue(){
+        this.toSync = this.serialiseVault();
+    }
+    async syncToFile(waitDebounce: boolean = true , filePath:string = this.vault.filePath ){
         // if the filepath is given, we use that instead, otherwise default to the one provided by vault
         const fp = filePath? filePath:  this.vault.filePath;
+        // debouncing logic
+        const curTimestamp = Math.floor(new Date().getTime()/1000);
+        // if we debounced for at least 5 seconds 
+        if (!waitDebounce){
+            // do not wait for the toSync result, generate a new state now
+            this.lastSync = curTimestamp;
+            this.addToWriteQueue();
+            return writeToFile({filePath:fp, toWrite:this.toSync})
+        }
+        else if (( (curTimestamp - this.lastSync) > 5 && curTimestamp < 30)){
+            console.log('syncing now')
+            this.lastSync = curTimestamp;
+            console.log('writing to file: ', this.toSync.buffer)
+            return writeToFile({filePath:fp, toWrite:this.toSync}) //forward result to caller
+        }
+        // update writeQueue with newer state
+        this.addToWriteQueue();
+        console.log('debounced')
+        return "DEBOUNCED OK"
+    }
+    serialiseVault(){
         const fc = this.vault.fileContents;
         const idx = fc.findIndex(x=>x===10);
         if (idx ===-1){
@@ -231,8 +257,7 @@ class VaultService extends EventEmitter{
         }
         const passwordComponents = this.vault.fileContents.subarray(0, idx).toString()
         const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
-        this.vault.fileContents = Buffer.from(toWrite);
-        return writeToFile({filePath:fp, toWrite});
+        return Buffer.from(toWrite);
     }
     
     async decryptPassword(uuid:string) {
@@ -272,7 +297,7 @@ class VaultService extends EventEmitter{
         entry[fieldToUpdate] = newValue;
         entry.metadata.lastEditDate = new Date();
         this.vault.vaultMetadata.lastEditDate = new Date();
-        this.syncToFile()
+        this.syncToFile();
         return true;
     }
 }
