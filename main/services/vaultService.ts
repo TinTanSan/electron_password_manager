@@ -239,14 +239,11 @@ class VaultService extends EventEmitter{
             return writeToFile({filePath:fp, toWrite:this.toSync})
         }
         else if (( (curTimestamp - this.lastSync) > 5 && curTimestamp < 30)){
-            console.log('syncing now')
             this.lastSync = curTimestamp;
-            console.log('writing to file: ', this.toSync.buffer)
             return writeToFile({filePath:fp, toWrite:this.toSync}) //forward result to caller
         }
         // update writeQueue with newer state
         this.addToWriteQueue();
-        console.log('debounced')
         return "DEBOUNCED OK"
     }
     serialiseVault(){
