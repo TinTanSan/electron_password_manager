@@ -9,7 +9,7 @@ import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
 import { createUUID } from "../crypto/commons";
 import { randomBytes } from "crypto";
-import assert from "assert";
+import { SyncService } from "./SyncService";
 export interface EntryMetaData{
     createDate:Date,
     lastEditDate:Date,
@@ -67,12 +67,11 @@ export interface Vault {
 
 class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
-    vaultInitialised = false;
-    toSync = Buffer.from("");
-    lastSync = -1;
+    vaultInitialised: boolean = false;
+    syncService:SyncService | undefined = undefined;
+
     constructor(){
         super();
-
     }
 
     setInitialVaultState(filePath:string, fileContents:Buffer){
@@ -89,7 +88,7 @@ class VaultService extends EventEmitter{
             },
             entryGroups : []
         }   
-        this.lastSync = Math.floor(new Date().getTime()/1000);
+        this.syncService = new SyncService(filePath);
         this.vaultInitialised = true;
     }
 
@@ -182,33 +181,35 @@ class VaultService extends EventEmitter{
     async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
         let dek = randomBytes(32);
         try{
-        const encryptedPass = encrypt(Buffer.from(password), dek);
-        const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
-        const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
-        this.vault.entries.push({
-            title,
-            username,
-            passHash: shaHash(password),
-            dek : {iv, tag, wrappedKey:encrypted},
-            password: encBuffConcated,
-            isFavourite: false,
-            notes,
-            extraFields,
-            group: '',
-            metadata:{
-                uuid: createUUID(),
-                createDate: new Date(),
-                lastRotateDate: new Date(),
-                lastEditDate: new Date(),
-                version: '1.0.0'
-            }   
+            const encryptedPass = encrypt(Buffer.from(password), dek);
+            const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
+            const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
+            this.vault.entries.push({
+                title,
+                username,
+                passHash: shaHash(password),
+                dek : {iv, tag, wrappedKey:encrypted},
+                password: encBuffConcated,
+                isFavourite: false,
+                notes,
+                extraFields,
+                group: '',
+                metadata:{
+                    uuid: createUUID(),
+                    createDate: new Date(),
+                    lastRotateDate: new Date(),
+                    lastEditDate: new Date(),
+                    version: '1.0.0'
+                }   
+                
+            })
             
-        })
-        
-        return await this.syncToFile(false);
+            this.syncService.updateBuffer(this.serialiseVault());
+            
         }finally{
             dek.fill(0);
             dek = undefined;
+            return true;
         }
     }
 
@@ -221,30 +222,6 @@ class VaultService extends EventEmitter{
         return this.vault.entries.filter((x)=>{
 
         })
-    }
-    
-    addToWriteQueue(){
-        this.toSync = this.serialiseVault();
-    }
-    async syncToFile(waitDebounce: boolean = true , filePath:string = this.vault.filePath ){
-        // if the filepath is given, we use that instead, otherwise default to the one provided by vault
-        const fp = filePath? filePath:  this.vault.filePath;
-        // debouncing logic
-        const curTimestamp = Math.floor(new Date().getTime()/1000);
-        // if we debounced for at least 5 seconds 
-        if (!waitDebounce){
-            // do not wait for the toSync result, generate a new state now
-            this.lastSync = curTimestamp;
-            this.addToWriteQueue();
-            return writeToFile({filePath:fp, toWrite:this.toSync})
-        }
-        else if (( (curTimestamp - this.lastSync) > 5 && curTimestamp < 30)){
-            this.lastSync = curTimestamp;
-            return writeToFile({filePath:fp, toWrite:this.toSync}) //forward result to caller
-        }
-        // update writeQueue with newer state
-        this.addToWriteQueue();
-        return "DEBOUNCED OK"
     }
     serialiseVault(){
         const fc = this.vault.fileContents;
@@ -294,7 +271,7 @@ class VaultService extends EventEmitter{
         entry[fieldToUpdate] = newValue;
         entry.metadata.lastEditDate = new Date();
         this.vault.vaultMetadata.lastEditDate = new Date();
-        this.syncToFile();
+        this.syncService.updateBuffer(this.serialiseVault());
         return true;
     }
 }
