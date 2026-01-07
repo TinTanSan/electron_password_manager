@@ -56,21 +56,16 @@ app.whenReady().then(()=>{
   if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
     vaultService.setMasterPassword('testPass').then((_)=>{
       // vaultService.addEntry('test','test','test','test');
-      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]).then((response)=>{
-        console.log(response)
-      }).catch((error)=>{
-        console.log(error);
-      })
-      setTimeout(() => {
-        vaultService.unlockVault('testPass').then((response)=>{
-          // console.log(response.entriesToDisplay)
-          const firstEntry = response.entriesToDisplay[0];
-          console.log(vaultService.vault.entries, firstEntry)
-        })
-      }, 5000);
-      
-
-      
+      vaultService.addEntry(
+        'test1',
+        'test1',
+        'test1',
+        'test1', 
+        [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
+      .then((response)=>{
+      });
+      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);
+      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);
     })
   }
 
