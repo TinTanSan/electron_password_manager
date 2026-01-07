@@ -55,8 +55,20 @@ export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
     }else{
       return "NOTFOUND"
     }
-  }
+}
 
+export const writeToFileAsync = (args:{filePath:string, toWrite: Buffer | string})=>{
+  const {filePath, toWrite} = args;
+    if (fs.existsSync(filePath)){
+      fs.writeFile(filePath, toWrite, (err)=>{
+        console.error(err);
+        return "NOT OK - "+ err
+      });
+      return "OK";
+    }else{
+      return "NOTFOUND"
+    }
+}
 
 ipcMain.handle('fileDialog:create', async()=>{
   const fileDialog = await dialog.showSaveDialog({title:"Create new file"
