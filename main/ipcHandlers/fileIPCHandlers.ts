@@ -57,7 +57,7 @@ export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
     }
 }
 
-export const writeToFileAsync = (args:{filePath:string, toWrite: Buffer | string})=>{
+export const writeToFileAsync = async (args:{filePath:string, toWrite: Buffer | string})=>{
   const {filePath, toWrite} = args;
     if (fs.existsSync(filePath)){
       fs.writeFile(filePath, toWrite, (err)=>{
