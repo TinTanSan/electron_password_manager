@@ -152,12 +152,15 @@ class VaultService extends EventEmitter{
     }
 
     closeVault(){
+        this.lockVault();
         this.vault = undefined; 
         this.vaultInitialised = false;
+        this.syncService.stopSyncLoop();
     }
 
     lockVault(){
-        this.vault.kek = undefined;
+        // zero out the kek
+        this.vault.kek = {kek:Buffer.from(new Array(this.vault.kek.kek.length).fill(0)), passHash: "", salt:Buffer.from(new Array(this.vault.kek.salt.length).fill(0))};
         this.vault.isUnlocked = false;
     }
     
