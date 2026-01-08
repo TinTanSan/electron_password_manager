@@ -56,6 +56,7 @@ app.whenReady().then(()=>{
   if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
     vaultService.setMasterPassword('testPass').then((_)=>{
       // vaultService.addEntry('test','test','test','test');
+      console.log('adding entries')
       vaultService.addEntry(
         'test1',
         'test1',
@@ -63,9 +64,16 @@ app.whenReady().then(()=>{
         'test1', 
         [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
       .then((response)=>{
+        console.log('added ent 1');
       });
-      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);
-      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}]);
+      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
+      .then(()=>{
+        console.log("added ent 2")
+      })
+      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
+      .then(()=>{
+        console.log("added ent 2")
+      })
     })
   }
 
@@ -77,8 +85,36 @@ app.on("window-all-closed", () => {
   }
 });
 
+app.on('before-quit',(e)=>{
+  e.preventDefault();
+  console.log('before quit triggered');
+
+  gracefulShutdown('before-quit');
+})
+
+async function gracefulShutdown(source: string) {
+  try {
+    console.log(`[shutdown] source=${source}`);
+    vaultService.closeVault();
+  } catch (err) {
+    console.error('[shutdown] error', err);
+  } finally {
+    app.exit(0); // NOT app.quit()
+  }
+}
+
+['SIGINT', 'SIGTERM', 'SIGHUP'].forEach((signal) => {
+  process.on(signal, () => {
+    gracefulShutdown(signal);
+  });
+});
+
 ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
+})
+
+process.on("quit",()=>{
+  console.log('quiting')
 })
 
 
