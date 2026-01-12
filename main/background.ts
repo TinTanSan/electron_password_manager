@@ -2,11 +2,7 @@ import path from 'path'
 import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
-import {setupMenus} from './helpers/setupMenus';
-import { Entry, Vault, vaultService } from './services/vaultService';
-import { preferenceStore } from './helpers/store/preferencesStore';
-import { serialisers } from './helpers/serialisation/serialisers';
-import { parsers } from './helpers/serialisation/parsers';
+import {vaultService } from './services/vaultService';
 const isProd = process.env.NODE_ENV === 'production'
 
 if (isProd) {
