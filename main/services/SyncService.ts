@@ -4,6 +4,7 @@ export class SyncService{
     filePath:string;
     stopSync:boolean;
     writeBuffer: Buffer;
+    isFlushing: boolean = false;
     constructor(filePath:string){
         this.filePath = filePath;
         this.stopSync = false;
@@ -14,7 +15,7 @@ export class SyncService{
     async startSyncLoop(){
         let result = "";
         while (!this.stopSync){
-            if(this.writeBuffer.length  > 0){
+            if(this.writeBuffer.length  > 0 && !this.isFlushing){
                 console.log('writing')
                 result = await writeToFileAsync({filePath:this.filePath, toWrite: this.writeBuffer})
                 if (result !== "OK"){
@@ -51,6 +52,18 @@ export class SyncService{
      */
     async forceUpdate(toWrite:Buffer){
         return await writeToFileAsync({filePath:this.filePath, toWrite});
+    }
+
+    async flushSyncBuffer(){
+        if(this.writeBuffer.length> 0 && !this.isFlushing){
+            this.isFlushing = true;
+            const result = await writeToFileAsync({filePath:this.filePath, toWrite:this.writeBuffer})
+            this.writeBuffer = Buffer.from("");
+            this.isFlushing = false;
+            return result;
+        }else{
+            "OK"
+        }
     }
 
 }
