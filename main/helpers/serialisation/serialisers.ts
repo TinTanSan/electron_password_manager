@@ -66,7 +66,6 @@ export const serialisers = {
         for (let i = 1; i<serialiserToUse.length; i++){
             ret += serialisers[serialiserToUse[i][1]](vault[serialiserToUse[i][0]]) + joiner;
         }
-        console.log('serialised vault with version: '+vault.vaultMetadata.version)
         return ret;
     }
 }
