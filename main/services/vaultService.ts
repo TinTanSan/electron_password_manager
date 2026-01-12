@@ -152,10 +152,15 @@ class VaultService extends EventEmitter{
     }
 
     closeVault(){
-        this.lockVault();
-        this.vault = undefined; 
-        this.vaultInitialised = false;
-        this.syncService.stopSyncLoop();
+        console.log("vault closing")
+        this.syncService.forceUpdate(this.serialiseVault()).then(()=>{
+            console.log("sync complete")
+            this.lockVault();
+            this.vault = undefined; 
+            this.vaultInitialised = false;
+            this.syncService.stopSyncLoop();
+            console.log("vault closed");
+        })
     }
 
     lockVault(){
@@ -277,6 +282,7 @@ class VaultService extends EventEmitter{
         this.syncService.updateBuffer(this.serialiseVault());
         return true;
     }
+
 }
 
 
