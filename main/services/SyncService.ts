@@ -41,5 +41,16 @@ export class SyncService{
         this.stopSync = true;
         console.log('stopping syncloop')
     }
+    /**
+     * Use this function for pre-emptively syncing without waiting
+     * This function is not responsible to stop the sync loop if using in conjunction with a function that
+     * handles application shutdowns!
+     * @param toWrite 
+     * 
+     * @returns 
+     */
+    async forceUpdate(toWrite:Buffer){
+        return await writeToFileAsync({filePath:this.filePath, toWrite});
+    }
 
 }
