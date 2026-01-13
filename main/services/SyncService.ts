@@ -16,18 +16,14 @@ export class SyncService{
         let result = "";
         while (!this.stopSync){
             if(this.writeBuffer.length  > 0 && !this.isFlushing){
-                console.log('writing')
                 result = await writeToFileAsync({filePath:this.filePath, toWrite: this.writeBuffer})
                 if (result !== "OK"){
                     this.stopSync = true;
                     throw new Error("Failed backup in syncLoop, reason: "+result);
                 }
                 this.writeBuffer = Buffer.from("");
-                console.log('waiting')
-                
             }
             await this.delay(5000);
-            console.log('delaying')
         }
         console.log('sync loop stopped')
     }
@@ -36,7 +32,6 @@ export class SyncService{
     }
     updateBuffer(content:Buffer){
         this.writeBuffer = content;
-        console.log('updated buffer', content)
     }
     stopSyncLoop(){
         this.stopSync = true;
