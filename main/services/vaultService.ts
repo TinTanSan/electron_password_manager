@@ -69,6 +69,7 @@ class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
     vaultInitialised: boolean = false;
     syncService:SyncService | undefined = undefined;
+    entriesMap: Map<string,Entry> = new Map();
 
     constructor(){
         super();
@@ -124,6 +125,9 @@ class VaultService extends EventEmitter{
         
         this.vault = parsers.vault(this.vault.fileContents);
         this.vault.kek = {passHash: hash, salt, kek}
+        this.vault.entries.forEach((entry)=>{
+            this.entriesMap.set(entry.metadata.uuid, entry);
+        })
         this.vault.entries.sort((a,b)=>{
             if (a.metadata.uuid < b.metadata.uuid) {
                 return -1;
@@ -241,6 +245,9 @@ class VaultService extends EventEmitter{
         const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
         return Buffer.from(toWrite);
     }
+    sync(){
+        this.syncService.updateBuffer(this.serialiseVault())
+    }
     
     async decryptPassword(uuid:string) {
         const entry = this.vault.entries.find(entry=>entry.metadata.uuid === uuid);
@@ -277,9 +284,15 @@ class VaultService extends EventEmitter{
             return false;
         }
         entry[fieldToUpdate] = newValue;
-        entry.metadata.lastEditDate = new Date();
-        this.vault.vaultMetadata.lastEditDate = new Date();
-        this.syncService.updateBuffer(this.serialiseVault());
+        const now = new Date();
+        entry.metadata.lastEditDate = now;
+        this.vault.vaultMetadata.lastEditDate = now;
+        this.sync()
+        return true;
+    }
+
+    async removeEntry(uuid:string){
+        this.vault.entries = this.vault.entries.filter(x=>x.metadata.uuid !== uuid);
         return true;
     }
 
