@@ -23,7 +23,7 @@ export class SyncService{
                 }
                 this.writeBuffer = Buffer.from("");
             }
-            await this.delay(5000);
+            await this.delay(3000);
         }
         console.log('sync loop stopped')
     }
@@ -39,14 +39,13 @@ export class SyncService{
     }
     /**
      * Use this function for pre-emptively syncing without waiting
-     * This function is not responsible to stop the sync loop if using in conjunction with a function that
-     * handles application shutdowns!
-     * @param toWrite 
+     * This function is not responsible for stopping the sync loop!
+     * @param toWrite : buffer to write to the file (this buffer overwrites all content)
      * 
      * @returns 
      */
     async forceUpdate(toWrite:Buffer){
-        return await writeToFileAsync({filePath:this.filePath, toWrite});
+        return await  writeToFileAsync({filePath:this.filePath, toWrite})
     }
 
     async flushSyncBuffer(){

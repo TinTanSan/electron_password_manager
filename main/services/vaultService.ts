@@ -30,16 +30,16 @@ export interface DataEncryptionKey{
 
 }
 export interface Entry {
-    metadata : EntryMetaData;
-    title    : string;
-    username : string;
-    dek: DataEncryptionKey;
-    password : Buffer;
-    passHash : Buffer;
-    notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
-    isFavourite: boolean;
-    extraFields: Array<ExtraField>;
-    group: string;
+        metadata : EntryMetaData;
+        title    : string;
+        username : string;
+        dek: DataEncryptionKey;
+        password : Buffer;
+        passHash : Buffer;
+        notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
+        isFavourite: boolean;
+        extraFields: Array<ExtraField>;
+        group: string;
 }
 
 export type vaultMetaData = {
@@ -59,7 +59,7 @@ export interface Vault {
     fileContents:Buffer
     isUnlocked:boolean,
     kek:KEKParts | undefined, //KEK should be set to undefined when the vault is locked 
-    entries: Array<Entry>,
+    entries: Map<string,Entry>,
     entryGroups: Array<EntryGroup>
     
 }
@@ -81,7 +81,7 @@ class VaultService extends EventEmitter{
             fileContents ,
             isUnlocked: false,
             kek : undefined,
-            entries: [],
+            entries: new Map(),
             vaultMetadata: {
                 lastEditDate: new Date(),
                 createDate: new Date(),
@@ -125,18 +125,18 @@ class VaultService extends EventEmitter{
         
         this.vault = parsers.vault(this.vault.fileContents);
         this.vault.kek = {passHash: hash, salt, kek}
-        this.vault.entries.forEach((entry)=>{
-            this.entriesMap.set(entry.metadata.uuid, entry);
-        })
-        this.vault.entries.sort((a,b)=>{
-            if (a.metadata.uuid < b.metadata.uuid) {
-                return -1;
-            }
-            if (a.metadata.uuid > b.metadata.uuid) {
-                return 1;
-            }
-            return 0;
-        })
+        // this.vault.entries.forEach((entry)=>{
+        //     this.entriesMap.set(entry.metadata.uuid, entry);
+        // })
+        // this.vault.entries.sort((a,b)=>{
+        //     if (a.metadata.uuid < b.metadata.uuid) {
+        //         return -1;
+        //     }
+        //     if (a.metadata.uuid > b.metadata.uuid) {
+        //         return 1;
+        //     }
+        //     return 0;
+        // })
         return {
             entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
@@ -155,16 +155,15 @@ class VaultService extends EventEmitter{
         }
     }
 
-    closeVault(){
+    async closeVault(){
         console.log("vault closing")
-        this.syncService.forceUpdate(this.serialiseVault()).then(()=>{
-            console.log("sync complete")
-            this.lockVault();
-            this.vault = undefined; 
-            this.vaultInitialised = false;
-            this.syncService.stopSyncLoop();
-            console.log("vault closed");
-        })
+        await this.syncService.forceUpdate(this.serialiseVault())
+        console.log("sync complete")
+        this.lockVault();
+        this.vault = undefined; 
+        this.vaultInitialised = false;
+        this.syncService.stopSyncLoop();
+        console.log("vault closed");
     }
 
     lockVault(){
@@ -173,12 +172,12 @@ class VaultService extends EventEmitter{
         this.vault.isUnlocked = false;
     }
     
-    async setMasterPassword(password){
+    async setMasterPassword(password:string){
         const KEKParts = await makeNewKEK(password);
         this.vault.kek = KEKParts;
     
         const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
-        const response = writeToFile({filePath: this.vault.filePath, toWrite});
+        const response = await this.syncService.forceUpdate(toWrite);
         if (response === "OK"){
             return {
                 entriesToDisplay : this.getPaginatedEntries(1),
@@ -196,7 +195,8 @@ class VaultService extends EventEmitter{
             const encryptedPass = encrypt(Buffer.from(password), dek);
             const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
             const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
-            this.vault.entries.push({
+            const uuid = createUUID();
+            this.vault.entries.set(uuid,{
                 title,
                 username,
                 passHash: shaHash(password),
@@ -207,7 +207,7 @@ class VaultService extends EventEmitter{
                 extraFields,
                 group: '',
                 metadata:{
-                    uuid: createUUID(),
+                    uuid,
                     createDate: new Date(),
                     lastRotateDate: new Date(),
                     lastEditDate: new Date(),
@@ -216,7 +216,7 @@ class VaultService extends EventEmitter{
                 
             })
             
-            this.syncService.updateBuffer(this.serialiseVault());
+            this.sync();
             
         }finally{
             dek.fill(0);
@@ -227,30 +227,35 @@ class VaultService extends EventEmitter{
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
-        return this.vault.entries.slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
+        return Array.from(this.vault.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
+    /// TODO
     searchEntries(title:string, username:string, notes:string){
-        return this.vault.entries.filter((x)=>{
+        // return this.vault.entries.((x)=>{
 
-        })
+        // })
+        return [];
     }
     serialiseVault(){
         const fc = this.vault.fileContents;
-        const idx = fc.findIndex(x=>x===10);
+        const idx = fc.findIndex(x=>x===10); //ascii 10 -> new line character
         if (idx ===-1){
-            throw new Error('attempted to use syncToFile without having set Master password, please first use setMasterPassword to set the master password the first time')
+            throw new Error('attempted to use serialise without having set Master password, please first use setMasterPassword to set the master password the first time')
         }
         const passwordComponents = this.vault.fileContents.subarray(0, idx).toString()
         const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
         return Buffer.from(toWrite);
     }
     sync(){
-        this.syncService.updateBuffer(this.serialiseVault())
+        this.syncService.updateBuffer(this.serialiseVault());
     }
     
     async decryptPassword(uuid:string) {
-        const entry = this.vault.entries.find(entry=>entry.metadata.uuid === uuid);
+        const entry = this.vault.entries.get(uuid);
+        if(!entry){
+            return "";
+        }
         try{
             const dek = entry.dek;
             // if the entry's password is empty then we do not attempt to decrypt
@@ -271,8 +276,7 @@ class VaultService extends EventEmitter{
     }
 
     async updateEntry(uuid: string,fieldToUpdate:string, newValue:string){
-        let entryIdx = this.vault.entries.findIndex(x=>x.metadata.uuid === uuid);
-        let entry = this.vault.entries[entryIdx];
+        let entry = this.vault.entries.get(uuid);
         let isFieldInEntry = false;
         for(let field in entry){
             if (field === fieldToUpdate){
@@ -292,8 +296,9 @@ class VaultService extends EventEmitter{
     }
 
     async removeEntry(uuid:string){
-        this.vault.entries = this.vault.entries.filter(x=>x.metadata.uuid !== uuid);
-        return true;
+        const result = this.vault.entries.delete(uuid);
+        this.sync()
+        return result;
     }
 
 }

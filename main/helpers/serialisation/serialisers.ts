@@ -54,8 +54,8 @@ export const serialisers = {
         }
         return ret;
     },
-    'entries': (entries:Array<Entry>)=>{
-        return entries.map((entry)=>serialisers.entry(entry)).join(entrySplit);
+    'entries': (entries:Map<string,Entry>)=>{
+        return Array.from(entries.values()).map((entry)=>serialisers.entry(entry)).join(entrySplit);
     },
     
     'vault': (vault:Vault)=>{

@@ -46,31 +46,14 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/vaultIPCHandlers');
   import("./helpers/store/preferencesStore");
-  
 
-  
   if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
     vaultService.setMasterPassword('testPass').then((_)=>{
-      // vaultService.addEntry('test','test','test','test');
-      vaultService.addEntry(
-        'test',
-        'test',
-        'test',
-        'test', 
-        [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
-      .then((response)=>{
-
-      });
-      vaultService.addEntry('test1','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
-      .then(()=>{
+      vaultService.addEntry('test','test','test','test').then((response)=>{
+        console.log('title is: ',Array.from(vaultService.vault.entries.values())[0].title)
       })
-      vaultService.addEntry('test2','test1','test1','test1', [{name:"testFeild", data:Buffer.from("hello"), isProtected:false}])
-      .then(()=>{
-        vaultService.updateEntry(vaultService.vault.entries[0].metadata.uuid,'username','updated').then((response)=>{
-        });
-      })
-
     })
+    
   }
 
 })
@@ -89,7 +72,7 @@ app.on('before-quit',(e)=>{
 async function gracefulShutdown(source: string) {
   try {
     console.log(`[shutdown] source=${source}`);
-    vaultService.closeVault();
+    await vaultService.closeVault();
   } catch (err) {
     console.error('[shutdown] error', err);
   } finally {
@@ -107,16 +90,11 @@ ipcMain.handle('message', async (_, arg) => {
   return "hello "+arg
 })
 
-process.on("quit",()=>{
-  console.log('quiting')
-})
 
 
 
 ipcMain.handle('clipboard:clear', ()=>{
-  console.log(clipboard.read('ascii'))
   clipboard.clear();
-  console.log('clipboard cleared')
 })
 
 

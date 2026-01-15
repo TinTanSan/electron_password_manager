@@ -1,5 +1,5 @@
 import { dekSplit, entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
-import { EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
+import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import assert from "node:assert";
 
 
@@ -68,12 +68,34 @@ export const parsers = {
     
     
     // entry/vault level parsers
-    'entry':(entryStr:string)=>{
+    'entry':(entryStr:string):Entry=>{
        
         const version = entryStr.substring(0,entryStr.indexOf(entryMDSplit));
         const constituents = entryConstituents[version];
         const split = entryStr.split(constituents[0][1]);
-        let res = {}
+        const now = new Date();
+        let res = {
+            metadata : {createDate:now,
+                lastEditDate:now,
+                lastRotateDate:now,
+                uuid: "",
+                version: "", 
+            },
+            title    : "",
+            username : "",
+            dek:{
+                wrappedKey: Buffer.from(''),
+                iv: Buffer.from(""),
+                salt: Buffer.from(""),
+                tag: Buffer.from(""),
+            },
+            password : Buffer.from(''),
+            passHash : Buffer.from(''),
+            notes    : "",
+            isFavourite: false,
+            extraFields: [],
+            group: "",
+        }
         for(let i = 1; i< constituents.length; i++){
             const constituent = constituents[i];
             res[constituent[0]] = parsers[constituent[1]](split[i-1]);
@@ -82,7 +104,14 @@ export const parsers = {
     },
     'entries':(entriesStr:string)=>{
         const split = entriesStr.split(entrySplit);
-        return split.map((entry)=>parsers.entry(entry))
+        const entryArray = split.map((entry)=>{
+            const parsedEnt = parsers.entry(entry)
+            console.log(parsedEnt);
+            return [parsedEnt.metadata.uuid,parsedEnt]
+        });
+        const entries = new Map();
+        
+        return 
     },
 
     'vault': (vaultStr: Buffer)=>{
@@ -98,7 +127,7 @@ export const parsers = {
             fileContents: vaultStr,
             isUnlocked: false,
             kek: {passHash:"",salt:Buffer.from(""),kek:Buffer.from("")},
-            entries:[],
+            entries:new Map(),
             vaultMetadata:{
                 createDate: new Date(),
                 lastEditDate: new Date(),
