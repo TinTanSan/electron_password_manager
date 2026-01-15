@@ -232,10 +232,12 @@ class VaultService extends EventEmitter{
 
     /// TODO
     searchEntries(title:string, username:string, notes:string){
-        // return this.vault.entries.((x)=>{
-
-        // })
-        return [];
+        const response = Array.from(this.vault.entries.values()).filter(x=>{
+            if (title && x.title.toLowerCase().includes(title.toLowerCase())) return true;
+            if (username && x.username.toLowerCase().includes(title.toLowerCase())) return true;
+            if (notes && x.notes.toLowerCase().includes(title.toLowerCase())) return true;
+        })
+        return response;
     }
     serialiseVault(){
         const fc = this.vault.fileContents;
