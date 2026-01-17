@@ -124,19 +124,8 @@ class VaultService extends EventEmitter{
         })
         
         this.vault = parsers.vault(this.vault.fileContents);
+
         this.vault.kek = {passHash: hash, salt, kek}
-        // this.vault.entries.forEach((entry)=>{
-        //     this.entriesMap.set(entry.metadata.uuid, entry);
-        // })
-        // this.vault.entries.sort((a,b)=>{
-        //     if (a.metadata.uuid < b.metadata.uuid) {
-        //         return -1;
-        //     }
-        //     if (a.metadata.uuid > b.metadata.uuid) {
-        //         return 1;
-        //     }
-        //     return 0;
-        // })
         return {
             entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
@@ -167,9 +156,13 @@ class VaultService extends EventEmitter{
     }
 
     lockVault(){
-        // zero out the kek
-        this.vault.kek = {kek:Buffer.from(new Array(this.vault.kek.kek.length).fill(0)), passHash: "", salt:Buffer.from(new Array(this.vault.kek.salt.length).fill(0))};
-        this.vault.isUnlocked = false;
+        try{
+            this.syncService.flushSyncBuffer().then((_)=>{
+            })
+        }finally{
+
+        }
+        
     }
     
     async setMasterPassword(password:string){
