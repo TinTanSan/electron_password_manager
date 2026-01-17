@@ -46,15 +46,25 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/vaultIPCHandlers');
   import("./helpers/store/preferencesStore");
-
-  if (vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt') === "OK"){
-    vaultService.setMasterPassword('testPass').then((_)=>{
-      vaultService.addEntry('test','test','test','test').then((response)=>{
-        console.log('title is: ',Array.from(vaultService.vault.entries.values())[0].title)
-      })
+  const response = vaultService.openVault('/Users/t/Desktop/coding/web_dev/password_manager/test.vlt');
+  // vaultService.setMasterPassword('testPass').then((res)=>{
+  //     if (res.status === "OK"){
+  if (response === "OK"){
+    vaultService.unlockVault('testPass').then((response)=>{
+      console.log(response);
     })
-    
   }
+  
+      // vaultService.addEntry('test1','test1','test1','test1').then(()=>{
+      //   vaultService.addEntry('test2','test2','test2','test2').then(()=>{
+      //     vaultService.addEntry('test3','test3','test3','test3').then(()=>{
+      //       vaultService.lockVault();
+      //     })  
+      //   })
+      // })      
+    // })
+  // }
+  
 
 })
 
