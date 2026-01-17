@@ -104,9 +104,11 @@ export const parsers = {
     },
     'entries':(entriesStr:string):Map<string, Entry>=>{
         const split = entriesStr.split(entrySplit);
-        const entryArray = split.map((entry)=>parsers.entry(entry));
-        const entries = new Map();
-        entryArray.forEach((entry)=>entries.set(entry.metadata.uuid, entry));
+        let entries = new Map();
+        split.forEach((entryStr)=>{
+            const entry = parsers.entry(entryStr);
+            entries.set(entry.metadata.uuid, entry);
+        })
         return entries;
     },
 
