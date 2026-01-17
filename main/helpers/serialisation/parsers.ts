@@ -102,16 +102,12 @@ export const parsers = {
         }
         return res;
     },
-    'entries':(entriesStr:string)=>{
+    'entries':(entriesStr:string):Map<string, Entry>=>{
         const split = entriesStr.split(entrySplit);
-        const entryArray = split.map((entry)=>{
-            const parsedEnt = parsers.entry(entry)
-            console.log(parsedEnt);
-            return [parsedEnt.metadata.uuid,parsedEnt]
-        });
+        const entryArray = split.map((entry)=>parsers.entry(entry));
         const entries = new Map();
-        
-        return 
+        entryArray.forEach((entry)=>entries.set(entry.metadata.uuid, entry));
+        return entries;
     },
 
     'vault': (vaultStr: Buffer)=>{
@@ -135,6 +131,7 @@ export const parsers = {
             },
             entryGroups:[]
         }
+
         for(let str of split){
             if (!str) continue;
             try {
