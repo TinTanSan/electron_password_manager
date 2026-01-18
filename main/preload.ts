@@ -1,20 +1,38 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { ExtraField } from './services/vaultService'
 
-const handler = {
+const vaultIPCHandlers = {
+  openVault: (filePath:string)=>ipcRenderer.invoke('vault:open', filePath),
+  setMasterPassword: (password:string)=>ipcRenderer.invoke('vault:setPass', password),
+  unlockVault:(password:string)=>ipcRenderer.invoke('vault:unlock', password),
+  lockVault:()=>ipcRenderer.send('vault:lock'),
+  closeVault:()=>ipcRenderer.send('vault:close'),
+
+  updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
+  deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
+  addEntry:(title:string,username:string, password:string,notes:string, extraFields:Array<ExtraField> = [], group:string = undefined)=>ipcRenderer.invoke('vault:addEntry', title, username, password, notes, extraFields, group)
+  
+}
+
+const fileIPCHandlers = {
   openFilePicker: ()=>ipcRenderer.invoke('fileDialog:open'),
   openCreateFile: ()=>ipcRenderer.invoke('fileDialog:create'),
-  openVault: (filePath:string)=>ipcRenderer.invoke('vault:open', filePath),
-  setVaultMasterPass: (password:string)=>ipcRenderer.invoke('vault:setPass', password),
-  unlockVault: (password:string)=>ipcRenderer.invoke('vault:unlock', password),
-  handleHome: ()=>ipcRenderer.send('home'),
   getRecents: ()=>ipcRenderer.invoke('recents:get'),
   addRecent: (filePath:string)=>ipcRenderer.send('recents:add', filePath),
-  // writeFile: (filePath:string, toWrite:Buffer)=>ipcRenderer.invoke('writeFile', ({filePath, toWrite})), to be replaced with vault update
+}
+
+const clipBoardIPCHandlers = {
   clearClipboard: ()=>ipcRenderer.invoke('clipboard:clear'),
+  copyPassword: (entryUUID:string) =>{},
 }
 
 
 
-contextBridge.exposeInMainWorld('ipc', handler)
+contextBridge.exposeInMainWorld('vaultIPC', vaultIPCHandlers);
+contextBridge.exposeInMainWorld('fileIPC', fileIPCHandlers);
+contextBridge.exposeInMainWorld('clipBoardIPC', clipBoardIPCHandlers);
 
-export type IpcHandler = typeof handler
+
+export type VaultIpcHandler = typeof vaultIPCHandlers;
+export type FileIpcHandler = typeof fileIPCHandlers;
+export type ClipBoardIPCHandler = typeof clipBoardIPCHandlers;
