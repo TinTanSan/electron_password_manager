@@ -171,18 +171,11 @@ class VaultService extends EventEmitter{
     
         const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
         const response = await this.syncService.forceUpdate(toWrite);
-        if (response === "OK"){
-            return {
-                entriesToDisplay : this.getPaginatedEntries(1),
-                status: "OK"
-            };
-        }else{
-            return {entriesToDisplay: [], status:"ERROR_ON_WRITE"}
-        }
+        return response === "OK";
     }
 
 
-    async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] ){
+    async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] , group:string = ''){
         let dek = randomBytes(32);
         try{
             const encryptedPass = encrypt(Buffer.from(password), dek);
@@ -198,7 +191,7 @@ class VaultService extends EventEmitter{
                 isFavourite: false,
                 notes,
                 extraFields,
-                group: '',
+                group,
                 metadata:{
                     uuid,
                     createDate: new Date(),
@@ -208,7 +201,14 @@ class VaultService extends EventEmitter{
                 }   
                 
             })
-            
+            if(group){
+                let gIdx = this.vault.entryGroups.findIndex(x=>x.groupName === group);
+                if(gIdx === -1){
+                    this.vault.entryGroups.push({groupName:group, entries:[uuid]});
+                }else{
+                    this.vault.entryGroups.at(gIdx).entries.push(uuid)
+                }
+            }
             this.sync();
             
         }finally{
