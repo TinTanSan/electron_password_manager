@@ -17,13 +17,13 @@ export default function LoadFile() {
     const banners = useContext(BannerContext);
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
-        window.ipc.openCreateFile().then((filePath)=>{
+        window.fileIPC.openCreateFile().then((filePath)=>{
             
             if (filePath){
                 // since its a new file, the file content will be empty anyways
                 setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
-                window.ipc.addRecent(filePath);
-                window.ipc.openVault(filePath).then((response)=>{
+                window.fileIPC.addRecent(filePath);
+                window.vaultIPC.openVault(filePath).then((response)=>{
                     if (response.message = 'NOT_OK'){
                         addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
                         return;
@@ -38,9 +38,9 @@ export default function LoadFile() {
         // filepath is undefined if the user clicked on open vault, 
         // the filepath will be defined and a valid path if they picked from the recent vaults
         if (filepath === undefined){
-            window.ipc.openFilePicker().then(({fileContents, filePath, status}:{fileContents:string, filePath:string, status:string})=>{
+            window.fileIPC.openFilePicker().then(({fileContents, filePath, status}:{fileContents:string, filePath:string, status:string})=>{
                 if (status ==="OK"){
-                    window.ipc.getRecents().then((recents:Array<string>)=>{
+                    window.fileIPC.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
                         setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
@@ -53,14 +53,13 @@ export default function LoadFile() {
                 }
             })
         }else{
-            window.ipc.openVault(filepath).then((response)=>{
+            window.vaultIPC.openVault(filepath).then((response)=>{
                 if (response.message === 'NOT_OK'){
                     addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
                     return;
                 }
                 setRequiresInitisalisation(response.message === "SET_PASS");
                 setVault({ filePath:filepath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
-                console.log(response)
             })
         }
         
@@ -84,7 +83,7 @@ export default function LoadFile() {
               addBanner(banners,passMessage, 'warning' )
               return;
             }
-            window.ipc.setVaultMasterPass(password).then((response)=>{
+            window.vaultIPC.setMasterPassword(password).then((response)=>{
                 if (response.status === "OK"){
                     setVault(prev=>({...prev,entries: response.entriesToDisplay, isUnlocked:true}))
                     navigate.push('/home');
@@ -100,7 +99,7 @@ export default function LoadFile() {
               addBanner(banners, "Password cannot be empty", "warning");
               return;
             }
-            window.ipc.unlockVault(password).then((response)=>{
+            window.vaultIPC.unlockVault(password).then((response)=>{
                 if (response.status === "OK"){
                     addBanner(banners, 'vault unlocked', 'success')
                     setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
@@ -115,7 +114,7 @@ export default function LoadFile() {
         }
 
     useEffect(()=>{
-        window.ipc.getRecents().then((x)=>{setRecent(x)})
+        window.fileIPC.getRecents().then((x)=>{setRecent(x)})
     },[])
 
   return (
@@ -157,7 +156,7 @@ export default function LoadFile() {
             <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-center items-center py-5'>
                 {requiresInitialisation && 
                 <div className='flex flex-nowrap text-sm w-[80%] h-fit items-center justify-center gap-2'>
-                    <div className='flex w-4 h-4 rounded-full border-[1px] justify-center items-center'>i</div>
+                    <div className='flex w-4 h-4 rounded-full border justify-center items-center'>i</div>
                     <div className='flex w-fit flex-wrap'>
                     {requiresInitialisation?"Please create a master password, this will be used to enter the vault. If you lose this password or forget it, you will not be able to enter the vault ever. But also do not use an easy to guess password or a password with only a few characters.":
                     "Enter your password"}
