@@ -28,7 +28,19 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    throw new Error("Implement via calls to IPCMain channels")
+    if(!searchFilter){
+      window.vaultIPC.getPaginatedEntries(0).then((response)=>{
+        setPaginatedEntries(response);
+      })
+    }else{
+      const title = searchSettings.searchTitle? searchFilter : "";
+      const username = searchSettings.searchUsername? searchFilter : "";
+      const notes = searchSettings.searchNotes? searchFilter : "";
+      window.vaultIPC.searchEntries(title,username, notes).then((response)=>{
+        setPaginatedEntries(response);
+      })
+    }
+      
   }, [searchFilter, searchSettings, vault?.entries])
 
 
@@ -37,7 +49,7 @@ export default function HomePage() {
   }, [page])
 
   return (
-    <div className='flex w-screen h-screen items-center justify-center bg-gradient-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
+    <div className='flex w-screen h-screen items-center justify-center bg-linear-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
       <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
     {(vault !== undefined && !vault.isUnlocked) && 
       <UnlockVaultPrompt />
