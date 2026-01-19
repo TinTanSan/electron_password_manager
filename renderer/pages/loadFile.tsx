@@ -18,13 +18,12 @@ export default function LoadFile() {
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
         window.fileIPC.openCreateFile().then((filePath)=>{
-            
             if (filePath){
                 // since its a new file, the file content will be empty anyways
                 setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                 window.fileIPC.addRecent(filePath);
                 window.vaultIPC.openVault(filePath).then((response)=>{
-                    if (response.message = 'NOT_OK'){
+                    if (response.message === 'NOT_OK'){
                         addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
                         return;
                     }
@@ -85,7 +84,7 @@ export default function LoadFile() {
             }
             window.vaultIPC.setMasterPassword(password).then((response)=>{
                 if (response.status === "OK"){
-                    setVault(prev=>({...prev,entries: response.entriesToDisplay, isUnlocked:true}))
+                    setVault(prev=>({...prev, isUnlocked:true}))
                     navigate.push('/home');
                 }else{
                     addBanner(banners, 'unable to write to file', 'error')
