@@ -98,7 +98,7 @@ class VaultService extends EventEmitter{
 
     async unlockVault(password:string){
         if (this.vault.fileContents.length === 0){
-            throw   new Error("Cannot unlock vault without any contents in the vault, are you sure you initialised it correctly?");
+            throw new Error("Cannot unlock vault without any contents in the vault, are you sure you initialised it correctly?");
         }
         const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 10) //124 is the vertical pipe symbol `|`
         if (idx === -1){
@@ -133,6 +133,9 @@ class VaultService extends EventEmitter{
             entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
         };
+    }
+    getNumEntries(){
+        return this.vault.entries.size;
     }
 
     openVault(filePath:string){
@@ -228,26 +231,28 @@ class VaultService extends EventEmitter{
 
     /// TODO
     searchEntries(title:string, username:string, notes:string, page:number = 0){
-        let filteredEntries = [];
+        
         const pageLen = preferenceStore.get('entriesPerPage');
         // if no search filter, just return the first page of paginated entries;
         if (!title && !username && !notes && page === 0) {
             console.warn("Please try not to call searchEntries without having any search params present, instead use getPaginatedEntries");
-            return this.getPaginatedEntries(0);
+            return {entries: this.getPaginatedEntries(0), numEntries: this.vault.entries.size }
         }
         // when the frontend wants the same searched results but a different page from pagination
         if (!title && !username && !notes && page >0){
-            return this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x));
+            
+            return {entries: this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x)), numEntries: this.vault.entries.size}
         }
         // if we got the same exact params as the last search, serve the requested page of results 
         if(title === this.searchedTitle && username == this.searchedUsername && notes === this.searchedNotes){
-            return this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x));
+            return {entries: this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x)), numEntries: this.searchResults.length}
         }
         // new search query
         if (title) this.searchedTitle = title;
         if (username) this.searchedUsername= username;     
         if (notes) this.searchedNotes = notes;
-
+            
+        let filteredEntries = [];
         this.vault.entries.forEach((entry, uuid)=>{
             if(title && entry.title.toLowerCase().includes(title.toLowerCase())) filteredEntries.push(uuid)
             if(username && entry.username.toLowerCase().includes(username.toLowerCase())) filteredEntries.push(uuid)
@@ -255,7 +260,7 @@ class VaultService extends EventEmitter{
         })
         this.searchResults = filteredEntries;
         
-        return this.searchResults.slice(page*pageLen,page*pageLen+ pageLen).map((x)=>this.vault.entries.get(x));
+        return {entries: this.searchResults.slice(page*pageLen,page*pageLen+ pageLen).map((x)=>this.vault.entries.get(x)), numEntries: filteredEntries.length}
     }
     
     serialiseVault(){
