@@ -8,6 +8,10 @@ const vaultIPCHandlers = {
   lockVault:()=>ipcRenderer.send('vault:lock'),
   closeVault:()=>ipcRenderer.send('vault:close'),
 
+  getPaginatedEntries: (page:number)=>ipcRenderer.invoke('vault:getPaginatedEntries', page),
+  searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
+
+
   updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
   deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
   addEntry:(title:string,username:string, password:string,notes:string, extraFields:Array<ExtraField> = [], group:string = undefined)=>ipcRenderer.invoke('vault:addEntry', title, username, password, notes, extraFields, group)
