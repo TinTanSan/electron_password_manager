@@ -18,6 +18,8 @@ export default function HomePage() {
   // for pagination
   const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
   const [page, setPage] = useState(0);
+  // total number of entries
+  const [numEntries, setNumEntries]= useState(0);
   
   // singleton vairable for entriesPerPage which will eventually be supplied by the preferences context/ hook
   const entriesPerPage = 100;  
@@ -26,6 +28,9 @@ export default function HomePage() {
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
 
+  useEffect(()=>{
+    window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
+  },[])
 
   useEffect(()=>{
     if(!searchFilter){
@@ -45,7 +50,9 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    throw new Error("Implement via calls to IPCMain channels")
+    window.vaultIPC.getPaginatedEntries(page).then((response)=>{
+      setPaginatedEntries(response);
+    })
   }, [page])
 
   return (
@@ -76,7 +83,7 @@ export default function HomePage() {
               </button>
             </div>}
             <p className='flex w-fit right-3  absolute'>
-              showing entries {(entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), paginatedEntries.length)} of {shownEntries.length}
+              showing entries {(entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), paginatedEntries.length)} of {numEntries}
             </p>
 
           </div>
