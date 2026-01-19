@@ -70,7 +70,10 @@ class VaultService extends EventEmitter{
     vaultInitialised: boolean = false;
     syncService:SyncService | undefined = undefined;
     entriesMap: Map<string,Entry> = new Map();
-
+    searchResults: Array<string> = [];
+    searchedTitle:string = "";
+    searchedUsername:string = "";
+    searchedNotes:string = "";
     constructor(){
         super();
     }
@@ -224,14 +227,37 @@ class VaultService extends EventEmitter{
     }
 
     /// TODO
-    searchEntries(title:string, username:string, notes:string){
-        const response = Array.from(this.vault.entries.values()).filter(x=>{
-            if (title && x.title.toLowerCase().includes(title.toLowerCase())) return true;
-            if (username && x.username.toLowerCase().includes(title.toLowerCase())) return true;
-            if (notes && x.notes.toLowerCase().includes(title.toLowerCase())) return true;
+    searchEntries(title:string, username:string, notes:string, page:number = 0){
+        let filteredEntries = [];
+        const pageLen = preferenceStore.get('entriesPerPage');
+        // if no search filter, just return the first page of paginated entries;
+        if (!title && !username && !notes && page === 0) {
+            console.warn("Please try not to call searchEntries without having any search params present, instead use getPaginatedEntries");
+            return this.getPaginatedEntries(0);
+        }
+        // when the frontend wants the same searched results but a different page from pagination
+        if (!title && !username && !notes && page >0){
+            return this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x));
+        }
+        // if we got the same exact params as the last search, serve the requested page of results 
+        if(title === this.searchedTitle && username == this.searchedUsername && notes === this.searchedNotes){
+            return this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x));
+        }
+        // new search query
+        if (title) this.searchedTitle = title;
+        if (username) this.searchedUsername= username;     
+        if (notes) this.searchedNotes = notes;
+
+        this.vault.entries.forEach((entry, uuid)=>{
+            if(title && entry.title.toLowerCase().includes(title.toLowerCase())) filteredEntries.push(uuid)
+            if(username && entry.username.toLowerCase().includes(username.toLowerCase())) filteredEntries.push(uuid)
+            if(notes && entry.notes.toLowerCase().includes(notes.toLowerCase())) filteredEntries.push(uuid)
         })
-        return response;
+        this.searchResults = filteredEntries;
+        
+        return this.searchResults.slice(page*pageLen,page*pageLen+ pageLen).map((x)=>this.vault.entries.get(x));
     }
+    
     serialiseVault(){
         const fc = this.vault.fileContents;
         const idx = fc.findIndex(x=>x===10); //ascii 10 -> new line character
