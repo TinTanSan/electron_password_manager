@@ -34,6 +34,8 @@ ipcMain.handle('vault:setPass', async (_,password)=>vaultService.setMasterPasswo
 // Entry CRUD operation handlers
 ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
 
+ipcMain.handle('vault:getEntry', async(_, uuid)=>vaultService.getEntry(uuid))
+
 ipcMain.handle('vault:addEntry', async (_,entry)=>vaultService.addEntry(entry))
 
 ipcMain.handle('vault:searchEntries', (_,title:string, username:string, notes:string)=>vaultService.searchEntries(title, username, notes))
