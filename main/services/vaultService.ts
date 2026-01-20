@@ -181,17 +181,23 @@ class VaultService extends EventEmitter{
     }
 
 
-    async addEntry(title:string, username:string, password:string, notes:string = '', extraFields:Array<ExtraField> = [] , group:string = ''){
+    async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}){
+        const {title, username, password, notes, extraFields, group} = entry;
         let dek = randomBytes(32);
+        let response = {
+            status : "NOT FULFILLED",
+            result: "Did not fulfill the task"
+
+        }
         try{
-            const encryptedPass = encrypt(Buffer.from(password), dek);
+            const encryptedPass = encrypt(password, dek);
             const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
             const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
             const uuid = createUUID();
             this.vault.entries.set(uuid,{
                 title,
                 username,
-                passHash: shaHash(password),
+                passHash: shaHash(password.toString()),
                 dek : {iv, tag, wrappedKey:encrypted},
                 password: encBuffConcated,
                 isFavourite: false,
@@ -216,13 +222,13 @@ class VaultService extends EventEmitter{
                 }
             }
             this.sync();
-            return {
+            response =  {
                 status:"OK",
                 result: uuid};   
         }
         catch (error){
             console.error('An error occured whilst adding entry: ', error);
-            return {
+            response =  {
                 status:"Err",
                 result: error
             }
@@ -230,7 +236,7 @@ class VaultService extends EventEmitter{
         finally{
             dek.fill(0);
             dek = undefined;
-            return true;
+            return response;
         }
     }
 
