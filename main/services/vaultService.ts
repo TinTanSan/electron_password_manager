@@ -192,7 +192,6 @@ class VaultService extends EventEmitter{
 
 
     async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}){
-        const {title, username, password, notes, extraFields, group} = entry;
         let dek = randomBytes(32);
         let response = {
             status : "NOT FULFILLED",
@@ -200,6 +199,7 @@ class VaultService extends EventEmitter{
 
         }
         try{
+            const {title, username, password, notes, extraFields, group} = entry;
             const encryptedPass = encrypt(password, dek);
             const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
             const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
@@ -252,7 +252,6 @@ class VaultService extends EventEmitter{
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
-        console.log(this.vault.entries);
         return Array.from(this.vault.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
