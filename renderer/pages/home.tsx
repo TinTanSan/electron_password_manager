@@ -1,7 +1,7 @@
-// 'use client'
+'use client'
 import React, { useContext, useEffect, useState } from 'react'
+import {useRouter} from 'next/navigation';
 import { VaultContext } from '../contexts/vaultContext';
-import UnlockVaultPrompt from '../components/unlockVaultPrompt';
 import Navbar from '../components/Navbar';
 import { Entry } from '../interfaces/Entry';
 import {SearchSettings} from '../components/searchBar';
@@ -12,6 +12,7 @@ import Sidebar from '../components/Sidebar';
 
 export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
+  const navigate = useRouter();
   const [searchFilter, setSearchFilter] = useState("");
   
   const [page, setPage] = useState(0);
@@ -26,6 +27,9 @@ export default function HomePage() {
 
 
   useEffect(()=>{
+    if(!vault || !vault.isUnlocked){
+      navigate.push('/loadFile');
+    }
     window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
   },[])
 
@@ -55,10 +59,6 @@ export default function HomePage() {
   return (
     <div className='flex w-screen h-screen items-center justify-center bg-linear-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
       <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
-    {(vault !== undefined && !vault.isUnlocked) && 
-      <UnlockVaultPrompt />
-      
-    }
     
     {(vault !== undefined && vault.isUnlocked) && 
       <div className='flex w-full h-full gap-3'>
