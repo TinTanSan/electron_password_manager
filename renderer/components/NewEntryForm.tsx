@@ -33,38 +33,40 @@ export default function NewEntryForm({setShowForm}:props) {
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
 
-    const [entry, setEntry] = useState<Entry>(new Entry({
+    const [entry, setEntry] = useState<Entry>({
         title:"",
         username:"",
         password:Buffer.from(""),
         notes:"",
-        extraFields: []
-    }, vault.kek))
+        extraFields: [],
+        metadata: {
+            createDate: new Date(),
+            lastEditedDate: new Date(),
+            version: '1.0.0',
+            lastRotate: new Date(),
+            uuid: ''
+        },
+        group:''
+    })
     
     
     
     const handleChange = (e:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
-
-        setEntry((prev)=>prev.update(e.target.id, e.target.value));
-        if (e.target.id === "password"){
-            setEntry((prev)=>prev.update('password',Buffer.from(e.target.value)));
-            return;
-        }
-
+        setEntry((prev)=>({...prev, [e.target.id]: e.target.id==='password'?  Buffer.from(e.target.value): e.target.value}));
     }
 
     const handleAddExtraField = ()=>{
-        entry.addExtraField(vault.kek, extraField).then((updatedEntry:Entry)=>{
-            if(!updatedEntry){
-                addBanner(bannerContext, 'cannot add extra field, another extra feild with that name already exists', 'error')
-            }else{
-                setEntry(updatedEntry)
-            }
-        })
+        setEntry(prev=>({
+            ...prev,
+            extraFields: [...prev.extraFields, extraField]
+        }))
     }
 
     const handleRemoveExtraField = (name:string)=>{
-        setEntry(entry.removeExtraField(name))
+        setEntry(prev=>({
+            ...prev,
+            extraFields: prev.extraFields.filter(x=>x.name !== name)
+        }))
     }
     
 
@@ -72,9 +74,10 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
-            entry.updatePass(vault.kek,entry.password).then((encryptedEntry)=>{
-                setVault((prev)=>prev.mutate('entries', [...vault.entries,encryptedEntry]))
-                setShowForm(false)
+            window.vaultIPC.addEntry(entry).then((x)=>{
+                if (x.status === "OK"){
+                    addBanner(bannerContext, 'Entry Added','success');
+                }
             })
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
