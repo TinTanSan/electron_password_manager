@@ -27,6 +27,7 @@ export const entryConstituents = {
     '1.0.0':[
         ['split'      , "$"],
         ['metadata'    , 'entryMD'],
+        ['title','string'],
         ['username'   , "string"],
         ['dek','dek'],
         ['password'   , 'b64Buff'],
