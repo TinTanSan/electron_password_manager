@@ -14,8 +14,6 @@ export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const [searchFilter, setSearchFilter] = useState("");
   
-  // for pagination
-  const [paginatedEntries, setPaginatedEntries] = useState([]);
   const [page, setPage] = useState(0);
   // total number of entries
   const [numEntries, setNumEntries]= useState(0);
@@ -34,14 +32,14 @@ export default function HomePage() {
   useEffect(()=>{
     if(!searchFilter){
       window.vaultIPC.getPaginatedEntries(0).then((response)=>{
-        setPaginatedEntries(response);
+        setVault(prev=>({...prev,response}));
       })
     }else{
       const title = searchSettings.searchTitle? searchFilter : "";
       const username = searchSettings.searchUsername? searchFilter : "";
       const notes = searchSettings.searchNotes? searchFilter : "";
       window.vaultIPC.searchEntries(title,username, notes).then((response)=>{
-        setPaginatedEntries(response);
+        setVault(prev=>({...prev,response}));
       })
     }
       
@@ -50,7 +48,7 @@ export default function HomePage() {
 
   useEffect(()=>{
     window.vaultIPC.getPaginatedEntries(page).then((response)=>{
-      setPaginatedEntries(response);
+      setVault(prev=>({...prev,response}));
     })
   }, [page])
 
@@ -69,7 +67,7 @@ export default function HomePage() {
         <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
           <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2 px-3'>
-            {paginatedEntries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
+            {vault.entries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
           </div>
         
           {/* bottom pages bar  */}
@@ -82,7 +80,7 @@ export default function HomePage() {
               </button>
             </div>}
             <p className='flex w-fit right-3  absolute'>
-              showing entries {(entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), paginatedEntries.length)} of {numEntries}
+              showing entries {Math.min(1,entriesPerPage*page)} - {Math.min(((entriesPerPage*page) + entriesPerPage), vault.entries.length)} of {numEntries}
             </p>
 
           </div>
