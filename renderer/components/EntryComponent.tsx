@@ -21,13 +21,14 @@ export default function EntryComponent({entry}:props) {
         if (!showPass)
         {   
             setShowPass(true);
-            entry.decryptEntryPass(vault.kek).then((pass)=>{
-                setDecryptedPass(pass.toString());
-                setTimeout(() => {
-                    setDecryptedPass("");
-                    setShowPass(false);
-                }, 10000);
-            })
+            throw new Error('implement with IPC channels')
+            // entry.decryptEntryPass(vault.kek).then((pass)=>{
+            //     setDecryptedPass(pass.toString());
+            //     setTimeout(() => {
+            //         setDecryptedPass("");
+            //         setShowPass(false);
+            //     }, 10000);
+            // })
         }else{
             setShowPass(false);
             setDecryptedPass("")
@@ -36,53 +37,50 @@ export default function EntryComponent({entry}:props) {
     
     const handleCopy = ()=>{
         if (decryptedPass){
+            
             navigator.clipboard.writeText(decryptedPass.toString()).then(()=>{
                 // set clipboard to be empty after 10 seconds
                 addBanner(bannerContext, 'password copied to clipboard', 'success')
                 setTimeout(() => {
-                    window.ipc.clearClipboard();
+                    window.clipBoardIPC.clearClipboard();
                     addBanner(bannerContext, 'password removed from clipboard','info');
                 }, 5000);
             })
         }else{
-            entry.decryptEntryPass(vault.kek).then((pass)=>{
-                navigator.clipboard.writeText(pass.toString()).then(()=>{
-                    // set clipboard to be empty after 10 seconds
-                    addBanner(bannerContext, 'password copied to clipboard', 'success')
-                    setTimeout(() => {
-                        window.ipc.clearClipboard();
-                        addBanner(bannerContext, 'password removed from clipboard','info');
-                    }, 5000);
-                })
-            }).catch(error=>{
-            navigator.clipboard.writeText(entry.password.toString()).then(()=>{
-                // set clipboard to be empty after 10 seconds
-                addBanner(bannerContext, 'password copied to clipboard', 'success')
-                setTimeout(() => {
-                    window.ipc.clearClipboard();
-                    addBanner(bannerContext, 'password removed from clipboard','info');
-                }, 5000);
-            })
-        })
+            throw new Error("implement with IPC channels")
+        //     // window.vaultIPC.decryptEntryPass(vault.kek).then((pass)=>{
+        //     //     navigator.clipboard.writeText(pass.toString()).then(()=>{
+        //     //         // set clipboard to be empty after 10 seconds
+        //     //         addBanner(bannerContext, 'password copied to clipboard', 'success')
+        //     //         setTimeout(() => {
+        //     //             window.clipBoardIPC.clearClipboard();
+        //     //             addBanner(bannerContext, 'password removed from clipboard','info');
+        //     //         }, 5000);
+        //     //     })
+        //     // }).catch(error=>{
+        //     // navigator.clipboard.writeText(entry.password.toString()).then(()=>{
+        //     //     // set clipboard to be empty after 10 seconds
+        //     //     addBanner(bannerContext, 'password copied to clipboard', 'success')
+        //     //     setTimeout(() => {
+        //     //         window.clipBoardIPC.clearClipboard();
+        //     //         addBanner(bannerContext, 'password removed from clipboard','info');
+        //     //     }, 5000);
+        //     // })
+        // })
         }
-        
+
     }
     
     const handleDelete = ()=>{
-        setVault((prev)=>
-            {
-                const newState =new Vault({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)})
-                newState.writeEntriesToFile();
-                return newState;
-            })
+        window.vaultIPC.deleteEntry(entry.metadata.uuid);
+        setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
     }
-    
     return (
             <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center"} overflow-hidden border-2 px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
                 {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
                 <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2 relative'>
                     <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-                    <div className='flex h-full w-full px-2 justify-start text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-[500]'>
+                    <div className='flex h-full w-full px-2 justify-start text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-medium'>
                         {entry.title? entry.title : <i>No title</i>}
                     </div>
                     <div className='flex w-fit justify-end'>
