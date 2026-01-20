@@ -39,6 +39,8 @@ export default function NewEntryForm({setShowForm}:props) {
         password:Buffer.from(""),
         notes:"",
         extraFields: [],
+        isFavourite: false,
+        passHash: Buffer.from(""),
         metadata: {
             createDate: new Date(),
             lastEditedDate: new Date(),
@@ -75,8 +77,20 @@ export default function NewEntryForm({setShowForm}:props) {
         if (vault !== undefined){
             // go ahead
             window.vaultIPC.addEntry(entry).then((x)=>{
+                console.log(x);
                 if (x.status === "OK"){
                     addBanner(bannerContext, 'Entry Added','success');
+                    setVault(prev=>({...prev, 
+
+
+
+                        vaultMetadata: {
+                            ...prev.vaultMetadata,
+                            lastEditDate: new Date(),
+                        }
+                    }))
+                }else{
+                    addBanner(bannerContext, 'Unable to add entry: '+x.result, 'error')
                 }
             })
         }else{

@@ -19,7 +19,10 @@ export interface Entry{
     username:string;
     password:Buffer;
     notes: string;
+    isFavourite: boolean,
+    passHash: Buffer,
+    group:string;
     extraFields: Array<ExtraField>;
     metadata: MetaData;
-    group:string;
+    
 }
