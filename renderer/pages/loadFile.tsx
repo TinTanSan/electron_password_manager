@@ -83,7 +83,8 @@ export default function LoadFile() {
               return;
             }
             window.vaultIPC.setMasterPassword(password).then((response)=>{
-                if (response.status === "OK"){
+                console.log(response);
+                if (response === true){
                     setVault(prev=>({...prev, isUnlocked:true}))
                     navigate.push('/home');
                 }else{
