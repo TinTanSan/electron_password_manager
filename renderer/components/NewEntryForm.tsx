@@ -77,13 +77,9 @@ export default function NewEntryForm({setShowForm}:props) {
         if (vault !== undefined){
             // go ahead
             window.vaultIPC.addEntry(entry).then((x)=>{
-                console.log(x);
                 if (x.status === "OK"){
                     addBanner(bannerContext, 'Entry Added','success');
                     setVault(prev=>({...prev, 
-
-
-
                         vaultMetadata: {
                             ...prev.vaultMetadata,
                             lastEditDate: new Date(),
