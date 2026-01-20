@@ -13,17 +13,16 @@ import Sidebar from '../components/Sidebar';
 export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const [searchFilter, setSearchFilter] = useState("");
-  const [shownEntries, setShownEntires] = useState<Array<Entry>>([]);
   
   // for pagination
-  const [paginatedEntries, setPaginatedEntries] = useState(shownEntries);
+  const [paginatedEntries, setPaginatedEntries] = useState([]);
   const [page, setPage] = useState(0);
   // total number of entries
   const [numEntries, setNumEntries]= useState(0);
   
   // singleton vairable for entriesPerPage which will eventually be supplied by the preferences context/ hook
   const entriesPerPage = 100;  
-  const maxPages = Math.ceil(shownEntries.length/entriesPerPage);
+  const maxPages = Math.ceil(numEntries/entriesPerPage);
 
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
@@ -78,7 +77,7 @@ export default function HomePage() {
             {maxPages > 1 && 
               <div className='flex w-1/2 bg-base-100 h-full rounded-lg items-center  shadow-xl border-2 border-base-300'>
               <button className='flex'>
-                <Image src={"/images/up_arrow.svg"} alt='<' width={25} height={30} className='flex rotate-[270deg]'/>
+                <Image src={"/images/up_arrow.svg"} alt='<' width={25} height={30} className='flex rotate-270'/>
                 <p>Previous</p>
               </button>
             </div>}
