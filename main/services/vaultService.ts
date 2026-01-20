@@ -76,6 +76,7 @@ class VaultService extends EventEmitter{
     searchedNotes:string = "";
     constructor(){
         super();
+        
     }
 
     setInitialVaultState(filePath:string, fileContents:Buffer){
@@ -152,23 +153,32 @@ class VaultService extends EventEmitter{
 
     async closeVault(){
         console.log("vault closing")
-        await this.syncService.forceUpdate(this.serialiseVault())
-        console.log("sync complete")
+        
         this.lockVault();
         this.vault = undefined; 
         this.vaultInitialised = false;
-        this.syncService.stopSyncLoop();
+        
         console.log("vault closed");
     }
 
     lockVault(){
         try{
-            this.syncService.flushSyncBuffer().then((_)=>{
-            })
-        }finally{
-
+            if (this.vaultInitialised){
+                this.syncService.flushSyncBuffer().then((_)=>{
+                    console.log("sync complete")
+                    this.vault.kek = {
+                        kek: Buffer.from(""),
+                        passHash: "",
+                        salt: Buffer.from("")
+                    }
+                    this.syncService.stopSyncLoop();
+                })
+            }else{
+                console.log("no vault to close")
+            }
+        }catch(error){
+            console.log("error occured whilst flushing sync buffer when locking the vault");
         }
-        
     }
     
     async setMasterPassword(password:string){
@@ -242,10 +252,14 @@ class VaultService extends EventEmitter{
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
+        console.log(this.vault.entries);
         return Array.from(this.vault.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
-    /// TODO
+    getEntry(uuid:string){
+        return this.vault.entries.get(uuid);
+    }
+
     searchEntries(title:string, username:string, notes:string, page:number = 0){
         
         const pageLen = preferenceStore.get('entriesPerPage');
