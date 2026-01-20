@@ -216,8 +216,18 @@ class VaultService extends EventEmitter{
                 }
             }
             this.sync();
-            
-        }finally{
+            return {
+                status:"OK",
+                result: uuid};   
+        }
+        catch (error){
+            console.error('An error occured whilst adding entry: ', error);
+            return {
+                status:"Err",
+                result: error
+            }
+        }
+        finally{
             dek.fill(0);
             dek = undefined;
             return true;
