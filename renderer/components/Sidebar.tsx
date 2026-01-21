@@ -3,29 +3,27 @@ import Image from 'next/image';
 import { VaultContext } from '../contexts/vaultContext';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
-import { Vault } from '../interfaces/Vault';
 import Link from 'next/link';
 export default function Sidebar() {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const bannerContext = useContext(BannerContext);
     const {vault, setVault} = useContext(VaultContext);
     const handleLock = ()=>{
-        window.ipc.clearClipboard();
-        window.ipc.openFile(vault.filePath).then((content)=>{
-            setVault(prev=>(new Vault({...prev, fileContents:content.fileContents, isUnlocked:false})))
-            bannerContext.setBanners([]);
-            addBanner(bannerContext, 'Vault locked', 'info');
-        })
+        window.clipBoardIPC.clearClipboard();
+        window.vaultIPC.lockVault()
+        bannerContext.setBanners([]);
+        addBanner(bannerContext, 'Vault locked', 'info');
         console.log('done')
     }
     const handleClose = ()=>{
         bannerContext.setBanners([])
+        window.vaultIPC.closeVault();
         addBanner(bannerContext, "Vault Closed successfully", 'info')
-        setVault(undefined);
+        setVault(prev=>({...prev, filePath:""}));
     }
     return (
-        <div className={`flex flex-col relative justify-center shadow-[0.5rem_0_1.25rem_rgba(0,0,0,0.1)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/4 items-end':'w-14 items-center'} h-full transition-all duration-[400ms] bg-base-100 p-2`}>
-            <div className={`flex ${hamburgerOpen?'w-full':"w-8"} h-10 transition-all duration-[750ms] justify-end`}>
+        <div className={`flex flex-col relative justify-center shadow-[0.5rem_0_1.25rem_rgba(0,0,0,0.1)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/4 items-end':'w-14 items-center'} h-full transition-all duration-400 bg-base-100 p-2`}>
+            <div className={`flex ${hamburgerOpen?'w-full':"w-8"} h-10 transition-all duration-750 justify-end`}>
                 <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
             </div>
 
