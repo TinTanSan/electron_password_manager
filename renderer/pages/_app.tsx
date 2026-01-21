@@ -14,8 +14,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
-    if(vault === undefined && navigate.pathname !=="/loadFile"){
-      navigate.push('loadFile')
+    if(vault === undefined|| vault.filePath === ""){
+      navigate.push('/loadFile')
     }
     let timeout:NodeJS.Timeout;
     if (vault !== undefined && vault.isUnlocked){
