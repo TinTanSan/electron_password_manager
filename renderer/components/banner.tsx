@@ -29,9 +29,9 @@ export default function Banner({bannerDetails}:{bannerDetails:BannerDetails}) {
     //     <div className='flex w-full h-full opacity-100 items-center text-lg p-2 cursor-default '>{bannerDetails.text}</div>
     //     <button className='flex text-2xl w-fit h-fit' onClick={()=>{banners.setBanners(prev=>prev.filter(x=>x.id !== bannerDetails.id))}}>&#x2716;</button>
     // </div>
-    <div className={`flex flex-row relative animate-slide-in  border-r-2 border-t-2 border-b-2 border-base-300 gap-1 justify-between items-center overflow-hidden rounded-lg h-14 max-h-fit py-2 bg-white w-full`}>
-        <div className={`flex w-1.5 h-full ${handleColour()}`} />
-        <div className='flex w-full h-full items-center'>{ bannerDetails.text }</div>
+    <div className={`flex flex-row relative animate-slide-in  border-r-2 border-t-2 border-b-2 border-base-300 gap-1 justify-between items-center overflow-hidden rounded-lg h-14 max-h-fit bg-white w-full`}>
+        <div className={`flex w-2 h-full ${handleColour()}`} />
+        <div className='flex w-full h-full items-center py-2'>{ bannerDetails.text }</div>
         <button className='flex text-2xl w-fit h-fit' onClick={()=>{banners.setBanners(prev=>prev.filter(x=>x.id !== bannerDetails.id))}}>&#x2716;</button>
     </div>
   )
