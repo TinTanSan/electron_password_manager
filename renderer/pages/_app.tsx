@@ -21,7 +21,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (vault !== undefined && vault.isUnlocked){
       timeout = setTimeout(() => {
         setVault(prev=>({...prev, isUnlocked: false}));
-      }, 60*60*24);
+        navigate.push('/loadFile')
+      }, 1000*60*10);
     }
     return ()=>{
       if(timeout !== undefined){
