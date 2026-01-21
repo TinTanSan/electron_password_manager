@@ -141,9 +141,9 @@ export default function LoadFile() {
                 <div className='flex w-full row-span-1 h-full items-center text-xl justify-center row-start-1'>Recently opened vaults</div>
                 <div className='grid grid-flow-row-dense grid-rows-10 grid-cols-1 row-span-full row-start-2 w-full gap-2 overflow-y-auto p-2'>
                     {
-                        recent.map((x,i)=>(
-                            <button onClick={()=>{handleOpenFile(x)}} key={i} className='grid cursor-pointer row-span-1 rounded-md px-5 h-fit hover:bg-base-300 bg-base-200 w-full text-ellipsis'>
-                                {x.substring(1)}
+                        recent.map((recentFile,i)=>(
+                            <button onClick={()=>{handleOpenFile(recentFile)}} key={i} className='grid cursor-pointer row-span-1 rounded-md px-5 h-fit hover:bg-base-300 bg-base-200 w-full text-ellipsis'>
+                                {recentFile.substring(1)}
                             </button>
                         ))
                     }
