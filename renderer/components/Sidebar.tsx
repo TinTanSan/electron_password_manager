@@ -67,13 +67,13 @@ export default function Sidebar() {
                     <div className='flex w-full h-full items-end'>
                         <div className='flex w-full h-10 justify-between'>
                             <div onClick={handleLock} className='flex w-fit h-fit p-0.5 items-center hover:bg-warning border-3 border-warning rounded-lg group'>
-                                <Image  src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
-                                <p className='flex group-hover:visible w-0 group-hover:w-28  h-full overflow-hidden group-hover:text-warning-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Lock Vault</p>
+                                <Image  src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
+                                <p className='flex group-hover:visible w-0 group-hover:w-28  h-full overflow-hidden group-hover:text-warning-content text-lg font-medium justify-center items-center text-nowrap transition-all duration-500'>Lock Vault</p>
                             </div>
                             
                             <div onClick={handleClose} className='flex w-fit items-center h-fit p-0.5 border-3 border-error hover:bg-error rounded-lg group'>
-                                <p className='flex group-hover:items-center group-hover:visible w-0 h-full group-hover:w-28 overflow-hidden group-hover:text-warning-content text-lg font-[500] justify-center items-center text-nowrap transition-all duration-500'>Close & exit</p>
-                                <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
+                                <p className='flex group-hover:items-center group-hover:visible w-0 h-full group-hover:w-28 overflow-hidden group-hover:text-warning-content text-lg font-medium justify-center items-center text-nowrap transition-all duration-500'>Close & exit</p>
+                                <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                             </div>
                         </div>
                     </div>  
@@ -82,11 +82,11 @@ export default function Sidebar() {
                 <div className='flex flex-col justify-end w-full h-full items-center py-2 gap-5 relative'>
                     <div onClick={handleLock} className='flex w-fit h-fit p-0.5 border-3 border-warning rounded-lg group hover:bg-warning'>
                         <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>lock vault</span>
-                        <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
+                        <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                     </div>
                     <div onClick={handleClose}  className='flex w-fit h-fit p-0.5 border-3 border-error rounded-lg group hover:bg-error'>
                         <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>close & exit vault</span>
-                        <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-[15%]' />
+                        <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                     </div>
                 </div>
             }</div> 
