@@ -113,6 +113,23 @@ export default function LoadFile() {
           }
         }
 
+    const escapeHandler = (e:KeyboardEvent) => {
+        if (e.key === "Escape") {
+        handleCancel();
+        }
+    };
+
+    const handleCancel = ()=>{
+        setVault(undefined);
+        navigate.push('/loadFile'); 
+        addBanner(banners, "Vault Closed successfully", 'info')
+    }
+    useEffect(() => {
+        document.addEventListener("keydown", (escapeHandler), false);
+        return () => {
+            document.removeEventListener("keydown", escapeHandler, false);
+        };
+    }, []);
     useEffect(()=>{
         window.fileIPC.getRecents().then((x)=>{setRecent(x)})
     },[])
@@ -168,7 +185,7 @@ export default function LoadFile() {
                 {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
-                <button type='button' onClick={()=>{setVault(undefined); navigate.push('/loadFile'); addBanner(banners, "Vault Closed successfully", 'info')}} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
+                <button type='button' onClick={handleCancel} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
                 <button type='submit' className='flex bg-primary text-primary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>Unlock</button>
                 </div>
             </form> 
