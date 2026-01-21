@@ -85,12 +85,14 @@ export default function NewEntryForm({setShowForm}:props) {
                             lastEditDate: new Date(),
                         }
                     }))
+                    setShowForm(false);
                 }else{
                     addBanner(bannerContext, 'Unable to add entry: '+x.result, 'error')
                 }
             })
         }else{
             addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
+            setShowForm(false);
         }
     }
 
