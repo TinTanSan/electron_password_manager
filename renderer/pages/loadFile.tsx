@@ -186,7 +186,7 @@ export default function LoadFile() {
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
                 <button type='button' onClick={handleCancel} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                <button type='submit' className='flex bg-primary text-primary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>Unlock</button>
+                <button type='submit' className='flex bg-primary text-primary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
