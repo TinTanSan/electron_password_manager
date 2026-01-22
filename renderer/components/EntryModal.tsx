@@ -86,7 +86,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entryPass, setEntryPass]= useState<string>("");
     const [vEntPass, setVEntPass] = useState("");
-    const areEqual = vaultEntry.current.isEqual(entry) && entryPass=== vEntPass;
+    // const areEqual = vaultEntry.current.isEqual(entry) && entryPass=== vEntPass;
     const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
@@ -111,13 +111,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     
     useEffect(()=>{
         if (submit){
-            entry.decryptEntryPass(vault.kek).then((x)=>{
-                setVEntPass(x.toString());
-                setEntryPass(x.toString());
-            }).catch((_)=>{
-                // consume the error
-                addBanner(bannerContext, "An Error occured when decrypting password", 'error')
-            })
+            throw new Error("Implement via IPC calls")
             
             setSubmit(false)
         }
@@ -128,68 +122,72 @@ export default function EntryModal({setShowModal, uuid}:props) {
             setEntryPass(e.target.value);
             return;
         }
-        setEntry(prev=>prev.cloneMutate(e.target.id, e.target.value));
+        setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
         
     }
 
     const handleCopy = ()=>{
+        throw new Error("Implement via IPC calls")
         if (entryPass === undefined){
-            entry.decryptEntryPass(vault.kek).then((x)=>{
-                navigator.clipboard.writeText(x.toString());
-            }).catch(error => {
-                addBanner(bannerContext, 'unable to copy password', 'error');
-                console.error(error);
-                return;
-            })
+            // entry.decryptEntryPass(vault.kek).then((x)=>{
+            //     navigator.clipboard.writeText(x.toString());
+            // }).catch(error => {
+            //     addBanner(bannerContext, 'unable to copy password', 'error');
+            //     console.error(error);
+            //     return;
+            // })
         }else{
             navigator.clipboard.writeText(entryPass.toString());
         }
         addBanner(bannerContext, 'password copied successfully', 'success')
         setTimeout(() => {
-            window.ipc.clearClipboard();
+            window.clipBoardIPC.clearClipboard();
         }, 10000);
     }
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        entry.updatePass(vault.kek, entryPass).then((newEntryState)=>{
-            try {
-                setEntry(newEntryState)
-                const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
-                setVault((prev)=>prev.mutate('entries', newEntries));
-                vaultEntry.current = newEntryState;
-                addBanner(bannerContext, 'entry updated successfully', 'success')
-                setShowModal(false);    
-            } catch (error) {
-                addBanner(bannerContext, 'unable to update entry '+error, 'error');
-            }
-        })
+        throw new Error("Implement via IPC calls")
+        // entry.updatePass(vault.kek, entryPass).then((newEntryState)=>{
+        //     try {
+        //         setEntry(newEntryState)
+        //         const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
+        //         setVault((prev)=>prev.mutate('entries', newEntries));
+        //         vaultEntry.current = newEntryState;
+        //         addBanner(bannerContext, 'entry updated successfully', 'success')
+        //         setShowModal(false);    
+        //     } catch (error) {
+        //         addBanner(bannerContext, 'unable to update entry '+error, 'error');
+        //     }
+        // })
     }
 
     const changeFavourite = ()=>{
-        const newState = entry.update('isFavourite', !entry.isFavourite);
-        setEntry(newState);
-        const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newState : x)
-        setVault((prev)=>prev.mutate('entries', newEntries));
-        vaultEntry.current = newState;
-        addBanner(bannerContext, 'entry updated successfully', 'success')
+        throw new Error("Implement via IPC calls");
+        // const newState = entry.update('isFavourite', !entry.isFavourite);
+        // setEntry(newState);
+        // const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newState : x)
+        // setVault((prev)=>prev.mutate('entries', newEntries));
+        // vaultEntry.current = newState;
+        // addBanner(bannerContext, 'entry updated successfully', 'success')
     }
 
     const handleAddExtraField = ()=>{
         if (extraFeild.name){
-            entry.addExtraField(vault.kek,extraFeild).then((e:Entry)=>{
-                if (!e){
-                    addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
-                }else{
-                    setEntry(e);
-                    setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
-                    setVault(prev=>{
-                        let newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? e : x);
-                        return prev.mutate('entries', newEntries);
-                    })
-                }
+            throw new Error("Implement via IPC calls");
+            // entry.addExtraField(vault.kek,extraFeild).then((e:Entry)=>{
+            //     if (!e){
+            //         addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
+            //     }else{
+            //         setEntry(e);
+            //         setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
+            //         setVault(prev=>{
+            //             let newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? e : x);
+            //             return prev.mutate('entries', newEntries);
+            //         })
+            //     }
                 
-            })
+            // })
         }else{
             addBanner(bannerContext, 'Banner not added, no name provided','info')
         }
@@ -197,11 +195,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleDeleteExtraField = (name:string)=>{
-        setEntry(prev=>{
-            const newState = prev.removeExtraField(name);
-            setVault(prev=>prev.mutate('entries',prev.entries.map((x)=>x.metadata.uuid !== uuid? x : newState)))
-            return newState;
-        })
+        throw new Error("Implement via IPC calls")
+        // setEntry(prev=>{
+            
+        //     // const newState = prev.removeExtraField(name);
+        //     // setVault(prev=>prev.mutate('entries',prev.entries.map((x)=>x.metadata.uuid !== uuid? x : newState)))
+        //     // return newState;
+        // })
         
         
     }
@@ -256,11 +256,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
     
     const handleGroupChange=(groupName: string)=>{
-        const newVaultState = vault.addEntryToGroup(uuid, groupName);
-        setVault(newVaultState);
+        throw new Error("Implement via IPC calls")
+        // const newVaultState = vault.addEntryToGroup(uuid, groupName);
+        // setVault(newVaultState);
     }   
     const handleRemoveFromGroup = ()=>{
-        setVault(vault.removeEntryFromGroup(uuid));
+        throw new Error("Implement via IPC calls")
+        // setVault(vault.removeEntryFromGroup(uuid));
     }
 
     useEffect(() => {
@@ -293,7 +295,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
                         <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
                             {entry.title}
-                            {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>}
+                            {/* {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>} */}
                         </div>
                         <Image onClick={()=>{setShowModal(false)}} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                     </div>
@@ -334,7 +336,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         {/* main login details section */}
                         <div className={`flex shrink-0 flex-col bg-base-200 border-base-300 l w-full duration-100 transition-all  ${collapseLoginDetails?'h-12   delay-300 ': showRandomPassModal? "h-145 " : 'h-120'} gap-2 p-2 border-2 rounded-lg `}>
                             <div  onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Login Details</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Login Details</h1>
                                 <Image src={"/images/up_arrow.svg"} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
@@ -395,7 +397,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         {/* extra Fields section */}
                         <div className={`flex flex-col w-full duration-100 transition-height  ${collapseExtraFeilds?'h-12  delay-300 ':"h-160 "} border-base-300 bg-base-200 gap-2 p-2 border-2 rounded-lg `}>
                             <div onClick={()=>{setCollapseExtraFields(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Extra Fields</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Extra Fields</h1>
                                 <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
@@ -411,7 +413,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         {/* New extra Field section */}
                         <div className={`flex flex-col text-base-content  w-full duration-100 transition-all bg-base-200  ${collapseNewEf?'h-12 delay-300 ':"h-100 "} border-base-300 gap-2 p-2 border-2 rounded-lg `}>
                             <div onClick={()=>{setCollapseNewEf(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-[500]'>Create Extra Field</h1>
+                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Create Extra Field</h1>
                                 <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseNewEf? "rotate-180" : "rotate-0"}`} />
                             </div>
                             <div className={`duration-300 transition-all ${collapseNewEf?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-4 delay-100"} `}>
@@ -439,17 +441,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 {/* bottom bar with delete, cancel and save buttons */}
                 <div className='flex flex-row w-full  h-14 border-t-2 border-base-300 p-2'>
                     <div className='flex w-full h-full gap-2'>
-                        <div className='flex w-fit h-fit border-2 border-error rounded-lg hover:bg-error hover:[&_*]:brightness-[25%]'>
+                        <div className='flex w-fit h-fit border-2 border-error rounded-lg hover:bg-error hover:**:brightness-25'>
                             <Image src={"/images/delete_red.svg"} alt='del' width={0} height={0} className='flex w-8 h-8' />
                         </div>
                         <div className='flex items-center w-12 h-10 justify-center'>
                             <Image onClick={changeFavourite} title='favourite this entry to have it shown at the top of the list everytime' src={entry.isFavourite?"/images/starFill.svg": "/images/starNoFill.svg"} alt='nofav' width={50} height={50} className={`flex ${entry.isFavourite && "w-10 h-10"}`}/>
                         </div>
                     </div>
-                    {!areEqual && <div className='flex w-full justify-end h-full gap-2'>
+                    {/* {!areEqual && <div className='flex w-full justify-end h-full gap-2'>
                         <button onClick={()=>{setEntry(vaultEntry.current); setSubmit(true)}} className='flex bg-base-300 items-center justify-center w-24 rounded-lg hover:bg-base-darken'>Discard</button>
                         <button onClick={handleConfirm} className='flex bg-primary hover:bg-primary-darken text-primary-content w-24 rounded-lg items-center justify-center'>Save</button>
-                    </div>}
+                    </div>} */}
                 </div>
             </div>
             
