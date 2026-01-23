@@ -118,7 +118,7 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
         </div>
         <div className='flex justify-between'>
             <button type='button' className='flex rounded-lg w-24 h-8 justify-center items-center bg-accent hover:bg-accent-darken text-accent-content' onClick={()=>{setShowRandomPassModal(false)}}>Cancel</button>
-            <button type='button' className='flex rounded-lg w-24 h-8 justify-center items-center bg-primary hover:bg-primary-darken text-primary-content' onClick={()=>{setEntry((prev)=>(prev.update('password',Buffer.from(randomPass)))); setShowRandomPassModal(false)}}>Confirm</button>
+            <button type='button' className='flex rounded-lg w-24 h-8 justify-center items-center bg-primary hover:bg-primary-darken text-primary-content' onClick={()=>{setEntry((prev)=>({...prev, 'password':Buffer.from(randomPass)})); setShowRandomPassModal(false)}}>Confirm</button>
         </div>
     </div>
 
