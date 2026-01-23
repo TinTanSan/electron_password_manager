@@ -29,36 +29,38 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   const handleConfirm = (e:React.MouseEvent)=>{
     e.preventDefault();
-    entry.addExtraField(vault.kek, {...ef}).then((newState)=>{
-      vault.mutate('entries',[vault.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid),newState])
-    }) 
+    throw new Error ("Implement via IPC calls")
+    // entry.addExtraField(vault.kek, {...ef}).then((newState)=>{
+    //   vault.mutate('entries',[vault.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid),newState])
+    // }) 
   }
   // we assume that just clicking on the Expose/Protect button doesn't automatically update the field in the vault, the user must
   // confirm the action with the save button at the bottom.
   const handleChangeProtection = ()=>{
-    if (ef.isProtected){
-      if (encryptedData === undefined){
-        setEncryptedData(ef.data);
-      }
-      entry.decryptExtraField(ef.name, vault.kek).then((results)=>{
-        if (results.status === "OK"){
-          setEf(prev=>({...prev, data:results.data, isProtected:false}));
-          setData(results.data.toString());
-        }else{
-          addBanner(bannerContext, "Unable to permanently expose extrafield data because something went wrong decrypting the data", "error");
-        }
-      })
-    }else{
-      if (encryptedData === undefined){
-        entry.encryptField(vault.kek, ef.name, ef.data).then((encryptedEf)=>{
-          setEf(encryptedEf)
-        });
-      }else{
-        setEf(prev=>({...prev, isProtected:true, data: encryptedData}));
-      }
-      setShowData(false);
-      setData(undefined);
-    }
+    throw new Error ("Implement via IPC calls")
+    // if (ef.isProtected){
+    //   if (encryptedData === undefined){
+    //     setEncryptedData(ef.data);
+    //   }
+    //   entry.decryptExtraField(ef.name, vault.kek).then((results)=>{
+    //     if (results.status === "OK"){
+    //       setEf(prev=>({...prev, data:results.data, isProtected:false}));
+    //       setData(results.data.toString());
+    //     }else{
+    //       addBanner(bannerContext, "Unable to permanently expose extrafield data because something went wrong decrypting the data", "error");
+    //     }
+    //   })
+    // }else{
+    //   if (encryptedData === undefined){
+    //     entry.encryptField(vault.kek, ef.name, ef.data).then((encryptedEf)=>{
+    //       setEf(encryptedEf)
+    //     });
+    //   }else{
+    //     setEf(prev=>({...prev, isProtected:true, data: encryptedData}));
+    //   }
+    //   setShowData(false);
+    //   setData(undefined);
+    // }
   }
 
   useEffect(()=>{
@@ -71,14 +73,15 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
       return;
     }
     if (extraField.isProtected && showData && !data){
-        entry.decryptExtraField(extraField.name, vault.kek).then((d)=>{
-          if (d.status === "ERROR"){
-            addBanner(bannerContext, 'error decrypting extra field data', 'error')
-            setData(undefined);
-          }else{
-            setData(d.data.toString());
-          }
-        })
+        throw new Error ("Implement via IPC calls")  
+        // entry.decryptExtraField(extraField.name, vault.kek).then((d)=>{
+        //   if (d.status === "ERROR"){
+        //     addBanner(bannerContext, 'error decrypting extra field data', 'error')
+        //     setData(undefined);
+        //   }else{
+        //     setData(d.data.toString());
+        //   }
+        // })
     }else if (!showData){
       setData(undefined);
     }
