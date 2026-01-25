@@ -14,6 +14,9 @@ const vaultIPCHandlers = {
 
   getEntry:(uuid:string)=>ipcRenderer.invoke('vault:getEntry'),
   updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
+
+  addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('vault:addExtraField', uuid,extraField),
+
   deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
   addEntry:(entry:{title:string,username:string, password:Buffer,notes:string, extraFields:Array<ExtraField>, group:string})=>ipcRenderer.invoke('vault:addEntry', entry)
   
