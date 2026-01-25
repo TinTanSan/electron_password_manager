@@ -69,7 +69,6 @@ class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
     vaultInitialised: boolean = false;
     syncService:SyncService | undefined = undefined;
-    entriesMap: Map<string,Entry> = new Map();
     searchResults: Array<string> = [];
     searchedTitle:string = "";
     searchedUsername:string = "";
@@ -249,6 +248,61 @@ class VaultService extends EventEmitter{
             return response;
         }
     }
+
+    addExtraField(entryUUID:string, extraField:ExtraField){
+       
+            const entry = this.vault.entries.get(entryUUID);
+            if (entry){
+                const wrappedDEK = entry.dek;
+                let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
+                try{
+                    let ef = entry.extraFields.find(x=>x.name === extraField.name);
+                    if (ef) return "ALREADY_EXISTS";
+                    if (extraField.isProtected){
+                        // expect the extraField to be plaintext on first request and encrypt
+                        
+                        const encrypted = encrypt(extraField.data, dek);
+                        ef.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                    }
+                    entry.extraFields.push(ef);
+                    return "OK";
+                }finally{
+                    dek.fill(0);
+                    this.sync();
+                }
+            }
+            return "ENTRY_NOT_FOUND"
+       
+    }
+
+    decryptExtraField(entryUUID:string, extraFieldName:string){
+        const entry = this.vault.entries.get(entryUUID);
+        if(!entry) return {status:"ENTRY_NOT_FOUND", data:""};
+
+        const extraField = entry.extraFields.find(x=>x.name === extraFieldName);
+        if (!extraField) return {status: "EXTRAFIELD_NOT_FOUND", data:""};
+
+        if (!extraField.isProtected) return {status:"NOT_PROTECTED", data:extraField.data};
+
+        const wrappedDEK = entry.dek;
+        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
+        try{
+            const encrypted= extraField.data.subarray(0,extraField.data.length-24);
+            const iv= extraField.data.subarray(extraField.data.length-24,extraField.data.length-12);
+            const tag= extraField.data.subarray(extraField.data.length-12,extraField.data.length);
+            const response = decrypt(encrypted, dek, tag, iv);
+            return {status:"OK", data:response};
+        }catch(error:any){
+            return {status:"ERROR", data:error}
+        }
+        finally{
+            dek.fill(0);
+        }
+    }
+
+    
+
+
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
