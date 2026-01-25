@@ -11,7 +11,7 @@ type props = {
 }
 
 export default function ExtraFieldComponent({extraField, entry, onDelete}:props) {
-  const {vault} = useContext(VaultContext);
+  const {vault, setVault} = useContext(VaultContext);
   const bannerContext = useContext(BannerContext);
   const [data, setData] = useState<undefined | string>(undefined);
   const [showData, setShowData] = useState(false);
@@ -29,10 +29,15 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   const handleConfirm = (e:React.MouseEvent)=>{
     e.preventDefault();
-    throw new Error ("Implement via IPC calls")
-    // entry.addExtraField(vault.kek, {...ef}).then((newState)=>{
-    //   vault.mutate('entries',[vault.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid),newState])
-    // }) 
+    window.vaultIPC.addExtraField(entry.metadata.uuid, extraField).then((response)=>{
+      if (response ==="OK"){
+        addBanner(bannerContext, "Added extra field", 'success');
+
+      }else if(response === "ALREADY_EXISTS"){
+        addBanner(bannerContext, "An extra field with that name already exists", 'error');
+      }
+    })
+    setVault(prev=>({...prev, entries:prev.entries.map(x=>x.metadata.uuid===entry.metadata.uuid? {...x, extraFields:[...x.extraFields,extraField], metadata:{...x.metadata, lastEditedDate:new Date()}} : x) , vaultMetadata:{...prev.vaultMetadata, lastEditDate:new Date()}}))
   }
   // we assume that just clicking on the Expose/Protect button doesn't automatically update the field in the vault, the user must
   // confirm the action with the save button at the bottom.
