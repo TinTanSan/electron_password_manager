@@ -275,15 +275,12 @@ class VaultService extends EventEmitter{
        
     }
 
-    decryptExtraField(entryUUID:string, extraFieldName:string){
+    decryptExtraField(entryUUID:string, extraFieldName:string, ef:ExtraField | undefined = undefined){
+        let {status, extraField} = ef? {status:"INJECTED_PARAM_OK", extraField:ef} : this.getExtraFieldByName(entryUUID, extraFieldName);
+        if(!extraField){
+            return {status, data:""};
+        }
         const entry = this.vault.entries.get(entryUUID);
-        if(!entry) return {status:"ENTRY_NOT_FOUND", data:""};
-
-        const extraField = entry.extraFields.find(x=>x.name === extraFieldName);
-        if (!extraField) return {status: "EXTRAFIELD_NOT_FOUND", data:""};
-
-        if (!extraField.isProtected) return {status:"NOT_PROTECTED", data:extraField.data};
-
         const wrappedDEK = entry.dek;
         let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
         try{
@@ -300,8 +297,62 @@ class VaultService extends EventEmitter{
         }
     }
 
-    
 
+    private getExtraFieldByName(entryUUID:string, extraFieldName:string):{status:string, extraField:ExtraField | undefined}{
+        const entry = this.vault.entries.get(entryUUID);
+        if(entry === undefined) return {status:"ENTRY_NOT_FOUND", extraField:undefined}
+        let extraField = entry.extraFields.find(x=>x.name===extraFieldName);
+        extraField ? { status: "OK", extraField } : { status: "EXTRA_FIELD_NOT_FOUND", extraField }
+    }
+
+
+    extraFieldChangeIsProtected(entryUUID:string, extraFieldName:string, protectedness:boolean){
+        const entry = this.vault.entries.get(entryUUID);
+        let {status, extraField} = this.getExtraFieldByName(entryUUID, extraFieldName);
+        if(!extraField) return status;
+        try {
+            extraField.isProtected = protectedness;
+            // if the user wants to protect the extraField and it is not already protected
+            if(protectedness && !extraField.isProtected){
+                const wrappedDEK = entry.dek;
+                let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
+                try{
+                        // expect the extraField to be plaintext on first request and encrypt
+                        
+                    const encrypted = encrypt(extraField.data, dek);
+                    extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                }finally{
+                    dek.fill(0);
+                    this.sync();
+                }
+            }
+            // if the user wants to unprotect the extraField and it is protected
+            else if (!protectedness && extraField.isProtected){
+                extraField.isProtected = false;
+                const {status, data} = this.decryptExtraField(entryUUID, extraFieldName, extraField);
+                if(status === "OK"){
+                    extraField.data = data;
+                }
+                this.sync()
+                return status
+            }
+            else if (protectedness && extraField.isProtected){
+                return "ALREADY_PROTECTED"
+            }
+            else{
+                return "ALREADY_UNPROTECTED"
+            }
+        }catch (error) {
+            return error;
+        }
+
+    }
+
+    removeExtraField(entryUUID:string, extraFieldName:string){
+        let entry = this.vault.entries.get(entryUUID);
+        entry.extraFields = entry.extraFields.filter(x=>x.name !== extraFieldName);
+        this.sync();
+    }
 
 
     getPaginatedEntries(pageNumber:number){
