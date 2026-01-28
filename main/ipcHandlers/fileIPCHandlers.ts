@@ -1,5 +1,5 @@
 import { app, dialog, ipcMain } from 'electron';
-import fs from 'fs';
+import fs, { unlinkSync } from 'fs';
 import path from 'path'
 
 
@@ -22,20 +22,8 @@ const handleAddRecent = (filePath:string)=>{
   fs.writeFileSync(path.join(data_path+"/recents.json"), JSON.stringify(content));
 }
 
-ipcMain.handle('fileDialog:open', async()=>{
-  const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
-  const fileOpened = ( fileDialog).filePaths[0];
-  if (!fileDialog.canceled){    
-    if (!fileOpened.endsWith(".vlt")){
-      return {fileContents:"INVALIDFILE", filePath:fileOpened, status:"INVALIDEXT"};
-    }
-    const fileContents =await fs.promises.readFile(fileOpened, 'utf-8');
-    handleAddRecent(fileOpened);
-    return {fileContents,filePath:fileOpened, status:"OK"}
-  }
-  return {fileContents:undefined, filePath:fileOpened, status:"CANCELLED"}
-  
-})  
+
+
 export const openFile  = (filePath)=>{
    if (fs.existsSync(filePath)){
     handleAddRecent(filePath);
@@ -45,7 +33,6 @@ export const openFile  = (filePath)=>{
   }
 
 }
-
 
 export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
   const {filePath, toWrite} = args;
@@ -87,7 +74,24 @@ ipcMain.handle('fileDialog:create', async()=>{
   return undefined;
 })
 
+ipcMain.handle('fileDialog:open', async()=>{
+  const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
+  const fileOpened = ( fileDialog).filePaths[0];
+  if (!fileDialog.canceled){    
+    if (!fileOpened.endsWith(".vlt")){
+      return {fileContents:"INVALIDFILE", filePath:fileOpened, status:"INVALIDEXT"};
+    }
+    const fileContents =await fs.promises.readFile(fileOpened, 'utf-8');
+    handleAddRecent(fileOpened);
+    return {fileContents,filePath:fileOpened, status:"OK"}
+  }
+  return {fileContents:undefined, filePath:fileOpened, status:"CANCELLED"}
+  
+})  
 
+ipcMain.handle('file:delete', async (_,filePath:string)=>{
+  unlinkSync(filePath);
+})
 
 
 ipcMain.handle('recents:get', ()=>{
