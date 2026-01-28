@@ -100,6 +100,8 @@ export default function LoadFile() {
               return;
             }
             window.vaultIPC.unlockVault(password).then((response)=>{
+                setPassword("");
+                setConfirmPassword("");
                 if (response.status === "OK"){
                     addBanner(banners, 'vault unlocked', 'success')
                     setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
@@ -122,6 +124,8 @@ export default function LoadFile() {
     const handleCancel = ()=>{
         setVault(undefined);
         navigate.push('/loadFile'); 
+        setPassword("");
+        setConfirmPassword("");
         addBanner(banners, "Vault Closed successfully", 'info')
     }
     useEffect(() => {
@@ -135,7 +139,7 @@ export default function LoadFile() {
     },[])
 
   return (
-    (vault === undefined) ? <div className='grid w-screen h-screen grid-flow-row p-5 grid-rows-4 bg-base-200 gap-20 text-base-content'>
+    (vault === undefined || !vault.filePath) ? <div className='grid w-screen h-screen grid-flow-row p-5 grid-rows-4 bg-base-200 gap-20 text-base-content'>
             <title>Open Vault</title>
             <div className='grid grid-flow-row-dense row-span-2 grid-rows-10 grid-cols-1 justify-center bg-base-100 rounded-lg border-2 border-base-300'>
                 <div className='flex w-full row-span-1 h-full items-center text-xl justify-center row-start-1'>Recently opened vaults</div>
@@ -172,17 +176,16 @@ export default function LoadFile() {
             
             <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-center items-center py-5'>
                 {requiresInitialisation && 
-                <div className='flex flex-nowrap text-sm w-[80%] h-fit items-center justify-center gap-2'>
+                <div className='flex flex-nowrap text-sm w-full h-fit items-center justify-center gap-2'>
                     <div className='flex w-4 h-4 rounded-full border justify-center items-center'>i</div>
                     <div className='flex w-fit flex-wrap'>
-                    {requiresInitialisation?"Please create a master password, this will be used to enter the vault. If you lose this password or forget it, you will not be able to enter the vault ever. But also do not use an easy to guess password or a password with only a few characters.":
-                    "Enter your password"}
+                    Create a strong master password
                     </div>
                 </div>
                 }
                 <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
-                <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
-                {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
+                    <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
+                    {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
                 <button type='button' onClick={handleCancel} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
