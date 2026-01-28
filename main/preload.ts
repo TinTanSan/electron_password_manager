@@ -25,6 +25,7 @@ const vaultIPCHandlers = {
 const fileIPCHandlers = {
   openFilePicker: ()=>ipcRenderer.invoke('fileDialog:open'),
   openCreateFile: ()=>ipcRenderer.invoke('fileDialog:create'),
+  deleteFile: (filepath:string)=>ipcRenderer.invoke('file:delete', filepath),
   getRecents: ()=>ipcRenderer.invoke('recents:get'),
   addRecent: (filePath:string)=>ipcRenderer.send('recents:add', filePath),
 }
