@@ -6,6 +6,7 @@ import { addBanner } from '../interfaces/Banner'
 import { Vault } from '../interfaces/Vault'
 import FancyInput from '../components/fancyInput'
 import { isStrongPassword } from '../utils/commons'
+import Image from 'next/image'
 
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
@@ -122,12 +123,21 @@ export default function LoadFile() {
     };
 
     const handleCancel = ()=>{
-        setVault(undefined);
-        navigate.push('/loadFile'); 
+        setVault(prev=>({...prev,filePath:""}));
         setPassword("");
         setConfirmPassword("");
         addBanner(banners, "Vault Closed successfully", 'info')
     }
+
+    const handleDeleteVault = (e:React.MouseEvent<HTMLImageElement, MouseEvent>,filePath:string)=>{
+        // stop the click from opening the vault
+        e.stopPropagation();
+        e.preventDefault();
+        window.fileIPC.deleteFile(filePath).then(()=>{
+            setRecent(prev=>prev.filter(x=>x!==filePath));
+        })
+    }
+
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
         return () => {
@@ -143,12 +153,18 @@ export default function LoadFile() {
             <title>Open Vault</title>
             <div className='grid grid-flow-row-dense row-span-2 grid-rows-10 grid-cols-1 justify-center bg-base-100 rounded-lg border-2 border-base-300'>
                 <div className='flex w-full row-span-1 h-full items-center text-xl justify-center row-start-1'>Recently opened vaults</div>
-                <div className='grid grid-flow-row-dense grid-rows-10 grid-cols-1 row-span-full row-start-2 w-full gap-2 overflow-y-auto p-2'>
+                <div className='flex flex-col w-full gap-2 p-2'>
                     {
                         recent.map((recentFile,i)=>(
-                            <button onClick={()=>{handleOpenFile(recentFile)}} key={i} className='grid cursor-pointer row-span-1 rounded-md px-5 h-fit hover:bg-base-300 bg-base-200 w-full text-ellipsis'>
-                                {recentFile.substring(1)}
-                            </button>
+                            <div  key={i} className='flex justify-between  border-base-300 border-2 z-0 items-center rounded-md p-1 h-10 bg-base-200 w-full text-ellipsis has-[div:hover]:bg-base-300'>
+                                <div onClick={()=>{handleOpenFile(recentFile)}} className='flex w-full h-full cursor-pointer'>
+                                    {recentFile.substring(1)}
+                                </div>
+                                <div className='flex w-fit h-fit border-2 items-center'>
+                                    <div className='hidden peer-hover:block transition duration-300 bg-red-500 text-white'>delete</div>
+                                    <Image onClick={(e)=>{handleDeleteVault(e,recentFile)}} src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border border-black  hover:brightness-0' width={0} height={0}/>
+                                </div>
+                            </div>
                         ))
                     }
                 </div>
