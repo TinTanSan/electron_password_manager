@@ -22,7 +22,8 @@ export default function LoadFile() {
             if (filePath){
                 // since its a new file, the file content will be empty anyways
                 setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
-                window.fileIPC.addRecent(filePath);
+                window.fileIPC.addRecent(filePath)
+                setRecent(prev=>[...prev, filePath])
                 window.vaultIPC.openVault(filePath).then((response)=>{
                     if (response.message === 'NOT_OK'){
                         addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
@@ -129,12 +130,13 @@ export default function LoadFile() {
         addBanner(banners, "Vault Closed successfully", 'info')
     }
 
-    const handleDeleteVault = (e:React.MouseEvent<HTMLImageElement, MouseEvent>,filePath:string)=>{
+    const handleDeleteVault = (e:React.MouseEvent<HTMLDivElement, MouseEvent>,filePath:string)=>{
         // stop the click from opening the vault
         e.stopPropagation();
         e.preventDefault();
         window.fileIPC.deleteFile(filePath).then(()=>{
             setRecent(prev=>prev.filter(x=>x!==filePath));
+            addBanner(banners, "Vault deleted successfully", 'success')
         })
     }
 
@@ -160,9 +162,9 @@ export default function LoadFile() {
                                 <div onClick={()=>{handleOpenFile(recentFile)}} className='flex w-full h-full cursor-pointer'>
                                     {recentFile.substring(1)}
                                 </div>
-                                <div className='flex w-fit h-fit border-2 items-center'>
-                                    <div className='hidden peer-hover:block transition duration-300 bg-red-500 text-white'>delete</div>
-                                    <Image onClick={(e)=>{handleDeleteVault(e,recentFile)}} src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border border-black  hover:brightness-0' width={0} height={0}/>
+                                <div onClick={(e)=>{handleDeleteVault(e,recentFile)}} className='flex w-fit h-fit items-center group'>
+                                    <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-14 group-hover:px-1 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
+                                    <Image  src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border  hover:brightness-20' width={0} height={0}/>
                                 </div>
                             </div>
                         ))
