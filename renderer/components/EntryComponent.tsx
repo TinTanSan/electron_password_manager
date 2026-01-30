@@ -21,14 +21,13 @@ export default function EntryComponent({entry}:props) {
         if (!showPass)
         {   
             setShowPass(true);
-            throw new Error('implement with IPC channels')
-            // entry.decryptEntryPass(vault.kek).then((pass)=>{
-            //     setDecryptedPass(pass.toString());
-            //     setTimeout(() => {
-            //         setDecryptedPass("");
-            //         setShowPass(false);
-            //     }, 10000);
-            // })
+            // throw new Error('implement with IPC channels');
+            window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+                setDecryptedPass(response);
+                setTimeout(() => {
+                    handleShowPass()
+                }, 10000);
+            })
         }else{
             setShowPass(false);
             setDecryptedPass("")
@@ -37,7 +36,7 @@ export default function EntryComponent({entry}:props) {
     
     const handleCopy = ()=>{
         if (decryptedPass){
-            
+            // if we have already decrypted the pass
             navigator.clipboard.writeText(decryptedPass.toString()).then(()=>{
                 // set clipboard to be empty after 10 seconds
                 addBanner(bannerContext, 'password copied to clipboard', 'success')
@@ -47,26 +46,19 @@ export default function EntryComponent({entry}:props) {
                 }, 5000);
             })
         }else{
-            throw new Error("implement with IPC channels")
-        //     // window.vaultIPC.decryptEntryPass(vault.kek).then((pass)=>{
-        //     //     navigator.clipboard.writeText(pass.toString()).then(()=>{
-        //     //         // set clipboard to be empty after 10 seconds
-        //     //         addBanner(bannerContext, 'password copied to clipboard', 'success')
-        //     //         setTimeout(() => {
-        //     //             window.clipBoardIPC.clearClipboard();
-        //     //             addBanner(bannerContext, 'password removed from clipboard','info');
-        //     //         }, 5000);
-        //     //     })
-        //     // }).catch(error=>{
-        //     // navigator.clipboard.writeText(entry.password.toString()).then(()=>{
-        //     //     // set clipboard to be empty after 10 seconds
-        //     //     addBanner(bannerContext, 'password copied to clipboard', 'success')
-        //     //     setTimeout(() => {
-        //     //         window.clipBoardIPC.clearClipboard();
-        //     //         addBanner(bannerContext, 'password removed from clipboard','info');
-        //     //     }, 5000);
-        //     // })
-        // })
+            // throw new Error("implement with IPC channels")
+            window.vaultIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
+                navigator.clipboard.writeText(pass).then(()=>{
+                    addBanner(bannerContext, 'password copied to clipboard', 'success')
+                    setTimeout(() => {
+                        window.clipBoardIPC.clearClipboard();
+                        addBanner(bannerContext, 'password removed from clipboard','info');
+                    }, 5000)
+                })
+            }).catch((error)=>{
+                addBanner(bannerContext, 'unable to copy password to clipboard', 'error');
+                console.error(error);
+            })
         }
 
     }
