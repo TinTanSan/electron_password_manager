@@ -44,9 +44,9 @@ ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPag
 
 ipcMain.handle('vault:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} )=>vaultService.addExtraField(uuid, extraField));
 
-ipcMain.handle('vault:removeExtraField', async (_, name)=>{})
+ipcMain.handle('vault:removeExtraField', async (_, uuid, name)=>vaultService.removeExtraField(uuid,name))
 
-// ipcMain.handle('vaul:removeExtraField', async (name:string)=>{return true;});
+ipcMain.handle('vault:decryptPass', async(_,uuid)=>vaultService.decryptPassword(uuid))
 
 ipcMain.handle('vault:editEntry', async (_, uuid:string,fieldToUpdate:string, newValue:any )=> vaultService.updateEntry(uuid, fieldToUpdate, newValue))
 
