@@ -3,7 +3,6 @@ import { VaultContext } from '../contexts/vaultContext'
 import { useRouter } from 'next/router'
 import { BannerContext } from '../contexts/bannerContext'
 import { addBanner } from '../interfaces/Banner'
-import { Vault } from '../interfaces/Vault'
 import FancyInput from '../components/fancyInput'
 import { isStrongPassword } from '../utils/commons'
 import Image from 'next/image'
@@ -16,6 +15,8 @@ export default function LoadFile() {
     const [requiresInitialisation, setRequiresInitisalisation] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
     const banners = useContext(BannerContext);
+    const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
+    const [vaultToDelete, setVaultToDelete] = useState("");
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
         window.fileIPC.openCreateFile().then((filePath)=>{
@@ -119,7 +120,14 @@ export default function LoadFile() {
 
     const escapeHandler = (e:KeyboardEvent) => {
         if (e.key === "Escape") {
-        handleCancel();
+            if(showDeleteConfirmationPopup){
+                console.log(showDeleteConfirmationPopup);
+                setShowDeleteConfirmationPopup(false);
+                setVaultToDelete("");
+            }else{
+                console.log(showDeleteConfirmationPopup, 'cancelled')
+                handleCancel();
+            }    
         }
     };
 
@@ -130,14 +138,18 @@ export default function LoadFile() {
         addBanner(banners, "Vault Closed successfully", 'info')
     }
 
-    const handleDeleteVault = (e:React.MouseEvent<HTMLDivElement, MouseEvent>,filePath:string)=>{
+    const handleDeleteVault = ()=>{
+        if (vaultToDelete){
+            window.fileIPC.deleteFile(vaultToDelete).then(()=>{
+                setRecent(prev=>prev.filter(x=>x!==vaultToDelete));
+                addBanner(banners, "Vault deleted successfully", 'success')
+                setShowDeleteConfirmationPopup(false);
+            })
+        }else{
+            addBanner(banners, 'Cannot delete vault without knowing the filePath', 'error')
+        }
         // stop the click from opening the vault
-        e.stopPropagation();
-        e.preventDefault();
-        window.fileIPC.deleteFile(filePath).then(()=>{
-            setRecent(prev=>prev.filter(x=>x!==filePath));
-            addBanner(banners, "Vault deleted successfully", 'success')
-        })
+        
     }
 
     useEffect(() => {
@@ -151,25 +163,42 @@ export default function LoadFile() {
     },[])
 
   return (
-    (vault === undefined || !vault.filePath) ? <div className='grid w-screen h-screen grid-flow-row p-5 grid-rows-4 bg-base-200 gap-20 text-base-content'>
+    (vault === undefined || !vault.filePath) ? 
+    <div className='flex flex-col h-screen w-screen items-center bg-base-200 gap-20 text-base-content p-5'>
             <title>Open Vault</title>
-            <div className='grid grid-flow-row-dense row-span-2 grid-rows-10 grid-cols-1 justify-center bg-base-100 rounded-lg border-2 border-base-300'>
-                <div className='flex w-full row-span-1 h-full items-center text-xl justify-center row-start-1'>Recently opened vaults</div>
-                <div className='flex flex-col w-full gap-2 p-2'>
+            <div className='flex flex-col w-full h-1/2 gap-2 justify-start  bg-base-100 rounded-lg border-2 border-base-300'>
+                <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
+                <div className='flex flex-col w-full gap-2 p-2 items-center'>
                     {
                         recent.map((recentFile,i)=>(
-                            <div  key={i} className='flex justify-between  border-base-300 border-2 z-0 items-center rounded-md p-1 h-10 bg-base-200 w-full text-ellipsis has-[div:hover]:bg-base-300'>
+                            <div  key={i} className='flex justify-between border-base-300 border-2 z-0 items-center rounded-md p-1 h-10 bg-base-200 w-full text-ellipsis has-[div:hover]:bg-base-300'>
                                 <div onClick={()=>{handleOpenFile(recentFile)}} className='flex w-full h-full cursor-pointer'>
                                     {recentFile.substring(1)}
                                 </div>
-                                <div onClick={(e)=>{handleDeleteVault(e,recentFile)}} className='flex w-fit h-fit items-center group'>
+                                <div onClick={()=>{setShowDeleteConfirmationPopup(true); setVaultToDelete(recentFile)}} className='flex w-fit h-fit items-center group'>
                                     <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-14 group-hover:px-1 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
                                     <Image  src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border  hover:brightness-20' width={0} height={0}/>
                                 </div>
                             </div>
                         ))
                     }
+                    {
+                     showDeleteConfirmationPopup && 
+                        <div className='flex flex-col z-10 border-2 rounded-lg border-base-300 bg-base-100 shadow-lg w-1/3 h-1/5 gap-2 absolute top-1/3'>
+                            <p className='flex h-1/4 w-full justify-center p-1 text-lg'>Delete Vault?</p>
+                            <div className='flex w-full h-3/4 gap-2 flex-col bg-base-300 p-2 rounded-b-md'>
+                            <p className='flex w-full h-full'>
+                                Deleting the vault means you will lose all the passwords you kept inside of it.
+                            </p>
+                            <div className='flex w-full h-full gap-5 justify-between'>
+                                <button onClick={()=>{setShowDeleteConfirmationPopup(false); setVaultToDelete("")}} className='flex border-2 px-2 bg-base-100 hover:bg-base-200 hover:text-info-content text-base-content w-full items-center justify-center rounded-lg  border-neutral'>Cancel</button>
+                                <button onClick={handleDeleteVault} className='flex border-2 px-2 hover:bg-error hover:text-error-content bg-base-100 text-error w-full items-center justify-center rounded-lg  border-error'>Confirm</button>
+                            </div>
+                            </div>
+                        </div>
+                    }
                 </div>
+                
             </div>
             
             <div className="grid grid-flow-row-dense gap-5 row-span-1 justify-center">
