@@ -21,7 +21,6 @@ export default function EntryComponent({entry}:props) {
         if (!showPass)
         {   
             setShowPass(true);
-            // throw new Error('implement with IPC channels');
             window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
                 setDecryptedPass(response);
                 setTimeout(() => {
@@ -46,7 +45,6 @@ export default function EntryComponent({entry}:props) {
                 }, 5000);
             })
         }else{
-            // throw new Error("implement with IPC channels")
             window.vaultIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
                 navigator.clipboard.writeText(pass).then(()=>{
                     addBanner(bannerContext, 'password copied to clipboard', 'success')
