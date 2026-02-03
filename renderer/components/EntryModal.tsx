@@ -83,9 +83,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const vaultEntry = useRef(vault.entries.find(x=>x.metadata.uuid === uuid));
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    const [decryptedPass, setDecryptedPass]= useState<string>("");
-    const [vEntPass, setVEntPass] = useState("");
-    // const areEqual = vaultEntry.current.isEqual(entry) && decryptedPass=== vEntPass;
+    // entryPass will be used when changing the password to update it
+    const [entryPass, setEntryPass] = useState("");
     const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
@@ -95,7 +94,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
 
     useEffect(()=>{
-        console.log(entry)
+        window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+            setEntryPass(response);
+        }).catch((error)=>{
+            console.error(error);
+            addBanner(bannerContext, 'unable to decrypt password to set up the entry', 'error');
+        })
     },[])
 
     const existingGroupName = useMemo(()=>{
@@ -115,17 +119,16 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
-            setDecryptedPass(e.target.value);
+            setEntryPass(e.target.value);
             return;
         }
         setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
-        
     }
 
     const handleDecryptPass = ()=>{
         if (!showPass){
             window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
-                setDecryptedPass(response);
+                setEntryPass(response);
                 console.log(response);
                 setShowPass(true);
             }).catch((error)=>{
@@ -133,24 +136,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
             })
         }else{
             setShowPass(false);
-            setDecryptedPass("");
         }
         
     }
 
     const handleCopy = ()=>{
-        if (decryptedPass === undefined){
-            window.vaultIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
-                navigator.clipboard.writeText(pass).then(()=>{
-                    addBanner(bannerContext, 'password copied to clipboard', 'success')
-                })
-            }).catch((error)=>{
-                addBanner(bannerContext, 'unable to copy password to clipboard', 'error');
-                console.error(error);
-            })
-        }else{
-            navigator.clipboard.writeText(decryptedPass.toString());
-        }
+        navigator.clipboard.writeText(entryPass.toString());
         addBanner(bannerContext, 'password copied successfully', 'success')
         setTimeout(() => {
             window.clipBoardIPC.clearClipboard();
@@ -266,7 +257,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
     
     const handleGroupChange=(groupName: string)=>{
-        throw new Error("Implement via IPC calls")
+        // throw new Error("Implement via IPC calls")
         // const newVaultState = vault.addEntryToGroup(uuid, groupName);
         // setVault(newVaultState);
     }   
@@ -289,13 +280,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }, []);
 
     useEffect(()=>{
-        const pscore = zxcvbn(decryptedPass);
+        const pscore = zxcvbn(entryPass);
         setpasswordScore({score:pscore.score, feedback:pscore.feedback.warning});
-    },[decryptedPass]);
+    },[entryPass]);
 
     useEffect(()=>{
         if (!Number.isNaN(randomSettings.length) && showRandomPassModal){
-            setDecryptedPass(generateRandomPass(randomSettings))
+            setEntryPass(generateRandomPass(randomSettings))
         }
     },[randomSettings])
 
@@ -359,7 +350,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 <div className='flex flex-col text-md'>
                                     <label className='flex w-full'>Password</label>
                                     <div className='flex border-2 border-base-300  bg-base-100 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
-                                        <input id='password' value={decryptedPass? decryptedPass : "*".repeat(8)} placeholder='No password set' type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
+                                        <input id='password' value={entryPass} placeholder='No password set' type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
                                         <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 cursor-pointer' />
                                         <Image onClick={handleDecryptPass} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6 cursor-pointer'/>
                                         <div className={`h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
@@ -372,7 +363,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <div className='gap-1 flex w-full h-1 bg-base-300  rounded-lg overflow-hidden'>
                                             <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
                                         </div>
-                                        <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(decryptedPass, passwordScore)}</div>
+                                        <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
                                     </div>
                                     {showRandomPassModal && 
                                         <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
