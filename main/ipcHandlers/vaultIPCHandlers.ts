@@ -30,9 +30,13 @@ ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
 ipcMain.handle('vault:setPass', async (_,password)=>vaultService.setMasterPassword(password))
 
+ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
+
+ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
 
 // Entry CRUD operation handlers
-ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
+
+ipcMain.handle("vualt:addEntryToGroup", async (_, entryUUID, groupName)=>vaultService.addEntryToGroup(entryUUID, groupName))
 
 ipcMain.handle('vault:getEntry', async(_, uuid)=>vaultService.getEntry(uuid))
 
@@ -40,7 +44,6 @@ ipcMain.handle('vault:addEntry', async (_,entry)=>vaultService.addEntry(entry))
 
 ipcMain.handle('vault:searchEntries', (_,title:string, username:string, notes:string)=>vaultService.searchEntries(title, username, notes))
 
-ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
 
 ipcMain.handle('vault:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} )=>vaultService.addExtraField(uuid, extraField));
 
