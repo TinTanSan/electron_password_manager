@@ -79,12 +79,15 @@ export default function NewEntryForm({setShowForm}:props) {
             window.vaultIPC.addEntry(entry).then((x)=>{
                 if (x.status === "OK"){
                     addBanner(bannerContext, 'Entry Added','success');
-                    setVault(prev=>({...prev, 
-                        vaultMetadata: {
-                            ...prev.vaultMetadata,
-                            lastEditDate: new Date(),
-                        }
-                    }))
+                    window.vaultIPC.getPaginatedEntries(0).then((response)=>{
+                        setVault(prev=>({...prev, 
+                            entries:response,
+                            vaultMetadata: {
+                                ...prev.vaultMetadata,
+                                lastEditDate: new Date(),
+                            }
+                        }))
+                    })                    
                     setShowForm(false);
                 }else{
                     addBanner(bannerContext, 'Unable to add entry: '+x.result, 'error')
