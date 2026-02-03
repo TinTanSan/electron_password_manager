@@ -190,6 +190,36 @@ class VaultService extends EventEmitter{
     }
 
 
+    addEntryToGroup(entryUUID:string, groupName:string){
+        let entry = this.vault.entries.get(entryUUID);
+        if (entry.group === groupName){
+            return "ENTRY_ALREADY_IN_SPECIFIED_GROUP"
+        }
+        if(!entry){
+            return "ENTRY_NOT_FOUND"
+        }
+
+        if (entry.group){
+            // the entry has a group so we have to first destroy that link
+            let group = this.vault.entryGroups.findIndex(x=>x.groupName === entry.group);
+            if (group <0){
+                return "ENTRY_EXISTING_GROUP_NOT_FOUND";
+            }
+            this.vault.entryGroups[group].entries = this.vault.entryGroups[group].entries.filter(x=>x!==entry.metadata.uuid);
+        }
+        // get index of new group
+        let newGroupIdx = this.vault.entryGroups.findIndex(x=>x.groupName === groupName);
+        let group= this.vault.entryGroups[newGroupIdx];
+        const entryInGroup = group.entries.findIndex(x=>x === entryUUID);
+        if(entryInGroup > 0){
+            return "ENTRY_ALREADY_IN_NEW_GROUP";
+        }
+        group.entries.push(entryUUID);
+        entry.group = groupName;
+        this.sync();
+        return "OK"
+    }
+
     async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}){
         let dek = randomBytes(32);
         let response = {
