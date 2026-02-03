@@ -12,6 +12,9 @@ const vaultIPCHandlers = {
   searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
   getNumEntries: ()=>ipcRenderer.invoke('vault:getNumEntries'),
 
+
+  addEntryToGroup: (entryUUID, groupName)=>{ipcRenderer.invoke('vault:addEntryToGroup', entryUUID, groupName)},
+
   getEntry:(uuid:string)=>ipcRenderer.invoke('vault:getEntry'),
   updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
   decryptPass: (uuid:string)=>ipcRenderer.invoke("vault:decryptPass", uuid),
