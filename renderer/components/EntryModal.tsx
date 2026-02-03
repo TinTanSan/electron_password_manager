@@ -238,10 +238,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     }
 
-    const escapeHandler = (e:KeyboardEvent) => {
-        if (e.key === "Escape") {
+
+    const closeModal = ()=>{
+        setEntryPass("");
         setShowModal(false);
-        }
+    }
+    const escapeHandler = (e:KeyboardEvent) => {
+        if (e.key === "Escape") closeModal()
     };
 
     const copyHandler = (e:KeyboardEvent)=>{
@@ -291,14 +294,14 @@ export default function EntryModal({setShowModal, uuid}:props) {
     },[randomSettings])
 
     return (
-        <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={()=>{setShowModal(false)}}>
+        <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
             <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 ' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
                         <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
                             {entry.title}
                             {/* {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>} */}
                         </div>
-                        <Image onClick={()=>{setShowModal(false)}} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
+                        <Image onClick={closeModal} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                     </div>
                 <div className='flex flex-col w-full h-full text-base-content overflow-y-auto p-2'>
                     {/* header */}
