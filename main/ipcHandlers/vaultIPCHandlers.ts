@@ -1,6 +1,5 @@
 import { ipcMain } from "electron";
-import { ExtraField, vaultService } from "../services/vaultService";
-import { openFile } from "./fileIPCHandlers";
+import { vaultService } from "../services/vaultService";
 /*
  * use ipcMain.handle when expecting a value to be returned
    use ipcMain.on when wanting to send something to main without expecting anything back to renderer 
@@ -36,7 +35,7 @@ ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPag
 
 // Entry CRUD operation handlers
 
-ipcMain.handle("vualt:addEntryToGroup", async (_, entryUUID, groupName)=>vaultService.addEntryToGroup(entryUUID, groupName))
+ipcMain.handle("vault:addEntryToGroup", async (_, entryUUID, groupName)=>vaultService.addEntryToGroup(entryUUID, groupName))
 
 ipcMain.handle('vault:getEntry', async(_, uuid)=>vaultService.getEntry(uuid))
 
