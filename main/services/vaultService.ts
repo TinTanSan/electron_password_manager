@@ -197,25 +197,49 @@ class VaultService extends EventEmitter{
         }
         if(!entry){
             return "ENTRY_NOT_FOUND"
-        }
+        }   
 
         if (entry.group){
             // the entry has a group so we have to first destroy that link
             let group = this.vault.entryGroups.findIndex(x=>x.groupName === entry.group);
-            if (group <0){
-                return "ENTRY_EXISTING_GROUP_NOT_FOUND";
+            if (group < 0){
+                entry.group = "";
+            }else{
+                this.vault.entryGroups[group].entries = this.vault.entryGroups[group].entries.filter(x=>x!==entry.metadata.uuid);
             }
-            this.vault.entryGroups[group].entries = this.vault.entryGroups[group].entries.filter(x=>x!==entry.metadata.uuid);
         }
         // get index of new group
         let newGroupIdx = this.vault.entryGroups.findIndex(x=>x.groupName === groupName);
-        let group= this.vault.entryGroups[newGroupIdx];
-        const entryInGroup = group.entries.findIndex(x=>x === entryUUID);
-        if(entryInGroup > 0){
-            return "ENTRY_ALREADY_IN_NEW_GROUP";
+
+        if (newGroupIdx > 0){
+            // new group already exists
+            if(this.vault.entryGroups[newGroupIdx].entries.findIndex(x=>x === entryUUID) > 0) {
+                // entry is already a member of the new group
+                return 'ENTRY_ALREADY_IN_GROUP';
+            }
+            // new group exists, entry is not a member of said group, add it
+            this.vault.entryGroups[newGroupIdx].entries.push(entryUUID)
+        }else{
+            // new group does not exist, create and add entry as it's field
+                this.vault.entryGroups.push({
+                    groupName,
+                    entries:[entryUUID]
+                })            
         }
-        group.entries.push(entryUUID);
-        entry.group = groupName;
+        this.sync();
+        return "OK"
+    }
+
+    removeEntryFromGroup(entryUUID:string){
+        let entry = this.vault.entries.get(entryUUID);
+        if (!entry) return "ENTRY_NOT_FOUND";
+        
+        let group = this.vault.entryGroups.find(x=>x.groupName===entry.group);
+        
+        if(!group) return "GROUP_NOT_FOUND"
+
+        group.entries = group.entries.filter(x=>x!==entryUUID);
+        entry.group = "";
         this.sync();
         return "OK"
     }
@@ -225,7 +249,6 @@ class VaultService extends EventEmitter{
         let response = {
             status : "NOT FULFILLED",
             result: "Did not fulfill the task"
-
         }
         try{
             const {title, username, password, notes, extraFields, group} = entry;
