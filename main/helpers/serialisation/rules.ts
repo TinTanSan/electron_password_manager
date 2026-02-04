@@ -31,7 +31,7 @@ export const entryConstituents = {
         ['username'   , "string"],
         ['dek','dek'],
         ['password'   , 'b64Buff'],
-        ['passHash'   , 'buffer'],
+        ['passHash'   , 'b64Buff'],
         ['notes'      , "string"],
         ['isFavourite', "isFavToBool"],
         ['group', 'string'],
