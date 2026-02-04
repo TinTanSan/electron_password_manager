@@ -3,7 +3,7 @@ export const entryGroupsSplit = "?";
 export const entrySplit = "#";
 export const extraFieldsSplit = "`";
 export const dekSplit = "-";
-
+export const entryGroupSplit = "_";
 export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {    
     '1.0.0':[
         ['split'          , '\\'],
