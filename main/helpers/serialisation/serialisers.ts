@@ -1,5 +1,5 @@
 import { DataEncryptionKey, Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
-import { dekSplit, entryConstituents, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
     'date': (d:Date)=>d.toISOString(),
@@ -23,7 +23,6 @@ export const serialisers = {
     },
 
     'vaultMD': (md:vaultMetaData)=>{
-        // const split = md.split(vaultMDVersionConstituents[version][0][1]);
         let ret= "";
         const serialiserToUse = vaultMDVersionConstituents[md.version];
         const joiner = serialiserToUse[0][1];
@@ -32,12 +31,13 @@ export const serialisers = {
         }
         return ret;
     },
+    
     'entryGroups': (groups:Array<EntryGroup>)=>{
         if (groups.length === 0) return '';
         return groups.map(group=>serialisers['entryGroup'](group)).join(entryGroupsSplit);
     },
     'entryGroup':(group:EntryGroup)=>{
-        return group.groupName + "|" + group.entries.join(",")
+        return group.groupName + entryGroupSplit + group.entries.join(",")
     },
     'extraFields': (extrafields:Array<ExtraField>)=>{
         return extrafields.map((ef)=>{
@@ -50,6 +50,7 @@ export const serialisers = {
         const joiner = serialiserToUse[0][1];
         let ret = "";
         for (let i = 1; i<serialiserToUse.length; i++){
+            
             ret += serialisers[serialiserToUse[i][1]](entry[serialiserToUse[i][0]]) + joiner;
         }
         return ret;
