@@ -1,4 +1,4 @@
-import { dekSplit, entryConstituents, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
+import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
 import assert from "node:assert";
 
@@ -56,14 +56,15 @@ export const parsers = {
     },
     
     'entryGroup':(str:string)=>{
-        const [groupName, entriesStr]=str.split("|")
+        const [groupName, entriesStr]=str.split(entryGroupSplit)
+        
         return {
             groupName,
             entries: entriesStr? entriesStr.split(",") : []
         }
     },
     'entryGroups':(groups:string)=>{
-        groups.split(entryGroupsSplit).map((group)=>parsers['entryGroup'](group));
+        return groups.split(entryGroupsSplit).map((group)=>parsers['entryGroup'](group));
     },
     
     
@@ -133,15 +134,15 @@ export const parsers = {
             },
             entryGroups:[]
         }
-
         for(let str of split){
             if (!str) continue;
             try {
-                res[constituents[counter][0]] = parsers[constituents[counter][1]](str)    
+                
+                res[constituents[counter][0]] = parsers[constituents[counter][1]](str)  
+                
                 counter +=1
             } catch (error) {
-                throw new Error('Error occured whilst parsing entry: ',error);
-                
+                throw new Error('Error occured whilst parsing vault: ',error);
             }
         }
         console.log('parsed vault with version: '+res.vaultMetadata.version)
