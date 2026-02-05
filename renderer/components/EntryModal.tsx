@@ -99,15 +99,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }).catch((error)=>{
             console.error(error);
             addBanner(bannerContext, 'unable to decrypt password to set up the entry', 'error');
-        })
+        });
+        return ()=>{
+            setEntryPass("");
+        }
     },[])
 
-    const existingGroupName = useMemo(()=>{
-        console.log('memo existgroup run',vault.entryGroups)
-        const foundValue = vault.entryGroups.find((x)=>x.entries.find((x)=>x === uuid))?.groupName ?? "";
-        setGroupSearch(foundValue);
-        return foundValue;
-    }, [vault.entryGroups, uuid])
 
     
 
@@ -260,13 +257,31 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
     
     const handleGroupChange=(groupName: string)=>{
-        // throw new Error("Implement via IPC calls")
-        // const newVaultState = vault.addEntryToGroup(uuid, groupName);
-        // setVault(newVaultState);
+        console.log(groupName)
+        window.vaultIPC.addEntryToGroup(uuid, groupName).then((x)=>{
+            if(x === "OK"){
+                addBanner(bannerContext, "Entry added to group", 'success');
+            }else{
+                addBanner(bannerContext, x.toLowerCase(), 'info');
+            }
+            window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
+                console.log(response)
+                setEntry(response)
+            }).catch((error)=>{
+                addBanner(bannerContext, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
+            })
+            
+        })
     }   
     const handleRemoveFromGroup = ()=>{
-        throw new Error("Implement via IPC calls")
-        // setVault(vault.removeEntryFromGroup(uuid));
+        window.vaultIPC.removeEntryFromGroup(uuid).then((response)=>{
+            console.log(response);
+            if(response === "OK"){
+                addBanner(bannerContext, 'entry removed from group', 'success');
+            }else{
+                addBanner(bannerContext, 'Unable to remove entry from group: '+response.toLowerCase(), 'error');
+            }
+        })
     }
 
     useEffect(() => {
@@ -313,11 +328,11 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         </div>
 
                         {/* Group section */}
-                        <div className='flex flex-col items-center text-md'>
-                            <div className='flex w-full'>Group</div>
-                            <div className='flex flex-col w-full h-fit group relative rounded-lg '>
+                        <div className='flex flex-col items-center h-fit gap-2 text-md bg-base-200 border-base-300 border-2 rounded-lg p-2'>
+                            <div className='flex w-full font-semibold'>Group Details</div>
+                            <div className='flex flex-col w-full h-full group relative rounded-lg gap-2'>
                                 <div className='flex w-full h-8 gap-2'>
-                                    <input value={groupSearch} id='groupSearchInput' onBlur={()=>{setGroupSearch(existingGroupName??"")}} onChange={(e)=>{setGroupSearch(e.target.value)}} className='group border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
+                                    <input value={groupSearch} id='groupSearchInput' onChange={(e)=>{setGroupSearch(e.target.value)}} className='group bg-base-100 border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
                                     <div className='flex w-fit h-full relative'>
                                         <Image onClick={handleRemoveFromGroup} className='peer' src={"/images/close_black.svg"} alt='X' width={14} height={14}/>
                                         <span className='peer collapse border-base-300 rounded-md px-2 peer-hover:visible absolute top-10 z-10 w-50 border-2 right-2 text-nowrap bg-slate-200'>remove entry from group</span>
@@ -328,11 +343,27 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <button onClick={()=>{console.log(group);handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
                                     )}
                                     {
-                                        (filteredGroups.length === 0 && groupSearch.length> 0 ) && 
-                                        <button onClick={()=>{handleGroupChange(groupSearch)}} className='flex group w-full items-center justify-start px-5 bg-base-300'>
+                                        (filteredGroups.length === 0 && groupSearch ) && 
+                                        <button onClick={(e)=>{e.stopPropagation(); handleGroupChange(groupSearch)}} className='flex group cursor-pointer w-full items-center justify-start px-5 bg-base-300'>
                                             Create new Group '{groupSearch}'
                                         </button>
                                     }
+                                </div>
+                                <div className='flex w-full gap-1'>
+                                    <div>Current Group: </div>
+                                    {entry.group ? 
+                                        <div className='group flex items-center justify-center text-info-content w-fit rounded-full text-sm px-2 bg-info border-info-darken border-2'>
+                                            {entry.group}
+                                            <div onClick={handleRemoveFromGroup} className='group-hover:visible  cursor-pointer group-hover:flex group-hover:pl-3 invisible w-0 h-0 group-hover:w-fit group-hover:h-full items-center '>
+                                                x
+                                            </div>
+                                        </div>
+                                        :
+                                        <div>
+                                            No Group
+                                        </div>
+                                    }
+                                   
                                 </div>
                             </div>
                         </div>
@@ -358,7 +389,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <Image onClick={handleDecryptPass} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6 cursor-pointer'/>
                                         <div className={`h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
                                             {/* TODO */}
-                                            <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current);}} src={"/images/randomise.svg"} alt='copy' width={0} height={0} className={`flex w-full h-full cursor-pointer`}/>
+                                            <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current);}} src={"/images/randomise.svg"} alt='randomise' width={0} height={0} className={`flex w-full h-full cursor-pointer`}/>
                                         </div>
                                     </div>
                                     {/* password strength meter */}
