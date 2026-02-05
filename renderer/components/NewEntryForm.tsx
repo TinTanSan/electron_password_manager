@@ -87,7 +87,10 @@ export default function NewEntryForm({setShowForm}:props) {
                                 lastEditDate: new Date(),
                             }
                         }))
-                    })                    
+                        
+                    }).catch((error)=>{
+                        addBanner(bannerContext, 'unable to get paginated entries', 'error');
+                    })                
                     setShowForm(false);
                 }else{
                     addBanner(bannerContext, 'Unable to add entry: '+x.result, 'error')
