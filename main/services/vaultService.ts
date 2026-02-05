@@ -210,21 +210,20 @@ class VaultService extends EventEmitter{
         }
         // get index of new group
         let newGroupIdx = this.vault.entryGroups.findIndex(x=>x.groupName === groupName);
-
-        if (newGroupIdx > 0){
+        if (newGroupIdx >= 0){
             // new group already exists
-            if(this.vault.entryGroups[newGroupIdx].entries.findIndex(x=>x === entryUUID) > 0) {
+            if(this.vault.entryGroups[newGroupIdx].entries.findIndex(x=>x === entryUUID) >= 0) {
                 // entry is already a member of the new group
                 return 'ENTRY_ALREADY_IN_GROUP';
             }
             // new group exists, entry is not a member of said group, add it
-            this.vault.entryGroups[newGroupIdx].entries.push(entryUUID)
+            this.vault.entryGroups[newGroupIdx].entries.push(entryUUID);
         }else{
             // new group does not exist, create and add entry as it's field
                 this.vault.entryGroups.push({
                     groupName,
                     entries:[entryUUID]
-                })            
+                })     
         }
         this.sync();
         return "OK"
@@ -233,6 +232,8 @@ class VaultService extends EventEmitter{
     removeEntryFromGroup(entryUUID:string){
         let entry = this.vault.entries.get(entryUUID);
         if (!entry) return "ENTRY_NOT_FOUND";
+        
+        if (!entry.group) return "ENTRY_NOT_IN_A_GROUP";
         
         let group = this.vault.entryGroups.find(x=>x.groupName===entry.group);
         
@@ -243,6 +244,35 @@ class VaultService extends EventEmitter{
         this.sync();
         return "OK"
     }
+
+
+    searchGroups(query:string){
+        let results = [];
+        this.vault.entryGroups.forEach((group)=>{
+            if (group.groupName.toLowerCase().includes(query.toLowerCase())){
+                results.push(group);
+            }
+        })
+        return results;
+    }
+
+    deleteGroup(groupName:string){
+        let group  = this.vault.entryGroups.find(x=>x.groupName===groupName);
+        group.entries.forEach((x)=>{
+            this.vault.entries.get(x).group = "";
+        })
+        this.vault.entryGroups = this.vault.entryGroups.filter(x=>x.groupName!== groupName);
+        this.sync();
+    }
+
+    getGroup(groupName:string){
+        return this.vault.entryGroups.find(x=>x.groupName===groupName);
+    }
+
+    getAllGroups(){
+        return this.vault.entryGroups;
+    }
+
 
     async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}){
         let dek = randomBytes(32);
