@@ -121,3 +121,15 @@ ipcMain.on('recents:add', (_,filepath)=>{
   
   handleAddRecent(filepath);
 })
+
+ipcMain.handle('recents:remove', (_, filePath:string)=>{
+  let content:Array<string> = [];
+  if(!fs.existsSync(path.join(data_path,"/recents.json"))){
+    fs.writeFileSync(path.join(data_path,"/recents.json"), "[]");
+    return "NO_RECENTS_FILE";
+  }else{
+    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString());
+    fs.writeFileSync(path.join(data_path, "/recents.json"), JSON.stringify(content.filter(x=>x!==filePath)));
+    return "OK";
+  }
+})
