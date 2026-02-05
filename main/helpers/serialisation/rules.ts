@@ -34,7 +34,7 @@ export const entryConstituents = {
         ['passHash'   , 'b64Buff'],
         ['notes'      , "string"],
         ['isFavourite', "isFavToBool"],
-        ['group', 'string'],
+        // ['group', 'string'],
         ['extraFields', 'extraFields']
     ]
     ,
