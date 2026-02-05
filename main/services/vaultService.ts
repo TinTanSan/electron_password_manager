@@ -153,14 +153,15 @@ class VaultService extends EventEmitter{
     async closeVault(){
         console.log("vault closing")
         
-        this.lockVault();
-        this.vault = undefined; 
-        this.vaultInitialised = false;
+        this.lockVault().then((_)=>{
+            this.vault = undefined;
+            this.vaultInitialised = false;
+        })
         
         console.log("vault closed");
     }
 
-    lockVault(){
+    async lockVault(){
         try{
             if (this.vaultInitialised){
                 this.syncService.flushSyncBuffer().then((_)=>{
