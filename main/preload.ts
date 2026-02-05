@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { ExtraField } from './services/vaultService'
 
 const vaultIPCHandlers = {
+  // Vault level IPC channels
   openVault: (filePath:string)=>ipcRenderer.invoke('vault:open', filePath),
   setMasterPassword: (password:string)=>ipcRenderer.invoke('vault:setPass', password),
   unlockVault:(password:string)=>ipcRenderer.invoke('vault:unlock', password),
@@ -12,10 +13,14 @@ const vaultIPCHandlers = {
   searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
   getNumEntries: ()=>ipcRenderer.invoke('vault:getNumEntries'),
 
-
+  // Entry Group based IPC channels
   addEntryToGroup: (entryUUID:string, groupName:string)=>ipcRenderer.invoke('vault:addEntryToGroup', entryUUID, groupName),
+  removeEntryFromGroup: (entryUUID:string)=>ipcRenderer.invoke('vault:removeEntryFromGroup',entryUUID),
+  deleteGroup: (groupName:string)=>ipcRenderer.invoke('vault:deleteGroup', groupName),
 
-  getEntry:(uuid:string)=>ipcRenderer.invoke('vault:getEntry'),
+
+  // Entry CRUD operations IPC channels
+  getEntry:(uuid:string)=>ipcRenderer.invoke('vault:getEntry', uuid),
   updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
   decryptPass: (uuid:string)=>ipcRenderer.invoke("vault:decryptPass", uuid),
   addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('vault:addExtraField', uuid,extraField),
