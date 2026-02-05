@@ -1,6 +1,6 @@
 import { app, dialog, ipcMain } from 'electron';
 import fs, { unlinkSync } from 'fs';
-import path from 'path'
+import path, { resolve } from 'path'
 
 
 const data_path = app.getPath('userData');
@@ -11,7 +11,9 @@ const handleAddRecent = (filePath:string)=>{
     content = [];
   }else{
     // ensure no duplicates are in the recents
-    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString()).filter((x:string)=>x!==filePath)
+    const absoluteFilePath = resolve(filePath);
+    
+    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString()).filter((x:string)=>x!==absoluteFilePath)
   }
   // only allow 10 entries
   if (content.length >= 10){
@@ -116,5 +118,6 @@ ipcMain.handle('recents:get', ()=>{
 })
 
 ipcMain.on('recents:add', (_,filepath)=>{
-    handleAddRecent(filepath);
+  
+  handleAddRecent(filepath);
 })
