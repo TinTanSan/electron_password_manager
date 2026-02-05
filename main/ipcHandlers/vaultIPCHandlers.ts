@@ -37,6 +37,10 @@ ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPag
 
 ipcMain.handle("vault:addEntryToGroup", async (_, entryUUID, groupName)=>vaultService.addEntryToGroup(entryUUID, groupName))
 
+ipcMain.handle('vault:removeEntryFromGroup', async(_, entryUUID:string)=>vaultService.removeEntryFromGroup(entryUUID))
+ipcMain.handle("vault:deleteGroup", async(_, groupName:string)=>vaultService.deleteGroup(groupName))
+
+
 ipcMain.handle('vault:getEntry', async(_, uuid)=>vaultService.getEntry(uuid))
 
 ipcMain.handle('vault:addEntry', async (_,entry)=>vaultService.addEntry(entry))
