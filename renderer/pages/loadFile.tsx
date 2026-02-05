@@ -173,7 +173,7 @@ export default function LoadFile() {
                         recent.map((recentFile,i)=>(
                             <div  key={i} className='flex justify-between border-base-300 border-2 z-0 items-center rounded-md p-1 h-10 bg-base-200 w-full text-ellipsis has-[div:hover]:bg-base-300'>
                                 <div onClick={()=>{handleOpenFile(recentFile)}} className='flex w-full h-full cursor-pointer'>
-                                    {recentFile.substring(1)}
+                                    {recentFile.replace("/","")}
                                 </div>
                                 <div onClick={()=>{setShowDeleteConfirmationPopup(true); setVaultToDelete(recentFile)}} className='flex w-fit h-fit items-center group'>
                                     <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-14 group-hover:px-1 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
