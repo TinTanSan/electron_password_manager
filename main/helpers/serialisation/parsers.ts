@@ -137,14 +137,20 @@ export const parsers = {
         for(let str of split){
             if (!str) continue;
             try {
-                
                 res[constituents[counter][0]] = parsers[constituents[counter][1]](str)  
-                
                 counter +=1
             } catch (error) {
                 throw new Error('Error occured whilst parsing vault: ',error);
             }
         }
+
+        for (let group of res.entryGroups){
+            group.entries.forEach(x=>{
+                res.entries.get(x).group = group.groupName;
+            })
+        }
+
+
         console.log('parsed vault with version: '+res.vaultMetadata.version)
         return res;
     }
