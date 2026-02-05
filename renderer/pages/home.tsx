@@ -27,7 +27,7 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    if(!vault || !vault.isUnlocked){
+    if(!vault || !vault.isUnlocked || !vault.filePath){
       navigate.push('/loadFile');
     }
     window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
@@ -58,10 +58,11 @@ export default function HomePage() {
 
   return (
     <div className='flex w-screen h-screen items-center justify-center bg-linear-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
-      <title>{vault? vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault": "Vault manager"}</title>
+      {vault === undefined && <title>Vault Manager</title>}
     
     {(vault !== undefined && vault.isUnlocked) && 
       <div className='flex w-full h-full gap-3'>
+        <title>{vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault"}</title>    
         <Sidebar />
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2'>
