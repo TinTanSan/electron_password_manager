@@ -3,6 +3,7 @@ import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {vaultService } from './services/vaultService';
+import { setupMenus } from './helpers/setupMenus';
 const isProd = process.env.NODE_ENV === 'production'
 
 if (isProd) {
@@ -15,7 +16,7 @@ if (isProd) {
 export const createNextronWindow = async () => {
   await app.whenReady()
   
-  // setupMenus();
+  setupMenus();
   
   const mainWindow = createWindow('main', {
     width: 1000,
@@ -37,6 +38,7 @@ export const createNextronWindow = async () => {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/loadFile`)
     mainWindow.webContents.openDevTools();
+    mainWindow.focus();
   }
 }
 
