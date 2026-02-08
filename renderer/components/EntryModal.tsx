@@ -78,7 +78,7 @@ export type RandomPassGeneratorSettings={
 }
 export default function EntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
-    const bannerContext = useContext(BannerContext);
+    const {banners, setBanners} = useContext(BannerContext);
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const vaultEntry = useRef(vault.entries.find(x=>x.metadata.uuid === uuid));
@@ -98,7 +98,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
             setEntryPass(response);
         }).catch((error)=>{
             console.error(error);
-            addBanner(bannerContext, 'unable to decrypt password to set up the entry', 'error');
+            addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
         });
         return ()=>{
             setEntryPass("");
@@ -129,7 +129,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 console.log(response);
                 setShowPass(true);
             }).catch((error)=>{
-                addBanner(bannerContext, "Something went wrong when decrypting password for display", 'error');
+                addBanner(setBanners, "Something went wrong when decrypting password for display", 'error');
             })
         }else{
             setShowPass(false);
@@ -139,7 +139,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleCopy = ()=>{
         navigator.clipboard.writeText(entryPass.toString());
-        addBanner(bannerContext, 'password copied successfully', 'success')
+        addBanner(setBanners, 'password copied successfully', 'success')
         setTimeout(() => {
             window.clipBoardIPC.clearClipboard();
         }, 10000);
@@ -187,7 +187,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 
             // })
         }else{
-            addBanner(bannerContext, 'Banner not added, no name provided','info')
+            addBanner(setBanners, 'Banner not added, no name provided','info')
         }
         
     }
@@ -260,15 +260,15 @@ export default function EntryModal({setShowModal, uuid}:props) {
         console.log(groupName)
         window.vaultIPC.addEntryToGroup(uuid, groupName).then((x)=>{
             if(x === "OK"){
-                addBanner(bannerContext, "Entry added to group", 'success');
+                addBanner(setBanners, "Entry added to group", 'success');
             }else{
-                addBanner(bannerContext, x.toLowerCase(), 'info');
+                addBanner(setBanners, x.toLowerCase(), 'info');
             }
             window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
                 console.log(response)
                 setEntry(response)
             }).catch((error)=>{
-                addBanner(bannerContext, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
+                addBanner(setBanners, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
             })
             
         })
@@ -277,9 +277,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
         window.vaultIPC.removeEntryFromGroup(uuid).then((response)=>{
             console.log(response);
             if(response === "OK"){
-                addBanner(bannerContext, 'entry removed from group', 'success');
+                addBanner(setBanners, 'entry removed from group', 'success');
             }else{
-                addBanner(bannerContext, 'Unable to remove entry from group: '+response.toLowerCase(), 'error');
+                addBanner(setBanners, 'Unable to remove entry from group: '+response.toLowerCase(), 'error');
             }
         })
     }
