@@ -12,7 +12,7 @@ type props = {
 
 export default function ExtraFieldComponent({extraField, entry, onDelete}:props) {
   const {vault, setVault} = useContext(VaultContext);
-  const bannerContext = useContext(BannerContext);
+  const {banners, setBanners} = useContext(BannerContext);
   const [data, setData] = useState<undefined | string>(undefined);
   const [showData, setShowData] = useState(false);
   const [ef, setEf] = useState<ExtraField>({...extraField});
@@ -31,10 +31,10 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
     e.preventDefault();
     window.vaultIPC.addExtraField(entry.metadata.uuid, extraField).then((response)=>{
       if (response ==="OK"){
-        addBanner(bannerContext, "Added extra field", 'success');
+        addBanner(setBanners, "Added extra field", 'success');
 
       }else if(response === "ALREADY_EXISTS"){
-        addBanner(bannerContext, "An extra field with that name already exists", 'error');
+        addBanner(setBanners, "An extra field with that name already exists", 'error');
       }
     })
     setVault(prev=>({...prev, entries:prev.entries.map(x=>x.metadata.uuid===entry.metadata.uuid? {...x, extraFields:[...x.extraFields,extraField], metadata:{...x.metadata, lastEditedDate:new Date()}} : x) , vaultMetadata:{...prev.vaultMetadata, lastEditDate:new Date()}}))
