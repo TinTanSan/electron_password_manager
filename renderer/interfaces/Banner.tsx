@@ -1,3 +1,4 @@
+import React from 'react';
 import {BannerCTXType} from '../contexts/bannerContext';
 
 
@@ -7,16 +8,16 @@ export interface BannerDetails{
     type: 'info' |'success' | 'warning' | 'error' ,// we have four types of banners ,
 }
 // simple function to abstract away the adding of banners into the context. 
-export function addBanner(bannerContext:BannerCTXType | undefined, text:string, type:'info' |'success' | 'warning' | 'error' ){
-    if (bannerContext !== undefined){
+export function addBanner(setBanners:React.Dispatch<React.SetStateAction<BannerDetails[]>>, text:string, type:'info' |'success' | 'warning' | 'error' ){
+    if (setBanners !== undefined){
         const id = window.crypto.randomUUID();
-        bannerContext.setBanners(prev => {
+        setBanners(prev => {
             const updated = [...prev, {id, text, type}];
             return updated.length > 5 ? updated.slice(-5) : updated;
         });
   
         setTimeout(() => {
-            bannerContext.setBanners(prev=>prev.filter(x=>x.id !== id))
+            setBanners(prev=>prev.filter(x=>x.id !== id))
         }, 3000);
 
     }else{
