@@ -36,7 +36,7 @@ export default function HomePage() {
   useEffect(()=>{
     if(!searchFilter){
       window.vaultIPC.getPaginatedEntries(0).then((response)=>{
-        setVault(prev=>({...prev,response}));
+        setVault(prev=>({...prev,entries:response}));
       })
     }else{
       const title = searchSettings.searchTitle? searchFilter : "";
@@ -47,7 +47,7 @@ export default function HomePage() {
       })
     }
       
-  }, [searchFilter, searchSettings, vault?.entries])
+  }, [searchFilter, searchSettings])
 
 
   useEffect(()=>{
