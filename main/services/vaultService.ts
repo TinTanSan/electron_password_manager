@@ -135,7 +135,7 @@ class VaultService extends EventEmitter{
         };
     }
     getNumEntries(){
-        return this.vault.entries.size;
+        return this.vault.entries.size ?? -1;
     }
 
     openVault(filePath:string){
