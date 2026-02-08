@@ -14,7 +14,7 @@ export default function LoadFile() {
     const [password, setPassword] = useState("");
     const [requiresInitialisation, setRequiresInitisalisation] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
-    const banners = useContext(BannerContext);
+    const {banners, setBanners} = useContext(BannerContext);
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
     // when using a file dialog to create a file
@@ -27,7 +27,7 @@ export default function LoadFile() {
                 setRecent(prev=>[...prev, filePath])
                 window.vaultIPC.openVault(filePath).then((response)=>{
                     if (response.message === 'NOT_OK'){
-                        addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
+                        addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
                         return;
                     }
                     setRequiresInitisalisation(response.message === "SET_PASS");
@@ -46,18 +46,18 @@ export default function LoadFile() {
                         setRecent(recents);
                         setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
                         const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
-                        addBanner(banners, "Vault "+recent_vault+" Opened successfully", 'success')
+                        addBanner(setBanners, "Vault "+recent_vault+" Opened successfully", 'success')
                     })
                 }else if (status==="CANCELLED"){
-                    addBanner(banners, "No vault chosen", 'warning')
+                    addBanner(setBanners, "No vault chosen", 'warning')
                 }else{
-                    addBanner(banners, "Extension not valid for a vault", "error")
+                    addBanner(setBanners, "Extension not valid for a vault", "error")
                 }
             })
         }else{
             window.vaultIPC.openVault(filepath).then((response)=>{
                 if (response.message === 'NOT_OK'){
-                    addBanner(banners, '"Unable to move further, something went wrong opening the vault', 'error');
+                    addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
                     return;
                 }
                 setRequiresInitisalisation(response.message === "SET_PASS");
@@ -72,17 +72,17 @@ export default function LoadFile() {
           if (requiresInitialisation){
             // create new master password, i.e. new vault or vault key rotations
             if (password === ""){
-              addBanner(banners, "Password cannot be empty", "warning")
+              addBanner(setBanners, "Password cannot be empty", "warning")
               return;
             }
             if (password !== confirmPassword){
-              addBanner(banners, "The two password fields were not the same", 'error');
+              addBanner(setBanners, "The two password fields were not the same", 'error');
               return;
             } 
             const passMessage = isStrongPassword(password)
             if (passMessage.length !== 0){
               // give the user a warning about unsafe master pass
-              addBanner(banners,passMessage, 'warning' )
+              addBanner(setBanners,passMessage, 'warning' )
               return;
             }
             window.vaultIPC.setMasterPassword(password).then((response)=>{
@@ -91,29 +91,29 @@ export default function LoadFile() {
                     setVault(prev=>({...prev, isUnlocked:true}))
                     navigate.push('/home');
                 }else{
-                    addBanner(banners, 'unable to write to file', 'error')
+                    addBanner(setBanners, 'unable to write to file', 'error')
                 }
             }).catch((error)=>{
-                addBanner(banners, 'unable to write hash to file '+error, 'error');
+                addBanner(setBanners, 'unable to write hash to file '+error, 'error');
             })
           }else{
             // simple unlock
             if (!password){
-              addBanner(banners, "Password cannot be empty", "warning");
+              addBanner(setBanners, "Password cannot be empty", "warning");
               return;
             }
             window.vaultIPC.unlockVault(password).then((response)=>{
                 setPassword("");
                 setConfirmPassword("");
                 if (response.status === "OK"){
-                    addBanner(banners, 'vault unlocked', 'success')
+                    addBanner(setBanners, 'vault unlocked', 'success')
                     setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
                     navigate.push('/home');
                 }else{
-                    addBanner(banners, 'incorrect password','error');
+                    addBanner(setBanners, 'incorrect password','error');
                 }
             }).catch((error)=>{
-                addBanner(banners, 'unable to verify password: '+error,'error')
+                addBanner(setBanners, 'unable to verify password: '+error,'error')
             })
           }
         }
@@ -135,21 +135,31 @@ export default function LoadFile() {
         setVault(prev=>({...prev,filePath:""}));
         setPassword("");
         setConfirmPassword("");
-        addBanner(banners, "Vault Closed successfully", 'info')
+        addBanner(setBanners, "Vault Closed successfully", 'info')
     }
 
     const handleDeleteVault = ()=>{
         if (vaultToDelete){
             window.fileIPC.deleteFile(vaultToDelete).then(()=>{
                 setRecent(prev=>prev.filter(x=>x!==vaultToDelete));
-                addBanner(banners, "Vault deleted successfully", 'success')
+                addBanner(setBanners, "Vault deleted successfully", 'success')
                 setShowDeleteConfirmationPopup(false);
             })
         }else{
-            addBanner(banners, 'Cannot delete vault without knowing the filePath', 'error')
+            addBanner(setBanners, 'Cannot delete vault without knowing the filePath', 'error')
         }
         // stop the click from opening the vault
         
+    }
+    const handleRemoveRecent = (filePath:string)=>{
+        window.fileIPC.removeRecent(filePath).then((response)=>{
+            if(response === "OK"){
+                window.fileIPC.getRecents().then((response)=>{
+                    setRecent(response);
+                    addBanner(setBanners, 'Successfully removed vault from recents list', 'success');
+                })
+            }
+        })
     }
 
     useEffect(() => {
@@ -159,26 +169,34 @@ export default function LoadFile() {
         };
     }, []);
     useEffect(()=>{
-        window.fileIPC.getRecents().then((x)=>{setRecent(x)})
+        window.fileIPC.getRecents().then((x)=>{
+            handleOpenFile(x[0]);
+            setRecent(x)
+        })
     },[])
 
   return (
     (vault === undefined || !vault.filePath) ? 
     <div className='flex flex-col h-screen w-screen items-center bg-base-200 gap-20 text-base-content p-5'>
             <title>Open Vault</title>
-            <div className='flex flex-col w-full h-1/2 gap-2 justify-start  bg-base-100 rounded-lg border-2 border-base-300'>
+            <div className='flex flex-col w-full h-2/3 gap-2 justify-start overflow-y-auto  bg-base-100 rounded-lg border-2 border-base-300'>
                 <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
-                <div className='flex flex-col w-full gap-2 p-2 items-center'>
+                <div className='flex flex-col w-full h-fit gap-2 p-2 items-center'>
                     {
                         recent.map((recentFile,i)=>(
-                            <div  key={i} className='flex justify-between border-base-300 border-2 z-0 items-center rounded-md p-1 h-10 bg-base-200 w-full text-ellipsis has-[div:hover]:bg-base-300'>
-                                <div onClick={()=>{handleOpenFile(recentFile)}} className='flex w-full h-full cursor-pointer'>
-                                    {recentFile.replace("/","")}
+                            <div  key={i} className='flex justify-between z-0  p-1 h-10 gap-2 w-full'>
+                                <div onClick={()=>{handleRemoveRecent(recentFile)}} className='flex w-fit min-w-8 h-full items-center justify-center group cursor-pointer'>
+                                    <p className='group-hover:items-center group-hover:text-nowrap duration-300 w-0 h-full group-hover:w-44 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Remove from List</p>
+                                    <Image src={"/images/remove.svg"} alt='remove' width={0} height={0} className='flex w-8 h-8 border-2 border-info rounded-full'/>
                                 </div>
+                                <div onClick={()=>{handleOpenFile(recentFile)}} className='flex bg-base-200 border-base-300 border-2 px-1 items-center text-ellipsis rounded-md hover:bg-base-300 w-full h-full cursor-pointer'>
+                                    {recentFile.replace("/","")}
+                                </div>                                
                                 <div onClick={()=>{setShowDeleteConfirmationPopup(true); setVaultToDelete(recentFile)}} className='flex w-fit h-fit items-center group'>
-                                    <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-14 group-hover:px-1 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
+                                    <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-fit group-hover:px-2 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
                                     <Image  src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border  hover:brightness-20' width={0} height={0}/>
                                 </div>
+
                             </div>
                         ))
                     }
