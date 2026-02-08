@@ -12,7 +12,7 @@ type props ={
 
 export default function NewEntryForm({setShowForm}:props) {
     const {vault, setVault} = useContext(VaultContext);
-    const bannerContext = useContext(BannerContext)
+    const {banners, setBanners} = useContext(BannerContext)
     //  tab is whether we are looking at the main fields or the additional fields
     const [tab, setTab] = useState(true);
 
@@ -78,7 +78,7 @@ export default function NewEntryForm({setShowForm}:props) {
             // go ahead
             window.vaultIPC.addEntry(entry).then((x)=>{
                 if (x.status === "OK"){
-                    addBanner(bannerContext, 'Entry Added','success');
+                    addBanner(setBanners, 'Entry Added','success');
                     window.vaultIPC.getPaginatedEntries(0).then((response)=>{
                         setVault(prev=>({...prev, 
                             entries:response,
@@ -89,15 +89,15 @@ export default function NewEntryForm({setShowForm}:props) {
                         }))
                         
                     }).catch((error)=>{
-                        addBanner(bannerContext, 'unable to get paginated entries', 'error');
+                        addBanner(setBanners, 'unable to get paginated entries', 'error');
                     })                
                     setShowForm(false);
                 }else{
-                    addBanner(bannerContext, 'Unable to add entry: '+x.result, 'error')
+                    addBanner(setBanners, 'Unable to add entry: '+x.result, 'error')
                 }
             })
         }else{
-            addBanner(bannerContext, 'vault was undefined but you were able to open the new Entry form', 'error');
+            addBanner(setBanners, 'vault was undefined but you were able to open the new Entry form', 'error');
             setShowForm(false);
         }
     }

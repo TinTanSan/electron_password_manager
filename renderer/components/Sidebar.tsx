@@ -6,19 +6,19 @@ import { addBanner } from '../interfaces/Banner';
 import Link from 'next/link';
 export default function Sidebar() {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
-    const bannerContext = useContext(BannerContext);
+    const {banners, setBanners} = useContext(BannerContext);
     const {vault, setVault} = useContext(VaultContext);
     const handleLock = ()=>{
         window.clipBoardIPC.clearClipboard();
         window.vaultIPC.lockVault()
-        bannerContext.setBanners([]);
-        addBanner(bannerContext, 'Vault locked', 'info');
+        setBanners([]);
+        addBanner(setBanners, 'Vault locked', 'info');
         console.log('done')
     }
     const handleClose = ()=>{
-        bannerContext.setBanners([])
+        setBanners([])
         window.vaultIPC.closeVault();
-        addBanner(bannerContext, "Vault Closed successfully", 'info')
+        addBanner(setBanners, "Vault Closed successfully", 'info')
         setVault(prev=>({...prev, filePath:""}));
     }
     return (
