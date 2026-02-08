@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import type { AppProps } from 'next/app'
 
 import '../styles/globals.css'
-import { VaultContext } from '../contexts/vaultContext';
+import { defaultVaultState, VaultContext } from '../contexts/vaultContext';
 import {Vault} from '../interfaces/Vault';
 import { BannerContext } from '../contexts/bannerContext'
-import { BannerDetails } from '../interfaces/Banner'
+import { addBanner, BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 
@@ -30,6 +30,23 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
   }, [vault])
 
+  useEffect(()=>{
+    window.vaultIPC.mainCloseVault(()=>{
+      if (vault && vault.filePath){
+        setVault(defaultVaultState);
+        navigate.push("/loadFile");
+        console.log(vault);
+        return;
+      }
+      if (!vault){
+        window.close();
+        return;
+      }else if (!vault.filePath){
+        window.close();
+        return;
+      }
+    })
+  }, [])
 
 
   return (
