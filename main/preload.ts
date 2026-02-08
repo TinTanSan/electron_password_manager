@@ -8,6 +8,7 @@ const vaultIPCHandlers = {
   unlockVault:(password:string)=>ipcRenderer.invoke('vault:unlock', password),
   lockVault:()=>ipcRenderer.send('vault:lock'),
   closeVault:()=>ipcRenderer.send('vault:close'),
+  mainCloseVault: (callback)=>ipcRenderer.on('vault:close', ()=>{return callback()}),
 
   getPaginatedEntries: (page:number)=>ipcRenderer.invoke('vault:getPaginatedEntries', page),
   searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
@@ -44,13 +45,16 @@ const clipBoardIPCHandlers = {
   copyPassword: (entryUUID:string) =>{},
 }
 
-
+const mainChannels = {
+  handleCloseWindow: (callback:any)=>ipcRenderer.on('vault:close', ()=>callback)
+}
 
 contextBridge.exposeInMainWorld('vaultIPC', vaultIPCHandlers);
 contextBridge.exposeInMainWorld('fileIPC', fileIPCHandlers);
 contextBridge.exposeInMainWorld('clipBoardIPC', clipBoardIPCHandlers);
+contextBridge.exposeInMainWorld('electronIPC', mainChannels);
 
-
+export type mainChannels = typeof mainChannels;
 export type VaultIpcHandler = typeof vaultIPCHandlers;
 export type FileIpcHandler = typeof fileIPCHandlers;
 export type ClipBoardIPCHandler = typeof clipBoardIPCHandlers;
