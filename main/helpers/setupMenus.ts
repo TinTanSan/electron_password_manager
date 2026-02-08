@@ -10,8 +10,9 @@ const handleGlobOpenVault = ()=>{
 }
 const handleCloseWindow = ()=>{
   const win = BrowserWindow.getFocusedWindow();
-  if (!win) return;
-  win.close();
+  win.webContents.send("vault:close")
+  // if (!win) return;
+  // win.close();
 }
 
 const handleCreateVaultOrWindow = ()=>{
