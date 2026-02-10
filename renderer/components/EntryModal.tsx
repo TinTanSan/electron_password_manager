@@ -105,7 +105,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     },[])
 
-
+    const [tab, setTab] = useState(false);
     
 
     const filteredGroups = useMemo(()=>{
@@ -214,6 +214,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         :
             setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
     }
+    
     const handleRandomPassSettingChange =(settingtoChange:string, val?:string)=>{
         if (settingtoChange === "length"){
             let length = parseInt(val);
@@ -312,183 +313,84 @@ export default function EntryModal({setShowModal, uuid}:props) {
         <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
             <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 ' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
-                        <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
-                            {entry.title}
-                            {/* {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>} */}
-                        </div>
-                        <Image onClick={closeModal} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
+                    <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
+                        {entry.title}
+                        {/* {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>} */}
                     </div>
-                <div className='flex flex-col w-full h-full text-base-content overflow-y-auto p-2'>
-                    {/* header */}
-                    <div className="flex flex-col w-full h-fit gap-3">
-                        {/* title section */}
-                        <div className={`flex group shrink-0 w-full h-8 items-center border-base-content gap-2 border-2 rounded-lg focus-within:border-primary duration-300 transition-all`}>
-                            <label className='flex group w-fit text-lg border-r-2 px-2 h-full items-center group-focus-within:border-primary'>Title</label>
-                            <input id='title' value={entry.title} onChange={handleChange}  className='flex w-full rounded-lg text-md h-full outline-none pr-1' />
-                        </div>
-
-                        {/* Group section */}
-                        <div className='flex flex-col items-center h-fit gap-2 text-md bg-base-200 border-base-300 border-2 rounded-lg p-2'>
-                            <div className='flex w-full font-semibold'>Group Details</div>
-                            <div className='flex flex-col w-full h-full group relative rounded-lg gap-2'>
-                                <div className='flex w-full h-8 gap-2'>
-                                    <input value={groupSearch} id='groupSearchInput' onChange={(e)=>{setGroupSearch(e.target.value)}} className='group bg-base-100 border-2 outline-none rounded-lg w-full h-8 px-1 items-start flex appearance-none' />
-                                    <div className='flex w-fit h-full relative'>
-                                        <Image onClick={handleRemoveFromGroup} className='peer' src={"/images/close_black.svg"} alt='X' width={14} height={14}/>
-                                        <span className='peer collapse border-base-300 rounded-md px-2 peer-hover:visible absolute top-10 z-10 w-50 border-2 right-2 text-nowrap bg-slate-200'>remove entry from group</span>
-                                    </div>
-                                </div>
-                                <div className={`flex flex-col gap-2 w-full collapse h-0 overflow-hidden z-10 top-1 relative bg-base-100 group-focus-within:visible group-focus-within:h-fit group-focus-within:mb-1`}>
-                                    {filteredGroups.map((group, i)=>
-                                        <button onClick={()=>{console.log(group);handleGroupChange(group)}} className='flex w-full items-center justify-start px-5 h-6 bg-base-300' key={i} >{group}</button>
-                                    )}
-                                    {
-                                        (filteredGroups.length === 0 && groupSearch ) && 
-                                        <button onClick={(e)=>{e.stopPropagation(); handleGroupChange(groupSearch)}} className='flex group cursor-pointer w-full items-center justify-start px-5 bg-base-300'>
-                                            Create new Group '{groupSearch}'
-                                        </button>
-                                    }
-                                </div>
-                                <div className='flex w-full gap-1'>
-                                    <div>Current Group: </div>
-                                    {entry.group ? 
-                                        <div className='group flex items-center justify-center text-info-content w-fit rounded-full text-sm px-2 bg-info border-info-darken border-2'>
-                                            {entry.group}
-                                            <div onClick={handleRemoveFromGroup} className='group-hover:visible  cursor-pointer group-hover:flex group-hover:pl-3 invisible w-0 h-0 group-hover:w-fit group-hover:h-full items-center '>
-                                                x
-                                            </div>
-                                        </div>
-                                        :
-                                        <div>
-                                            No Group
-                                        </div>
-                                    }
-                                   
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* main login details section */}
-                        <div className={`flex shrink-0 flex-col bg-base-200 border-base-300 l w-full duration-100 transition-all  ${collapseLoginDetails?'h-12   delay-300 ': showRandomPassModal? "h-145 " : 'h-120'} gap-2 p-2 border-2 rounded-lg `}>
-                            <div  onClick={()=>{setCollapseLoginDetails(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Login Details</h1>
-                                <Image src={"/images/up_arrow.svg"} alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseLoginDetails? "rotate-180" : "rotate-0"}`} />
-                            </div>
-                            <div className={`duration-300 transition-all ${collapseLoginDetails?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-                                {/* username input */}
-                                <div className='flex flex-col text-md'>
-                                    <label className='flex w-full'>Username</label>
-                                    <input id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 rounded-lg px-1 h-9 border-base-300 bg-base-100 outline-none focus:border-primary duration-300 transition-all' />
-                                </div>
-                                {/* password input */}
-                                <div className='flex flex-col text-md'>
-                                    <label className='flex w-full'>Password</label>
-                                    <div className='flex border-2 border-base-300  bg-base-100 rounded-lg items-center px-2 gap-1 focus-within:border-primary duration-300 transition-all'>
-                                        <input id='password' value={entryPass} placeholder='No password set' type={showPass? "text": "password"} onChange={handleChange} className='flex w-full h-9 outline-none' />
-                                        <Image onClick={handleCopy} src={"/images/copy.svg"} alt='copy' width={0} height={0} className='flex w-6 h-6 cursor-pointer' />
-                                        <Image onClick={handleDecryptPass} src={showPass?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={0} height={0} className='flex w-6 h-6 cursor-pointer'/>
-                                        <div className={`h-6 w-6 shrink-0 flex transition-all duration-100  rounded-lg bg-base-100 ${showRandomPassModal && " invert"}`}>
-                                            {/* TODO */}
-                                            <Image onClick={()=>{setShowRandomPassModal(prev=>!prev); setEntry(vaultEntry.current);}} src={"/images/randomise.svg"} alt='randomise' width={0} height={0} className={`flex w-full h-full cursor-pointer`}/>
-                                        </div>
-                                    </div>
-                                    {/* password strength meter */}
-                                    <div className='flex flex-col w-full h-fit shrink-0 px-1 mt-1'>
-                                        <div className='gap-1 flex w-full h-1 bg-base-300  rounded-lg overflow-hidden'>
-                                            <div className={`flex ${scoreWidth[passwordScore.score]} transition-all duration-300 h-full shrink-0 rounded-full ${scoreToColor[passwordScore.score]}`} />
-                                        </div>
-                                        <div className={`flex w-full h-full ${scoreToText[passwordScore.score]}`}>{handleGetFeedback(entryPass, passwordScore)}</div>
-                                    </div>
-                                    {showRandomPassModal && 
-                                        <div className='flex flex-col w-full gap-2 h-fit border-2 border-base-darken rounded-lg p-2'>
-                                            <div className='flex flex-row w-full gap-2 items-center '>
-                                                <Slider bgStyle='bg-base-300 h-3.5 rounded-full ' selectedHeight='h-5' thumbDimensions='w-5 h-5 border-[3px]' minimum={8} maximum={50} value={randomSettings.length} setValue={(value)=>{handleRandomPassSettingChange('length', value.toString())}}  />
-                                            </div>
-                                            <div className='flex lg:flex-row flex-col w-full h-full lg:h-fit gap-2 lg:gap-5 items-center justify-center text-md'>
-                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowCapitals')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap border-neutral  border-2 h-8 ${randomSettings.allowCapitals&& 'bg-neutral border-none text-neutral-content'}`}>
-                                                    capital letters
-                                                </button>
-                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowNumbers')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-neutral border-2 h-8 ${randomSettings.allowNumbers&& 'bg-neutral border-none text-neutral-content'}`}>
-                                                    numbers
-                                                </button>
-                                                <button type='button' onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}} className={`flex justify-center items-center cursor-pointer w-36 rounded-lg text-nowrap  border-neutral border-2 h-8 ${randomSettings.allowSpecChars&& 'bg-neutral border-none text-neutral-content'}`}>
-                                                    special chars
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                                {/* notes input */}
-                                <div className='flex flex-col text-md'>
-                                    <label className='flex w-full'>Notes</label>
-                                    <textarea id='notes' value={entry.notes} onChange={handleChange} className='flex w-full  bg-base-100 border-2 rounded-lg px-1 h-40 resize-none outline-none border-base-300 focus:border-primary duration-300 transition-all' />
-                                </div>
-                                {/* URL input to come */}
-                                <div className='flex flex-col text-md'>
-                                    <label className='flex w-full'>Website</label>
-                                    <input value={"This feature coming"} readOnly className='flex w-full border-2 rounded-lg px-1 h-9  bg-base-100 border-base-300 outline-none focus:border-primary duration-300 transition-all' />
-                                </div>
-                            </div>
-                        </div>
-                        {/* extra Fields section */}
-                        <div className={`flex flex-col w-full duration-100 transition-height  ${collapseExtraFeilds?'h-12  delay-300 ':"h-160 "} border-base-300 bg-base-200 gap-2 p-2 border-2 rounded-lg `}>
-                            <div onClick={()=>{setCollapseExtraFields(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Extra Fields</h1>
-                                <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseExtraFeilds? "rotate-180" : "rotate-0"}`} />
-                            </div>
-                            <div className={`duration-300 transition-all ${collapseExtraFeilds?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-2 delay-100"} `}>
-                                <div className='flex flex-col w-full h-full border-2 border-base-300 overflow-y-auto'>
-                                    <div className='flex flex-col w-full h-fit p-1'>
-                                        {entry.extraFields.map((x,i)=>
-                                            <ExtraFieldComponent key={i} extraField={x} entry={entry} onDelete={handleDeleteExtraField}/>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* New extra Field section */}
-                        <div className={`flex flex-col text-base-content  w-full duration-100 transition-all bg-base-200  ${collapseNewEf?'h-12 delay-300 ':"h-100 "} border-base-300 gap-2 p-2 border-2 rounded-lg `}>
-                            <div onClick={()=>{setCollapseNewEf(prev=>!prev)}} className={`flex flex-row w-full h-fit justify-between items-center`}>
-                                <h1 className='flex w-fit text-nowrap shrink text-lg font-medium'>Create Extra Field</h1>
-                                <Image src={"/images/up_arrow.svg"}  alt='^' width={0} height={0} className={`flex w-auto h-7 transition-all duration-300 ${collapseNewEf? "rotate-180" : "rotate-0"}`} />
-                            </div>
-                            <div className={`duration-300 transition-all ${collapseNewEf?"w-0 h-0 collapse opacity-0":"w-full h-full visible flex flex-col gap-4 delay-100"} `}>
-                                <div className="flex flex-row w-full items-center h-fit gap-2">
-                                    <div className='flex w-fit text-nowrap'>Name of field</div>
-                                    <input id='name' value={extraFeild.name} onChange={handleChangeExtraField} className='flex border-2 w-full outline-none bg-base-100 border-base-300 rounded-lg h-8 focus:border-primary px-1' />
-                                </div>
-                                <div>
-                                    <div>Data</div>
-                                    <textarea id='data' value={extraFeild.data.toString()} onChange={handleChangeExtraField}  className='flex border-2 bg-base-100 outline-none border-base-300 rounded-lg  w-full h-40 resize-none focus:border-primary p-1' />
-                                </div>
-                                <div className='flex w-full gap-2 items-center'>
-                                    <div>Protect field</div>
-                                    <button className={`flex border-neutral border-2 w-1/2 justify-center items-center rounded-lg h-8 ${extraFeild.isProtected && "bg-neutral text-neutral-content"}`} onClick={()=>{setExtraFeild(prev=>({...prev, isProtected:!prev.isProtected}))}}>Protect</button>
-                                </div>
-                                <div className='flex flex-row w-full h-10 gap-2'>
-                                    <button onClick={handleClearFields} className='flex w-full h-full items-center justify-center bg-base-100 border-info border-2 rounded-lg hover:bg-info hover:text-info-content'>Reset Fields</button>
-                                    <button onClick={handleAddExtraField} className='flex w-full h-full items-center justify-center bg-base-100 border-primary  border-2 rounded-lg hover:bg-primary hover:text-primary-content'>Add</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <Image onClick={closeModal} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                 </div>
-
-                {/* bottom bar with delete, cancel and save buttons */}
-                <div className='flex flex-row w-full  h-14 border-t-2 border-base-300 p-2'>
-                    <div className='flex w-full h-full gap-2'>
-                        <div className='flex w-fit h-fit border-2 border-error rounded-lg hover:bg-error hover:**:brightness-25'>
-                            <Image src={"/images/delete_red.svg"} alt='del' width={0} height={0} className='flex w-8 h-8' />
+                {/* main section */}
+                <div className='flex flex-col w-full h-full items-center pt-2 gap-2'>
+                    {/* NavBar */}
+                    <div className='flex flex-row w-9/10 h-10 rounded-full bg-base-300 overflow-hidden p-0.75 gap-2 justify-between'>
+                        <div onClick={()=>{setTab(false)}} className={`flex w-full justify-center items-center rounded-full cursor-pointer   ${!tab? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                            General Details
                         </div>
-                        <div className='flex items-center w-12 h-10 justify-center'>
-                            <Image onClick={changeFavourite} title='favourite this entry to have it shown at the top of the list everytime' src={entry.isFavourite?"/images/starFill.svg": "/images/starNoFill.svg"} alt='nofav' width={50} height={50} className={`flex ${entry.isFavourite && "w-10 h-10"}`}/>
+
+                        <div onClick={()=>{setTab(true)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                            Extra Fields
                         </div>
                     </div>
-                    {/* {!areEqual && <div className='flex w-full justify-end h-full gap-2'>
-                        <button onClick={()=>{setEntry(vaultEntry.current); setSubmit(true)}} className='flex bg-base-300 items-center justify-center w-24 rounded-lg hover:bg-base-darken'>Discard</button>
-                        <button onClick={handleConfirm} className='flex bg-primary hover:bg-primary-darken text-primary-content w-24 rounded-lg items-center justify-center'>Save</button>
-                    </div>} */}
+                    {
+                        !tab ? 
+                        <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
+                            <div className='flex w-full text-[13px]'>This entry has the same password as another entry. Change it now to increase security</div>
+                            <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
+                                <p className='flex text-lg font-semibold mb-1'> Entry Details </p>
+                                {/* Title */}
+                                <div className='flex flex-col '>
+                                    <label>Title</label>
+                                    <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                </div>
+                                {/* Username */}
+                                <div className='flex flex-col'>
+                                    <label>Username</label>
+                                    <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                </div>
+                                {/* Password */}
+                                <div className='flex flex-col'>
+                                    <label>Password</label>
+                                    <div title='change password' className='flex gap-1 w-full h-8 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
+                                        <input type={showPass ? "text": "password"} id='username' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
+                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                    </div>
+                                </div>
+                                {/* Website */}
+                                <div className='flex flex-col'>
+                                    <label>Website</label>
+                                    <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                </div>
+                                {/* Notes */}
+                                <div className='flex flex-col w-full h-full'>
+                                    <label>Notes</label>
+                                    <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
+                                </div>
+                            </div>
+                            <div className='flex flex-col w-full h-1/4 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
+                                <p className='flex text-md font-semibold mb-2'> Group Details </p>
+
+                            </div>
+                            
+                        </div>
+                        :
+                        <div>
+                            Extra Fields
+                        </div>
+                    }
+                    {/* Bottom bar */}
+                    <div className='flex w-full h-12 items-center border-t-2 px-4 py-1 border-base-300'>
+                        <div className='flex w-1/2 h-full'>
+                            <Image onClick={()=>{}} title='randomise password' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-8 border-2 border-error rounded-sm cursor-pointer'/>
+                        </div>
+                        <div className='flex w-full h-full'>
+
+                        </div>
+                    </div>
+
                 </div>
+                
             </div>
             
         </div>
