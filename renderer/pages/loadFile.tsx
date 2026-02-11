@@ -236,7 +236,7 @@ export default function LoadFile() {
         </div>
     :
     <div className='flex justify-center items-center w-screen h-screen'>
-       <div className='flex flex-col bg-base-100 text-base-content w-1/2 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-5 items-center'>
+       <div className='flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-5 items-center'>
             <div className='flex justify-center w-full text-3xl font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
             
             <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-center items-center py-5'>
@@ -254,7 +254,7 @@ export default function LoadFile() {
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
                 <button type='button' onClick={handleCancel} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                <button type='submit' className='flex bg-primary text-primary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
+                <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
