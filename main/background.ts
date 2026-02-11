@@ -16,7 +16,7 @@ if (isProd) {
 export const createNextronWindow = async () => {
   await app.whenReady()
   
-  setupMenus();
+  // setupMenus();
   
   const mainWindow = createWindow('main', {
     width: 1000,
