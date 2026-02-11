@@ -236,6 +236,25 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     }
 
+    const handleDeleteEntry = ()=>{
+        window.vaultIPC.deleteEntry(uuid).then((response)=>{
+            console.log(response)
+            if (response){
+                addBanner(setBanners, 'Successfully deleted the entry', 'success');
+                setShowModal(false);
+                window.vaultIPC.getPaginatedEntries(0).then((response)=>{
+                    setVault(prev=>({...prev, entries: response}))
+                }).catch((error)=>{
+                    addBanner(setBanners, 'unable to get paginated entries', 'error');
+                })
+                
+            }else{
+                addBanner(setBanners, 'The entry does not exist', 'error')
+            }
+        }).catch((error)=>{
+            addBanner(setBanners, 'Unable to delete the entry, '+error, 'error')
+        })
+    }
 
     const closeModal = ()=>{
         setEntryPass("");
@@ -334,23 +353,25 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     {
                         !tab ? 
                         <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
-                            <div className='flex w-full text-[13px]'>This entry has the same password as another entry. Change it now to increase security</div>
+                            <div className='flex w-full text-sm items-center gap-1'>
+                                <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
+                                This entry has the same password as another entry. Change it now to increase security</div>
                             <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
                                 <p className='flex text-lg font-semibold mb-1'> Entry Details </p>
                                 {/* Title */}
                                 <div className='flex flex-col '>
                                     <label>Title</label>
-                                    <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                    <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                 </div>
                                 {/* Username */}
                                 <div className='flex flex-col'>
                                     <label>Username</label>
-                                    <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                    <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                 </div>
                                 {/* Password */}
                                 <div className='flex flex-col'>
                                     <label>Password</label>
-                                    <div title='change password' className='flex gap-1 w-full h-8 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
+                                    <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
                                         <input type={showPass ? "text": "password"} id='username' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
                                         <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
                                         <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
@@ -360,7 +381,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 {/* Website */}
                                 <div className='flex flex-col'>
                                     <label>Website</label>
-                                    <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-8 px-1 bg-white '/>
+                                    <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                 </div>
                                 {/* Notes */}
                                 <div className='flex flex-col w-full h-full'>
@@ -375,16 +396,22 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             
                         </div>
                         :
-                        <div>
-                            Extra Fields
+                        <div className='flex w-full h-full p-2'>
+                            <div className='flex flex-col w-full h-full bg-base-200 p-1 rounded-lg'>
+                                <div className='flex w-full h-fit'>
+
+                                </div>
+                            </div>
+                            
                         </div>
                     }
                     {/* Bottom bar */}
                     <div className='flex w-full h-12 items-center border-t-2 px-4 py-1 border-base-300'>
                         <div className='flex w-1/2 h-full'>
-                            <Image onClick={()=>{}} title='randomise password' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-8 border-2 border-error rounded-sm cursor-pointer'/>
+                            <Image onClick={handleDeleteEntry} title='Delete Entry' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-7 border-2 border-error rounded-sm cursor-pointer'/>
                         </div>
                         <div className='flex w-full h-full'>
+
 
                         </div>
                     </div>
