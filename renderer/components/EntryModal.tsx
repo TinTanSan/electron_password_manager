@@ -305,9 +305,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     useEffect(() => {
-        console.log(vault.entryGroups, uuid)
-
-
         document.addEventListener("keydown", (escapeHandler), false);
         addEventListener("keydown", (copyHandler), false);
         return () => {
@@ -330,7 +327,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     return (
         <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
-            <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 ' onClick={(e)=>{e.stopPropagation()}}>
+            <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 overflow-hidden ' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
                     <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
                         {entry.title}
@@ -339,9 +336,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     <Image onClick={closeModal} src={'/images/close_black.svg'} alt='x' width={0} height={0} className='flex w-5 h-auto'/>
                 </div>
                 {/* main section */}
-                <div className='flex flex-col w-full h-full items-center pt-2 gap-2'>
+                <div className='flex flex-col w-full h-full items-center justify-between overflow-hidden'>
                     {/* NavBar */}
-                    <div className='flex flex-row w-9/10 h-10 rounded-full bg-base-300 overflow-hidden p-0.75 gap-2 justify-between'>
+                    <div className='flex flex-row w-9/10 h-1/20 rounded-full bg-base-300 overflow-hidden p-0.75 gap-2 justify-between'>
                         <div onClick={()=>{setTab(false)}} className={`flex w-full justify-center items-center rounded-full cursor-pointer   ${!tab? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             General Details
                         </div>
@@ -350,72 +347,81 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             Extra Fields
                         </div>
                     </div>
-                    {
-                        !tab ? 
-                        <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
-                            <div className='flex w-full text-sm items-center gap-1'>
-                                <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
-                                This entry has the same password as another entry. Change it now to increase security</div>
-                            <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
-                                <p className='flex text-lg font-semibold mb-1'> Entry Details </p>
-                                {/* Title */}
-                                <div className='flex flex-col '>
-                                    <label>Title</label>
-                                    <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
-                                </div>
-                                {/* Username */}
-                                <div className='flex flex-col'>
-                                    <label>Username</label>
-                                    <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
-                                </div>
-                                {/* Password */}
-                                <div className='flex flex-col'>
-                                    <label>Password</label>
-                                    <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
-                                        <input type={showPass ? "text": "password"} id='username' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
-                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                        <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                    <div className='flex flex-col w-full h-17/20  overflow-y-hidden grow-0'>
+                        {
+                            !tab ? 
+                            <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
+                                <div className='flex w-full text-sm items-center gap-1'>
+                                    <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
+                                    This entry has the same password as another entry. Change it now to increase security</div>
+                                <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
+                                    <p className='flex text-lg font-semibold mb-1'> Entry Details </p>
+                                    {/* Title */}
+                                    <div className='flex flex-col '>
+                                        <label>Title</label>
+                                        <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
+                                    </div>
+                                    {/* Username */}
+                                    <div className='flex flex-col'>
+                                        <label>Username</label>
+                                        <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
+                                    </div>
+                                    {/* Password */}
+                                    <div className='flex flex-col'>
+                                        <label>Password</label>
+                                        <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
+                                            <input type={showPass ? "text": "password"} id='username' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
+                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                        </div>
+                                    </div>
+                                    {/* Website */}
+                                    <div className='flex flex-col'>
+                                        <label>Website</label>
+                                        <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
+                                    </div>
+                                    {/* Notes */}
+                                    <div className='flex flex-col w-full h-full'>
+                                        <label>Notes</label>
+                                        <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
                                     </div>
                                 </div>
-                                {/* Website */}
+                                <div className='flex flex-col w-full h-1/4 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
+                                    <p className='flex text-md font-semibold mb-2'> Group Details </p>
+
+                                </div>
+                                
+                            </div>
+                            :
+                            <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
+                                {/* search through extra fields */}
                                 <div className='flex flex-col'>
-                                    <label>Website</label>
-                                    <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
+                                    <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
                                 </div>
-                                {/* Notes */}
-                                <div className='flex flex-col w-full h-full'>
-                                    <label>Notes</label>
-                                    <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
+                                <div className='flex flex-col w-full h-full shrink-0 grow-0 overflow-y-auto gap-2'>
+                                    
+                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                    {entry.extraFields.map(ef=><ExtraFieldComponent extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
                                 </div>
-                            </div>
-                            <div className='flex flex-col w-full h-1/4 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
-                                <p className='flex text-md font-semibold mb-2'> Group Details </p>
-
-                            </div>
-                            
-                        </div>
-                        :
-                        <div className='flex w-full h-full p-2'>
-                            <div className='flex flex-col w-full h-full bg-base-200 p-1 rounded-lg'>
-                                <div className='flex w-full h-fit'>
+                                {/* add extrafield form */}
+                                <div>
 
                                 </div>
                             </div>
-                            
-                        </div>
-                    }
+                        }
+                    </div>
                     {/* Bottom bar */}
-                    <div className='flex w-full h-12 items-center border-t-2 px-4 py-1 border-base-300'>
-                        <div className='flex w-1/2 h-full'>
-                            <Image onClick={handleDeleteEntry} title='Delete Entry' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-7 border-2 border-error rounded-sm cursor-pointer'/>
+                    <div className='flex flex-row w-full h-1/20 items-center border-2 p-1 px-4 border-base-300'>
+                        <div className='flex w-1/2 h-full items-center border-2'>
+                            <Image onClick={handleDeleteEntry} title='Delete Entry' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-8 shrink-0 border-2 border-error rounded-sm cursor-pointer'/>
                         </div>
                         <div className='flex w-full h-full'>
-
-
                         </div>
                     </div>
-
                 </div>
                 
             </div>
