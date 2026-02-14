@@ -51,9 +51,16 @@ export const generateRandomPass = (settings:RandomPassGeneratorSettings):string 
 
 }
 
-const scoreToColor = {0:'bg-error',1:'bg-error', 2:'bg-warning', 4:'bg-success', 3:'bg-info'}
-const scoreToText = {0:'text-error',1:'text-error', 2:'text-warning', 4:'text-success', 3:'text-info'}
-const scoreWidth = ['w-2','w-1/4', 'w-1/2', 'w-3/4', 'w-full'];
+// const scoreToColor = {0:'bg-error',1:'bg-error', 2:'bg-warning', 4:'bg-success', 3:'bg-info'}
+// const scoreToText = {0:'text-error',1:'text-error', 2:'text-warning', 4:'text-success', 3:'text-info'}
+// const scoreWidth = ['w-2','w-1/4', 'w-1/2', 'w-3/4', 'w-full'];
+const scoreStyling = {
+    0: 'bg-error text-error w-2',
+    1: 'bg-error text-error w-1/4',
+    2: 'bg-warning text-warning w-1/2',
+    3: 'bg-info text-info w-3/4',
+    4: 'bg-success text-success w-full',
+}
 function handleGetFeedback( entrypass:string, passwordScore:{score:number, feedback:string}) {
     if (passwordScore.feedback){
         return passwordScore.feedback
@@ -85,14 +92,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     // entryPass will be used when changing the password to update it
     const [entryPass, setEntryPass] = useState("");
+    // for random password
     const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
+    
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
-    const [collapseLoginDetails, setCollapseLoginDetails] = useState(false);
-    const [collapseExtraFeilds, setCollapseExtraFields] = useState(true);
+    
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
+    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
-    const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
 
+    const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
+    const [extraFieldSearch, setEFSearch] = useState("");
     useEffect(()=>{
         window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
             setEntryPass(response);
@@ -107,10 +117,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const [tab, setTab] = useState(false);
     
-
-    const filteredGroups = useMemo(()=>{
-        return vault.entryGroups.filter((group)=>group.groupName.toLocaleLowerCase().includes(groupSearch.toLowerCase())).map((x)=>x.groupName);
-    }, [vault.entryGroups, groupSearch])
 
     
 
@@ -147,7 +153,16 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        throw new Error("Implement via IPC calls")
+        // throw new Error("Implement via IPC calls")
+        window.crypto.subtle.digest('SHA-256', Buffer.from(entryPass)).then((digest)=>{
+            if (!vaultEntry.current.passHash.equals(Buffer.from(digest))){
+                window.vaultIPC.updateEntryField(uuid, 'password', entryPass);
+            }
+        })
+        
+        // if (vaultEntry.current.passHash !== )
+
+
         // window.vaultIPC.updateEntryField()
         // entry.updatePass(vault.kek, decryptedPass).then((newEntryState)=>{
         //     try {
@@ -367,13 +382,21 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                     </div>
                                     {/* Password */}
-                                    <div className='flex flex-col'>
-                                        <label>Password</label>
-                                        <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
-                                            <input type={showPass ? "text": "password"} id='username' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
-                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                            <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                    <div className='flex flex-col gap-1'>
+                                        <div className='flex flex-col'>
+                                            <label>Password</label>
+                                            <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
+                                                <input type={showPass ? "text": "password"} id='password' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
+                                                <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                                <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                                <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                            </div>
+                                        </div>
+                                        <div className='flex flex-col p-1'>
+                                            <div className='flex w-full bg-base-300 rounded-full overflow-hidden h-2'>
+                                                <div className={`flex ${scoreStyling[passwordScore.score]} h-full rounded-full transition-all duration-300`} />
+                                            </div>
+                                            <div>{handleGetFeedback(entryPass, passwordScore)}</div>
                                         </div>
                                     </div>
                                     {/* Website */}
@@ -396,10 +419,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             :
                             <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
                                 {/* search through extra fields */}
-                                <div className='flex flex-col'>
+                                <div className='flex flex-col h-8 '>
                                     <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
                                 </div>
-                                <div className='flex flex-col w-full h-full shrink-0 grow-0 overflow-y-auto gap-2'>
+                                <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
                                     
                                     <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
                                     <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
@@ -408,7 +431,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     {entry.extraFields.map(ef=><ExtraFieldComponent extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
                                 </div>
                                 {/* add extrafield form */}
-                                <div>
+                                <div className='flex flex-col w-full h-40  border-2'>
 
                                 </div>
                             </div>
