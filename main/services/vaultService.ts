@@ -538,6 +538,25 @@ class VaultService extends EventEmitter{
         this.sync()
         return true;
     }
+    /**
+     * Use this function as an alternative to UpdateEntry when you don't know what has changed in an entry. Allows the caller to mutate the entry
+     * given a uuid and an Entry object. This function will return ENTRY_NOT_FOUND if the entry does not exist as to prevent this functions usage as a 
+     * addEntry alternative
+     * @param uuid 
+     * @param newState 
+     * @returns string
+     */
+    async mutateEntry(uuid:string, newState:Entry){
+        let entry = this.vault.entries.get(uuid);
+        // explicitly dictate this this function is not to be used as an alternative to addEntry
+        if (!entry){
+            return "ENTRY_NOT_FOUND";
+        }
+        // ensure last edit date is correctly set
+        newState.metadata.lastEditDate = new Date();
+        this.vault.entries.set(uuid, newState);
+        return "OK"
+    }
 
     async removeEntry(uuid:string){
         const result = this.vault.entries.delete(uuid);
