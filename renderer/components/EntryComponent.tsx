@@ -13,7 +13,7 @@ type props={
 export default function EntryComponent({entry}:props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const {vault, setVault} = useContext(VaultContext);
-    const bannerContext = useContext(BannerContext);
+    const {banners, setBanners} = useContext(BannerContext);
     const [decryptedPass, setDecryptedPass] = useState<string>("");
     const [showPass, setShowPass] = useState(false);
     const [extend, setExtend] = useState(false);
@@ -38,23 +38,23 @@ export default function EntryComponent({entry}:props) {
             // if we have already decrypted the pass
             navigator.clipboard.writeText(decryptedPass.toString()).then(()=>{
                 // set clipboard to be empty after 10 seconds
-                addBanner(bannerContext, 'password copied to clipboard', 'success')
+                addBanner(setBanners, 'password copied to clipboard', 'success')
                 setTimeout(() => {
                     window.clipBoardIPC.clearClipboard();
-                    addBanner(bannerContext, 'password removed from clipboard','info');
+                    addBanner(setBanners, 'password removed from clipboard','info');
                 }, 5000);
             })
         }else{
             window.vaultIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
                 navigator.clipboard.writeText(pass).then(()=>{
-                    addBanner(bannerContext, 'password copied to clipboard', 'success')
+                    addBanner(setBanners, 'password copied to clipboard', 'success')
                     setTimeout(() => {
                         window.clipBoardIPC.clearClipboard();
-                        addBanner(bannerContext, 'password removed from clipboard','info');
+                        addBanner(setBanners, 'password removed from clipboard','info');
                     }, 5000)
                 })
             }).catch((error)=>{
-                addBanner(bannerContext, 'unable to copy password to clipboard', 'error');
+                addBanner(setBanners, 'unable to copy password to clipboard', 'error');
                 console.error(error);
             })
         }
@@ -66,6 +66,8 @@ export default function EntryComponent({entry}:props) {
         setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
     }
     return (
+        <div className='flex w-full h-fit relative'>
+            <Image  src={entry.isFavourite ?"/images/starFill.svg" : "/images/starFill.svg"} alt='fav' width={0} height={0} className='flex w-6 h-6 absolute -top-2 -left-2'/>
             <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center"} overflow-hidden border-2 px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
                 {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
                 <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2 relative'>
@@ -100,5 +102,6 @@ export default function EntryComponent({entry}:props) {
                         <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info outline-none duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>                    </div>
                 </div>
             </div>
+        </div>
     )
 }
