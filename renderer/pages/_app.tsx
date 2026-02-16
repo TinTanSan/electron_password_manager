@@ -22,7 +22,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       timeout = setTimeout(() => {
         setVault(prev=>({...prev, isUnlocked: false}));
         navigate.push('/loadFile')
-      }, 1000*60*10);
+      }, 1000*60*100);
     }
     return ()=>{
       if(timeout !== undefined){
