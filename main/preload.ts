@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { ExtraField } from './services/vaultService'
+import { ExtraField } from './interfaces/VaultServiceInterfaces'
 
 const vaultIPCHandlers = {
   // Vault level IPC channels
@@ -18,6 +18,7 @@ const vaultIPCHandlers = {
   addEntryToGroup: (entryUUID:string, groupName:string)=>ipcRenderer.invoke('vault:addEntryToGroup', entryUUID, groupName),
   removeEntryFromGroup: (entryUUID:string)=>ipcRenderer.invoke('vault:removeEntryFromGroup',entryUUID),
   deleteGroup: (groupName:string)=>ipcRenderer.invoke('vault:deleteGroup', groupName),
+  getGroups: ()=>ipcRenderer.invoke('vault:getGroups'),
 
 
   // Entry CRUD operations IPC channels
@@ -45,16 +46,14 @@ const clipBoardIPCHandlers = {
   copyPassword: (entryUUID:string) =>{},
 }
 
-const mainChannels = {
-  handleCloseWindow: (callback:any)=>ipcRenderer.on('vault:close', ()=>callback)
-}
+
 
 contextBridge.exposeInMainWorld('vaultIPC', vaultIPCHandlers);
 contextBridge.exposeInMainWorld('fileIPC', fileIPCHandlers);
 contextBridge.exposeInMainWorld('clipBoardIPC', clipBoardIPCHandlers);
-contextBridge.exposeInMainWorld('electronIPC', mainChannels);
 
-export type mainChannels = typeof mainChannels;
+
+
 export type VaultIpcHandler = typeof vaultIPCHandlers;
 export type FileIpcHandler = typeof fileIPCHandlers;
 export type ClipBoardIPCHandler = typeof clipBoardIPCHandlers;
