@@ -1,5 +1,5 @@
 export type IPCResponse<T> = {
-    status: "OK" | "ERROR",
+    status: "OK" | "CLIENT_ERROR" | "INTERNAL_ERROR",
     message?: string,
     response: T
 }
