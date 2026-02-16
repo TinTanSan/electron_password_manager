@@ -115,7 +115,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         }
     },[])
 
-    const [tab, setTab] = useState(false);
+    const [tab, setTab] = useState(0);
     
 
     
@@ -354,17 +354,20 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 <div className='flex flex-col w-full h-full items-center justify-between overflow-hidden'>
                     {/* NavBar */}
                     <div className='flex flex-row w-9/10 h-1/20 rounded-full bg-base-300 overflow-hidden p-0.75 gap-2 justify-between'>
-                        <div onClick={()=>{setTab(false)}} className={`flex w-full justify-center items-center rounded-full cursor-pointer   ${!tab? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                        <div onClick={()=>{setTab(0)}} className={`flex w-full justify-center items-center rounded-full cursor-pointer   ${tab ===0? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             General Details
                         </div>
 
-                        <div onClick={()=>{setTab(true)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                        <div onClick={()=>{setTab(1)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab === 1 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             Extra Fields
+                        </div>
+                        <div onClick={()=>{setTab(2)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab === 2 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                            Group Details                        
                         </div>
                     </div>
                     <div className='flex flex-col w-full h-17/20  overflow-y-hidden grow-0'>
                         {
-                            !tab ? 
+                            (tab ===0) ? 
                             <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
                                 <div className='flex w-full text-sm items-center gap-1'>
                                     <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
@@ -410,36 +413,45 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
                                     </div>
                                 </div>
-                                <div className='flex flex-col w-full h-1/4 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
-                                    <p className='flex text-md font-semibold mb-2'> Group Details </p>
-
-                                </div>
                                 
                             </div>
                             :
-                            <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
-                                {/* search through extra fields */}
-                                <div className='flex flex-col h-8 '>
-                                    <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
-                                </div>
-                                <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
-                                    
-                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
-                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
-                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
-                                    <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
-                                    {entry.extraFields.map(ef=><ExtraFieldComponent extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
-                                </div>
-                                {/* add extrafield form */}
-                                <div className='flex flex-col w-full h-40  border-2'>
+                            (tab === 1)?
+                                <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
+                                    {/* search through extra fields */}
+                                    <div className='flex flex-col h-8 '>
+                                        <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
+                                    </div>
+                                    <div className='flex flex-col w-full h-full overflow-y-auto gap-2'>
+                                        
+                                        <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                        <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                        <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                        <ExtraFieldComponent extraField={{isProtected:false, name:"Test", data:Buffer.from("hello")}} entry={entry} onDelete={handleDeleteExtraField} />
+                                        {entry.extraFields.map(ef=><ExtraFieldComponent extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
+                                    </div>
+                                    {/* add extrafield form */}
+                                    <div className='flex flex-col w-full h-1/3 grow-0  shrink-0 border-2 rounded-lg'>
+                                        <div className='flex w-full items-center justify-end relative border-2 h-10'>
+                                        <div className='flex items-center w-full justify-center absolute'>New Extra Field form</div>
+                                        </div>
 
+                                    </div>
                                 </div>
-                            </div>
+                                :
+                                <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
+                                    <div className='flex flex-col w-full h-1/2 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
+                                        <p className='flex text-md font-semibold justify-center items-center'> Group Details </p>
+                                    </div>
+                                    <div className='flex w-full h-full bg-base-200 border-base-300 border-2 rounded-lg'>
+                                        <p>All Groups</p>
+                                    </div>
+                                </div>
                         }
                     </div>
                     {/* Bottom bar */}
-                    <div className='flex flex-row w-full h-1/20 items-center border-2 p-1 px-4 border-base-300'>
-                        <div className='flex w-1/2 h-full items-center border-2'>
+                    <div className='flex flex-row w-full h-12 shrink-0 items-center border-2 p-2 px-4 border-base-300'>
+                        <div className='flex w-1/2 h-full items-center'>
                             <Image onClick={handleDeleteEntry} title='Delete Entry' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-8 shrink-0 border-2 border-error rounded-sm cursor-pointer'/>
                         </div>
                         <div className='flex w-full h-full'>
