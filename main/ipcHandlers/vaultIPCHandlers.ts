@@ -47,6 +47,7 @@ ipcMain.handle('vault:addEntry', async (_,entry)=>vaultService.addEntry(entry))
 
 ipcMain.handle('vault:searchEntries', (_,title:string, username:string, notes:string)=>vaultService.searchEntries(title, username, notes))
 
+ipcMain.handle('vault:getGroups', ()=>vaultService.getAllGroups())
 
 ipcMain.handle('vault:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} )=>vaultService.addExtraField(uuid, extraField));
 
