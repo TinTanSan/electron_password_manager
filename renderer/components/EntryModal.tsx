@@ -3,7 +3,7 @@ import { VaultContext } from '../contexts/vaultContext';
 import { Entry, ExtraField } from '../interfaces/Entry';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
-import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons';
+import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons';
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import Slider from './Slider';
@@ -88,8 +88,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const {banners, setBanners} = useContext(BannerContext);
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
-    const vaultEntry = useRef(vault.entries.find(x=>x.metadata.uuid === uuid));
+    const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
+    
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
+    
+    const isEqual = cmpEntry(vaultEntry, entry);
+
     // entryPass will be used when changing the password to update it
     const [entryPass, setEntryPass] = useState("");
     // for random password
@@ -117,7 +121,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const [tab, setTab] = useState(0);
     
-
     
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
@@ -153,29 +156,30 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        // throw new Error("Implement via IPC calls")
+        
         window.crypto.subtle.digest('SHA-256', Buffer.from(entryPass)).then((digest)=>{
-            if (!vaultEntry.current.passHash.equals(Buffer.from(digest))){
-                window.vaultIPC.updateEntryField(uuid, 'password', entryPass);
+            if (!Buffer.from(vaultEntry.passHash).equals(Buffer.from(digest))){
+                window.vaultIPC.updateEntryField(uuid, 'password', entryPass).then((response)=>{
+                    console.log(response)
+                    if (response.status === "OK"){
+                        setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
+                    }else if (response.status = "CLIENT_ERROR"){
+                        addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
+                    }else{
+                        addBanner(setBanners, "Unable to update entry INTERNAL_ERROR, check logs if you're a dev", 'error');
+                        console.error(response.message)
+                    }
+                }).catch((error)=>{
+                    console.log(error)
+                    addBanner(setBanners, 'unable to update password', 'error')
+                })
+            }else if (!isEqual){
+                // something else has changed
+                // window.vaultIPC.en
+                return;
             }
         })
         
-        // if (vaultEntry.current.passHash !== )
-
-
-        // window.vaultIPC.updateEntryField()
-        // entry.updatePass(vault.kek, decryptedPass).then((newEntryState)=>{
-        //     try {
-        //         setEntry(newEntryState)
-        //         const newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? newEntryState : x)
-        //         setVault((prev)=>prev.mutate('entries', newEntries));
-        //         vaultEntry.current = newEntryState;
-        //         addBanner(bannerContext, 'entry updated successfully', 'success')
-        //         setShowModal(false);    
-        //     } catch (error) {
-        //         addBanner(bannerContext, 'unable to update entry '+error, 'error');
-        //     }
-        // })
     }
 
     const changeFavourite = ()=>{
@@ -450,11 +454,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         }
                     </div>
                     {/* Bottom bar */}
-                    <div className='flex flex-row w-full h-12 shrink-0 items-center border-2 p-2 px-4 border-base-300'>
-                        <div className='flex w-1/2 h-full items-center'>
+                    <div className='flex flex-row w-full h-12 shrink-0 items-center border-2 p-1 px-4 border-base-300'>
+                        <div className='flex w-1/2 h-full items-center p-2'>
                             <Image onClick={handleDeleteEntry} title='Delete Entry' src={"/images/delete_red.svg"} alt='show' width={20} height={20} className='flex w-8 h-8 shrink-0 border-2 border-error rounded-sm cursor-pointer'/>
                         </div>
-                        <div className='flex w-full h-full'>
+                        
+                        <div className='flex w-full h-full justify-end'>
+                            <button className='flex w-fit px-2 border-2  text-primary-content rounded-lg h-full items-center bg-primary hover:bg-primary-darken' onClick={handleConfirm}>Save Changes</button>
                         </div>
                     </div>
                 </div>
