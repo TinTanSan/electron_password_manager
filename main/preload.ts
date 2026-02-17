@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { ExtraField } from './interfaces/VaultServiceInterfaces'
+import { Entry, ExtraField } from './interfaces/VaultServiceInterfaces'
 
 const vaultIPCHandlers = {
   // Vault level IPC channels
@@ -8,7 +8,7 @@ const vaultIPCHandlers = {
   unlockVault:(password:string)=>ipcRenderer.invoke('vault:unlock', password),
   lockVault:()=>ipcRenderer.send('vault:lock'),
   closeVault:()=>ipcRenderer.send('vault:close'),
-  mainCloseVault: (callback)=>ipcRenderer.on('vault:close', ()=>{return callback()}),
+  mainCloseVault: (callback:any)=>ipcRenderer.on('vault:close', ()=>{return callback()}),
 
   getPaginatedEntries: (page:number)=>ipcRenderer.invoke('vault:getPaginatedEntries', page),
   searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
@@ -23,13 +23,14 @@ const vaultIPCHandlers = {
 
   // Entry CRUD operations IPC channels
   getEntry:(uuid:string)=>ipcRenderer.invoke('vault:getEntry', uuid),
-  updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
   decryptPass: (uuid:string)=>ipcRenderer.invoke("vault:decryptPass", uuid),
+  deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
+  addEntry:(entry:{title:string,username:string, password:Buffer,notes:string, extraFields:Array<ExtraField>, group:string})=>ipcRenderer.invoke('vault:addEntry', entry),
+  updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
+  mutateEntry: (uuid:string, newState:Entry)=>ipcRenderer.invoke('vault:mutateEntry', uuid, newState),
+  // extra field IPC Channels
   addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('vault:addExtraField', uuid,extraField),
   removeExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('vault:removeExtrafield', uuid, name),
-  deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
-  addEntry:(entry:{title:string,username:string, password:Buffer,notes:string, extraFields:Array<ExtraField>, group:string})=>ipcRenderer.invoke('vault:addEntry', entry)
-  
 }
 
 const fileIPCHandlers = {
