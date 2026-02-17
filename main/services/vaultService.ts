@@ -11,6 +11,7 @@ import { createUUID } from "../crypto/commons";
 import { randomBytes } from "crypto";
 import { SyncService } from "./SyncService";
 import {Entry, ExtraField, Vault} from "../interfaces/VaultServiceInterfaces";
+import { IPCResponse } from "../interfaces/IPCCHannelInterface";
 
 
 class VaultService extends EventEmitter{
@@ -454,20 +455,60 @@ class VaultService extends EventEmitter{
             if (entry.password.length ===0 ){
                 return "";
             }
+            // 12 byte iv, do not change the 12, we'll only ever use 12
             const iv = entry.password.subarray(0,12);
+            // 
             const tag = entry.password.subarray(12,28);
             const encryptedPass = entry.password.subarray(28);
+            console.log()
             let unwrappedDEK = decrypt(dek.wrappedKey, this.vault.kek.kek, dek.tag, dek.iv);
             const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
             unwrappedDEK.fill(0);
             unwrappedDEK = undefined;
+            
             return password.toString();
         }finally{
 
         }
     }
+    private async updatePassword(uuid:string, newPass:string): Promise<IPCResponse<Entry>>{
+        let entry = this.vault.entries.get(uuid);
+        if (!entry){
+            return {
+                status:"CLIENT_ERROR",
+                message:'Entry does not exist with uuid: '+uuid,
+                response: undefined
+            }
+        }
+        const wrappedDEK = entry.dek;
+        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
+        try{
+            const encryptedPass = encrypt(Buffer.from(newPass), dek);
+            const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
+            entry.passHash = shaHash(newPass)
+            entry.password = encBuffConcated;
+            console.log(encBuffConcated);
+            this.sync();
+            return {
+                status:"OK",
+                message:"Password updated",
+                response: entry
+            }
+        }catch(error){
+             return {
+                status:"INTERNAL_ERROR",
+                message:error,
+                response: undefined
+            }
+        }finally{
+            dek.fill(0);
+        }
 
-    async updateEntry(uuid: string,fieldToUpdate:string, newValue:string){
+
+
+    }
+
+    async updateEntry(uuid: string,fieldToUpdate:string, newValue:string):Promise<IPCResponse<Entry>>{
         let entry = this.vault.entries.get(uuid);
         let isFieldInEntry = false;
         for(let field in entry){
@@ -477,14 +518,27 @@ class VaultService extends EventEmitter{
             }
         }
         if (!isFieldInEntry){
-            return false;
+            return {
+                status: "CLIENT_ERROR",
+                message:"field `"+fieldToUpdate+"` not found in entry",
+                response: undefined
+            };
         }
-        entry[fieldToUpdate] = newValue;
+        if (fieldToUpdate === "password"){
+            return await this.updatePassword(uuid, newValue);
+        }else{
+            entry[fieldToUpdate] = newValue;
+        }
+        
         const now = new Date();
         entry.metadata.lastEditDate = now;
         this.vault.vaultMetadata.lastEditDate = now;
         this.sync()
-        return true;
+        return {
+            status: "OK",
+            message:"entry updated",
+            response: entry
+        };
     }
     /**
      * Use this function as an alternative to UpdateEntry when you don't know what has changed in an entry. Allows the caller to mutate the entry
