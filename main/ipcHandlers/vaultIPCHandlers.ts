@@ -1,5 +1,6 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
+import { Entry } from "../interfaces/VaultServiceInterfaces";
 /*
  * use ipcMain.handle when expecting a value to be returned
    use ipcMain.on when wanting to send something to main without expecting anything back to renderer 
@@ -55,7 +56,8 @@ ipcMain.handle('vault:removeExtraField', async (_, uuid, name)=>vaultService.rem
 
 ipcMain.handle('vault:decryptPass', async(_,uuid)=>vaultService.decryptPassword(uuid))
 
-ipcMain.handle('vault:editEntry', async (_, uuid:string,fieldToUpdate:string, newValue:any )=> vaultService.updateEntry(uuid, fieldToUpdate, newValue))
+ipcMain.handle('vault:updateEntry', async (_, uuid:string,fieldToUpdate:string, newValue:any )=> vaultService.updateEntry(uuid, fieldToUpdate, newValue))
+ipcMain.handle('vault:mutateEntry', (_, uuid:string, newState:Entry)=>vaultService.mutateEntry(uuid, newState))
 
 ipcMain.handle('vault:removeEntry', async(_, uuid:string)=>vaultService.removeEntry(uuid))
 
