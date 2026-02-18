@@ -89,7 +89,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
-    
+    const [groups, setGroups] = useState([]);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     
     const isEqual = cmpEntry(vaultEntry, entry);
@@ -156,7 +156,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleConfirm = (e:FormEvent)=>{
         e.preventDefault();
-        
+        // easy way to check whether the password has changed
         window.crypto.subtle.digest('SHA-256', Buffer.from(entryPass)).then((digest)=>{
             if (!Buffer.from(vaultEntry.passHash).equals(Buffer.from(digest))){
                 window.vaultIPC.updateEntryField(uuid, 'password', entryPass).then((response)=>{
@@ -234,6 +234,24 @@ export default function EntryModal({setShowModal, uuid}:props) {
             setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
     }
     
+    const handleMakeFavourite = ()=>{
+        window.vaultIPC.updateEntryField(uuid, 'isFavourite', !entry.isFavourite).then((response)=>{
+            if (response.status === "OK"){
+                addBanner(setBanners, entry.isFavourite ? "Entry removed from favourites": 'Entry added to favourites', 'success');
+                setEntry(response.response);
+                setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid !== uuid ? x : response.response)}));
+                
+            }else if(response.status === "CLIENT_ERROR"){
+                addBanner(setBanners, 'Unable to favourite entry: '+response.message, 'error');
+            }else{
+                addBanner(setBanners, "internal error, check logs if you're a dev", 'error');
+                console.error(response)
+            }
+        }).catch((error)=>{
+            addBanner(setBanners, "unable to favourite entry, check logs if you're a dev", 'error');
+            console.error(error)
+        })
+    }
     const handleRandomPassSettingChange =(settingtoChange:string, val?:string)=>{
         if (settingtoChange === "length"){
             let length = parseInt(val);
@@ -323,6 +341,15 @@ export default function EntryModal({setShowModal, uuid}:props) {
         })
     }
 
+    useEffect(()=>{
+        window.vaultIPC.getGroups().then((response)=>{
+            setGroups(response);
+        }).catch((error)=>{
+            addBanner(setBanners, 'Unable to get groups', 'error')
+            console.error(error);
+        })
+    }, [])
+
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
         addEventListener("keydown", (copyHandler), false);
@@ -377,7 +404,12 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
                                     This entry has the same password as another entry. Change it now to increase security</div>
                                 <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
-                                    <p className='flex text-lg font-semibold mb-1'> Entry Details </p>
+                                    <div className='flex flex-row w-full h-fit gap-2'>
+                                        <p className='flex text-lg font-semibold mb-1 w-full'> Entry Details </p>
+                                        <div className='flex w-10 h-10 items-center'>
+                                            <Image onClick={handleMakeFavourite} src={entry.isFavourite? "/images/starFill.svg":"/images/starNoFill.svg"} alt='fav' width={0} height={0} className={`flex ${entry.isFavourite ? "w-8 h-8": "w-12 h-12"} cursor-pointer `} title='add to favourites' />
+                                        </div>
+                                    </div>
                                     {/* Title */}
                                     <div className='flex flex-col '>
                                         <label>Title</label>
@@ -443,12 +475,24 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                 </div>
                                 :
-                                <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
-                                    <div className='flex flex-col w-full h-1/2 rounded-lg bg-base-200 border-2 p-2 border-base-300'>
+                                <div className='flex flex-col w-full h-full shrink-0 gap-5 p-2'>
+                                    <div className='flex flex-col w-full h-1/4 rounded-lg shrink-0 bg-base-200 border-2 p-2 border-base-300'>
                                         <p className='flex text-md font-semibold justify-center items-center'> Group Details </p>
                                     </div>
-                                    <div className='flex w-full h-full bg-base-200 border-base-300 border-2 rounded-lg'>
-                                        <p>All Groups</p>
+                                    <div className='flex flex-col w-full h-3/4 grow-0 overflow-y-hidden bg-base-200 border-base-300 border-2 rounded-lg p-2'>
+                                        <p className='flex w-full items-center justify-center h-fit'>All Groups</p>
+                                        <div className='flex w-full h-full grow-0 gap-2 flex-col overflow-y-auto'>
+                                            <div className='flex flex-col  w-full h-fit gap-2 p-2'>
+                                                {groups.map((group)=>
+                                                    <div className='flex w-90 min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300' >
+                                                    {group}asdlkjfajkldsfakldsfjlaksdfjlkadjflkadfjladsfadsfasdfas
+                                                    </div>
+                                                )}
+                                                
+                                            </div>
+                                        </div>
+
+
                                     </div>
                                 </div>
                         }
