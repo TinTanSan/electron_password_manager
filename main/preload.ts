@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { Entry, ExtraField } from './interfaces/VaultServiceInterfaces'
+import { Entry, ExtraField, RendererSafeEntry } from './interfaces/VaultServiceInterfaces'
 
 const vaultIPCHandlers = {
   // Vault level IPC channels
@@ -27,7 +27,7 @@ const vaultIPCHandlers = {
   deleteEntry:(uuid:string)=>ipcRenderer.invoke('vault:removeEntry', uuid),
   addEntry:(entry:{title:string,username:string, password:Buffer,notes:string, extraFields:Array<ExtraField>, group:string})=>ipcRenderer.invoke('vault:addEntry', entry),
   updateEntryField:(uuid:string, fieldToUpdate:string, newValue:any)=>ipcRenderer.invoke('vault:updateEntry', uuid, fieldToUpdate, newValue ),
-  mutateEntry: (uuid:string, newState:Entry)=>ipcRenderer.invoke('vault:mutateEntry', uuid, newState),
+  mutateEntry: (uuid:string, newState:RendererSafeEntry)=>ipcRenderer.invoke('vault:mutateEntry', uuid, newState),
   // extra field IPC Channels
   addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('vault:addExtraField', uuid,extraField),
   removeExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('vault:removeExtrafield', uuid, name),
