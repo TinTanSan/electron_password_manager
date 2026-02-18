@@ -8,8 +8,8 @@ export interface ExtraField{
 
 export interface MetaData{
     createDate:Date,
-    lastEditedDate:Date,
-    lastRotate:Date,
+    lastEditDate:Date,
+    lastRotateDate:Date,
     uuid: string;
     version  : string; 
 } 
