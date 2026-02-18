@@ -66,8 +66,6 @@ export default function EntryComponent({entry}:props) {
         setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
     }
     return (
-        <div className='flex w-full h-fit relative'>
-            <Image  src={entry.isFavourite ?"/images/starFill.svg" : "/images/starFill.svg"} alt='fav' width={0} height={0} className='flex w-6 h-6 absolute -top-2 -left-2'/>
             <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center"} overflow-hidden border-2 px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
                 {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
                 <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2 relative'>
@@ -102,6 +100,5 @@ export default function EntryComponent({entry}:props) {
                         <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info outline-none duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>                    </div>
                 </div>
             </div>
-        </div>
     )
 }
