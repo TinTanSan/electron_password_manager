@@ -125,7 +125,18 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
-            setEntryPass(e.target.value);
+            if (showPass){
+                setEntryPass(e.target.value);
+            }else{
+                if (e.target.value.length > 8){
+                    // if the user typed something in after the asterisks
+                    setEntryPass(prev => prev + e.target.value.substring(8))
+                }else{
+                    // if the user pressed backspace
+                    setEntryPass(prev => prev.substring(0, prev.length-1))
+                }
+            }
+            
             return;
         }
         setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
@@ -174,8 +185,20 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     addBanner(setBanners, 'unable to update password', 'error')
                 })
             }else if (!isEqual){
-                // something else has changed
-                // window.vaultIPC.en
+                
+                window.vaultIPC.mutateEntry(uuid, entry).then((response)=>{
+                    console.log(response)
+                    if (response.status === "OK"){
+                        setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
+                    }else if (response.status = "CLIENT_ERROR"){
+                        addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
+                    }else{
+                        addBanner(setBanners, "Unable to update entry INTERNAL_ERROR, check logs if you're a dev", 'error');
+                        console.error(response.message)
+                    }
+                }).catch((error)=>{
+                    addBanner(setBanners, 'unable to update password', 'error')
+                })
                 return;
             }
         })
