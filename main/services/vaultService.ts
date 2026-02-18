@@ -10,7 +10,7 @@ import { serialisers } from "../helpers/serialisation/serialisers";
 import { createUUID } from "../crypto/commons";
 import { randomBytes } from "crypto";
 import { SyncService } from "./SyncService";
-import {Entry, ExtraField, Vault} from "../interfaces/VaultServiceInterfaces";
+import {Entry, ExtraField, RendererSafeEntry, Vault} from "../interfaces/VaultServiceInterfaces";
 import { IPCResponse } from "../interfaces/IPCCHannelInterface";
 
 
@@ -457,10 +457,9 @@ class VaultService extends EventEmitter{
             }
             // 12 byte iv, do not change the 12, we'll only ever use 12
             const iv = entry.password.subarray(0,12);
-            // 
+            // 16 byte tag
             const tag = entry.password.subarray(12,28);
             const encryptedPass = entry.password.subarray(28);
-            console.log()
             let unwrappedDEK = decrypt(dek.wrappedKey, this.vault.kek.kek, dek.tag, dek.iv);
             const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
             unwrappedDEK.fill(0);
@@ -548,16 +547,27 @@ class VaultService extends EventEmitter{
      * @param newState 
      * @returns string
      */
-    async mutateEntry(uuid:string, newState:Entry){
+    async mutateEntry(uuid:string, newState:RendererSafeEntry):Promise<IPCResponse<RendererSafeEntry>>{
         let entry = this.vault.entries.get(uuid);
         // explicitly dictate this this function is not to be used as an alternative to addEntry
         if (!entry){
-            return "ENTRY_NOT_FOUND";
+            return {
+                status: "CLIENT_ERROR",
+                message:"Entry not found",
+                response: undefined
+            };
         }
         // ensure last edit date is correctly set
-        newState.metadata.lastEditDate = new Date();
-        this.vault.entries.set(uuid, newState);
-        return "OK"
+        const now = new Date();
+        entry = {...newState, password: Buffer.from(newState.password), dek:{...entry.dek}, metadata:{...entry.metadata, lastEditDate: now}}
+        this.vault.entries.set(uuid, entry);
+        this.vault.vaultMetadata.lastEditDate = now;
+        this.sync();
+        return  {
+            status: "OK",
+            message:"entry updated",
+            response: entry
+        };
     }
 
     async removeEntry(uuid:string){
