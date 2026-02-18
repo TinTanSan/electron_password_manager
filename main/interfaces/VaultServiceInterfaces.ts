@@ -1,6 +1,6 @@
 import { KEKParts } from "../crypto/keyFunctions";
 
-export interface EntryMetaData{
+export interface MetaData{
     createDate:Date,
     lastEditDate:Date,
     lastRotateDate:Date,
@@ -20,7 +20,7 @@ export interface DataEncryptionKey{
 
 }
 export interface Entry {
-        metadata : EntryMetaData;
+        metadata : MetaData;
         title    : string;
         username : string;
         dek: DataEncryptionKey;
@@ -30,6 +30,18 @@ export interface Entry {
         isFavourite: boolean;
         extraFields: Array<ExtraField>;
         group: string;
+}
+
+export interface RendererSafeEntry{
+    metadata : MetaData;
+    title    : string;
+    username : string;
+    password : Buffer;
+    passHash : Buffer;
+    notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
+    isFavourite: boolean;
+    extraFields: Array<ExtraField>;
+    group: string;
 }
 
 export type vaultMetaData = {
