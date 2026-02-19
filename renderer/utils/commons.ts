@@ -24,8 +24,7 @@ function cmpObj(left:any, right:any){
         if (typeof left[k] === 'object' && right[k]){
             cmpObj(left[k], right[k])
         }
-        if (!right[k] || right[k] !== left[k]){
-            console.log("not eq for param", k)
+        if (right[k] === undefined || right[k] !== left[k]){
             return false;
         }
     }
