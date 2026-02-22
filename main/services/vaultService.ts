@@ -196,14 +196,8 @@ class VaultService extends EventEmitter{
     }
 
 
-    searchGroups(query:string){
-        let results = [];
-        this.vault.entryGroups.forEach((group)=>{
-            if (group.groupName.toLowerCase().includes(query.toLowerCase())){
-                results.push(group);
-            }
-        })
-        return results;
+    searchGroups(query:string):Array<string>{
+        return this.vault.entryGroups.filter((g)=>g.groupName.toLowerCase().includes(query.toLowerCase())).map(x=>x.groupName);
     }
 
     deleteGroup(groupName:string){
