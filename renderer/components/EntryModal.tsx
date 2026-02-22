@@ -87,7 +87,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const {banners, setBanners} = useContext(BannerContext);
     const [showPass, setShowPass] = useState(false);
-    const [showRandomPassModal, setShowRandomPassModal] = useState(false);
+    
     const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
     const [groups, setGroups] = useState([]);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
@@ -96,12 +96,16 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     // entryPass will be used when changing the password to update it
     const [entryPass, setEntryPass] = useState("");
+    const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     // for random password
     const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
-    
+    const [showRandomPassModal, setShowRandomPassModal] = useState(false);
+    const [showRandomPass, setShowRandomPass] = useState(false);
+    const [randomPass, setRandomPass] = useState("");
+
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
     
-    const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
+    
     
     const [collapseNewEf, setCollapseNewEf] = useState(true);
 
@@ -173,7 +177,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 window.vaultIPC.updateEntryField(uuid, 'password', entryPass).then((response)=>{
                     console.log(response)
                     if (response.status === "OK"){
+                        setEntry(response.response)
                         setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
+                        addBanner(setBanners, "Updated entry successfully", 'error');
                     }else if (response.status = "CLIENT_ERROR"){
                         addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
                     }else{
@@ -181,15 +187,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         console.error(response.message)
                     }
                 }).catch((error)=>{
-                    console.log(error)
-                    addBanner(setBanners, 'unable to update password', 'error')
+                    console.error(error)
+                    addBanner(setBanners, 'unable to update password', 'success')
                 })
             }else if (!isEqual){
                 
                 window.vaultIPC.mutateEntry(uuid, entry).then((response)=>{
                     console.log(response)
                     if (response.status === "OK"){
+                        setEntry(response.response)
                         setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
+                        addBanner(setBanners, "Updated entry successfully", 'success');
                     }else if (response.status = "CLIENT_ERROR"){
                         addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
                     }else{
@@ -198,6 +206,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     }
                 }).catch((error)=>{
                     addBanner(setBanners, 'unable to update password', 'error')
+                    console.error(error)
                 })
                 return;
             }
@@ -205,9 +214,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
         
     }
 
-    const changeFavourite = ()=>{
-        throw new Error("Implement via IPC calls");
-    }
 
     const handleAddExtraField = ()=>{
         if (extraFeild.name){
@@ -337,7 +343,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
     
     const handleGroupChange=(groupName: string)=>{
-        console.log(groupName)
+        
         window.vaultIPC.addEntryToGroup(uuid, groupName).then((x)=>{
             if(x === "OK"){
                 addBanner(setBanners, "Entry added to group", 'success');
@@ -345,7 +351,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 addBanner(setBanners, x.toLowerCase(), 'info');
             }
             window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
-                console.log(response)
                 setEntry(response)
             }).catch((error)=>{
                 addBanner(setBanners, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
@@ -365,13 +370,21 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     useEffect(()=>{
-        window.vaultIPC.getGroups().then((response)=>{
-            setGroups(response);
-        }).catch((error)=>{
-            addBanner(setBanners, 'Unable to get groups', 'error')
-            console.error(error);
-        })
-    }, [])
+        if (groupSearch.length === 0 ){
+            window.vaultIPC.getGroups().then((response)=>{
+                setGroups(response.response);
+            }).catch((error)=>{
+                addBanner(setBanners, 'Unable to get groups', 'error')
+                console.error(error);
+            })
+        }else{
+            // searchGroups does not have any values from which anything can go wrong
+            window.vaultIPC.searchGroups(groupSearch).then((ipcResponse)=>{
+                setGroups(ipcResponse.response);
+            })
+        }
+        
+    }, [groupSearch])
 
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
@@ -421,48 +434,65 @@ export default function EntryModal({setShowModal, uuid}:props) {
                     </div>
                     <div className='flex flex-col w-full h-17/20  overflow-y-hidden grow-0'>
                         {
+                            // general details
                             (tab ===0) ? 
                             <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
                                 <div className='flex w-full text-sm items-center gap-1'>
                                     <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
                                     This entry has the same password as another entry. Change it now to increase security</div>
-                                <div className='flex flex-col gap-2 text-md w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
+                                <div className='flex flex-col gap-2 relative items-center justify-center text-sm w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
                                     <div className='flex flex-row w-full h-fit gap-2'>
-                                        <p className='flex text-lg font-semibold mb-1 w-full'> Entry Details </p>
-                                        <div className='flex w-10 h-10 items-center'>
-                                            <Image onClick={handleMakeFavourite} src={entry.isFavourite? "/images/starFill.svg":"/images/starNoFill.svg"} alt='fav' width={0} height={0} className={`flex ${entry.isFavourite ? "w-8 h-8": "w-12 h-12"} cursor-pointer `} title='add to favourites' />
+                                        <p className='flex text-md font-semibold mb-1 w-full'> Entry Details </p>
+                                        <div className='flex w-10 h-10 items-center justify-center'>
+                                            <Image onClick={handleMakeFavourite} src={entry.isFavourite? "/images/starFill.svg":"/images/starNoFill.svg"} alt='fav' width={0} height={0} className={`flex ${entry.isFavourite ? "w-7 h-7": "w-10 h-10"} cursor-pointer `} title='add to favourites' />
                                         </div>
                                     </div>
                                     {/* Title */}
-                                    <div className='flex flex-col '>
+                                    <div className='flex flex-col w-full '>
                                         <label>Title</label>
                                         <input title='change title' type="text" id='title' value={entry.title} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                     </div>
                                     {/* Username */}
-                                    <div className='flex flex-col'>
+                                    <div className='flex flex-col w-full'>
                                         <label>Username</label>
                                         <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                     </div>
                                     {/* Password */}
-                                    <div className='flex flex-col gap-1'>
+                                    <div className='flex flex-col gap-1 w-full'>
                                         <div className='flex flex-col'>
                                             <label>Password</label>
                                             <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
                                                 <input type={showPass ? "text": "password"} id='password' value={showPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
                                                 <Image onClick={()=>{setShowPass(prev=>!prev)}} title={showPass? "hide password": 'show password'} src={showPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                                <Image onClick={()=>{setShowPass(prev=>!prev)}} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                                <Image onClick={()=>{setShowPass(prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                                <Image onClick={handleCopy} title='copy to clipboard' src={"/images/copy.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                                <Image onClick={()=>{setShowRandomPassModal (prev=>!prev)}} title='randomise password' src={"/images/randomise.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
                                             </div>
                                         </div>
-                                        <div className='flex flex-col p-1'>
+                                        <div className='flex flex-col p-1 w-full'>
                                             <div className='flex w-full bg-base-300 rounded-full overflow-hidden h-2'>
                                                 <div className={`flex ${scoreStyling[passwordScore.score]} h-full rounded-full transition-all duration-300`} />
                                             </div>
                                             <div>{handleGetFeedback(entryPass, passwordScore)}</div>
                                         </div>
                                     </div>
+                                    {/* Random password modal */}
+                                    {showRandomPassModal && 
+                                        <div className='flex flex-col w-9/10 p-2 bg-base-300 border-base-darken rounded-lg absolute border-2 h-1/4'>
+                                            <p>New password</p>
+                                            <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
+                                                <input type={showRandomPass ? "text": "password"} id='password' value={showRandomPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
+                                                <Image onClick={()=>{setShowRandomPass(prev=>!prev)}} title={showRandomPass? "hide password": 'show password'} src={showRandomPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
+                                            </div>
+                                            {/*random settings */}
+                                            <div className='flex flex-col w-full h-fit'>
+                                                <p>Length</p>
+                                                <Slider value={randomSettings.length} minimum={8} maximum={50} selectedHeight='h-2' thumbDimensions='h-4 w-4 border-2' className='h-1' bgStyle='h-2 rounded-lg' setValue={(newVal:number)=>{setRandomSettings(prev=>({...prev, length:newVal}))}} />
+                                            </div>
+                                        </div>
+                                    }
+
                                     {/* Website */}
-                                    <div className='flex flex-col'>
+                                    <div className='flex flex-col w-full'>
                                         <label>Website</label>
                                         <input title='change website url' type="text" id='website' value={"This feature coming soon"} readOnly className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                     </div>
@@ -475,6 +505,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 
                             </div>
                             :
+                            // extra fields
                             (tab === 1)?
                                 <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
                                     {/* search through extra fields */}
@@ -498,20 +529,28 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                     </div>
                                 </div>
                                 :
+                                // group details
                                 <div className='flex flex-col w-full h-full shrink-0 gap-5 p-2'>
                                     <div className='flex flex-col w-full h-1/4 rounded-lg shrink-0 bg-base-200 border-2 p-2 border-base-300'>
                                         <p className='flex text-md font-semibold justify-center items-center'> Group Details </p>
+                                        
                                     </div>
                                     <div className='flex flex-col w-full h-3/4 grow-0 overflow-y-hidden bg-base-200 border-base-300 border-2 rounded-lg p-2'>
                                         <p className='flex w-full items-center justify-center h-fit'>All Groups</p>
+                                        <input type="text" placeholder='Search for a group' value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='flex border-2 rounded-lg border-base-300 bg-base-100 px-1' />
                                         <div className='flex w-full h-full grow-0 gap-2 flex-col overflow-y-auto'>
                                             <div className='flex flex-col  w-full h-fit gap-2 p-2'>
-                                                {groups.map((group)=>
-                                                    <div className='flex w-90 min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300' >
-                                                    {group}asdlkjfajkldsfakldsfjlaksdfjlkadjflkadfjladsfadsfasdfas
+                                                {groups.map((group,i)=>
+                                                    <div onClick={()=>{handleGroupChange(group)}} key={i.toString()} className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300' >
+                                                        {group}
                                                     </div>
                                                 )}
-                                                
+                                                {
+                                                    (groups.length === 0 && groupSearch.length > 0) &&
+                                                    <div className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300'> 
+                                                        Create new group with name '{groupSearch}'
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
 
