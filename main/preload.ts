@@ -19,6 +19,7 @@ const vaultIPCHandlers = {
   removeEntryFromGroup: (entryUUID:string)=>ipcRenderer.invoke('vault:removeEntryFromGroup',entryUUID),
   deleteGroup: (groupName:string)=>ipcRenderer.invoke('vault:deleteGroup', groupName),
   getGroups: ()=>ipcRenderer.invoke('vault:getGroups'),
+  searchGroups: (searchString:string)=>ipcRenderer.invoke('vault:searchGroups', searchString),
 
 
   // Entry CRUD operations IPC channels
