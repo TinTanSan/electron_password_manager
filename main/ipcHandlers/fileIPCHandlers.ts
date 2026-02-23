@@ -1,6 +1,7 @@
 import { app, dialog, ipcMain } from 'electron';
 import fs, { unlinkSync } from 'fs';
 import path, { resolve } from 'path'
+import { IPCResponse } from '../interfaces/IPCCHannelInterface';
 
 
 const data_path = app.getPath('userData');
@@ -96,7 +97,7 @@ ipcMain.handle('file:delete', async (_,filePath:string)=>{
 })
 
 
-ipcMain.handle('recents:get', ()=>{
+ipcMain.handle('recents:get', ():IPCResponse<Array<string>>=>{
   const recentsPath = path.join(data_path , "/recents.json");
     if (fs.existsSync(recentsPath)){
       // read file 
@@ -108,28 +109,46 @@ ipcMain.handle('recents:get', ()=>{
         
         fs.writeFileSync(path.join(data_path + "/recents.json"), JSON.stringify(existingVaults));
       }
-      return existingVaults;
+
+      return {
+        status:"OK",
+        response:
+        existingVaults};
       
     }else{
       // create the file and return empty array
       fs.writeFileSync(data_path + "/recents.json", "[]");
-      return [];
+      return {
+        status:"OK",
+        response:[]
+      };
     }
 })
 
-ipcMain.on('recents:add', (_,filepath)=>{
+ipcMain.on('recents:add', (_,filepath):IPCResponse<string>=>{
   
   handleAddRecent(filepath);
+  return {
+    status:"OK",
+    response:"OK"
+  }
 })
 
-ipcMain.handle('recents:remove', (_, filePath:string)=>{
+ipcMain.handle('recents:remove', (_, filePath:string): IPCResponse<string>=>{
   let content:Array<string> = [];
   if(!fs.existsSync(path.join(data_path,"/recents.json"))){
     fs.writeFileSync(path.join(data_path,"/recents.json"), "[]");
-    return "NO_RECENTS_FILE";
+    return {
+      status: "INTERNAL_ERROR", 
+      message:"recents file not found",
+      response: "NO_RECENTS_FILE"
+      }
   }else{
     content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString());
     fs.writeFileSync(path.join(data_path, "/recents.json"), JSON.stringify(content.filter(x=>x!==filePath)));
-    return "OK";
+    return {
+      status:"OK",
+      response:"removed"
+    }
   }
 })
