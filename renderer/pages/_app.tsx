@@ -10,7 +10,7 @@ import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [vault, setVault] = useState<Vault>(defaultVaultState);
+  const [vault, setVault] = useState<Vault>({...defaultVaultState});
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
