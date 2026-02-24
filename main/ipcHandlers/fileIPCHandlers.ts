@@ -77,23 +77,40 @@ ipcMain.handle('fileDialog:create', async()=>{
   return undefined;
 })
 
-ipcMain.handle('fileDialog:open', async()=>{
+ipcMain.handle('fileDialog:open', async():Promise<IPCResponse<{fileContents:string, filePath:string}>>=>{
   const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
   const fileOpened = ( fileDialog).filePaths[0];
+  console.log(fileDialog, fileOpened);
   if (!fileDialog.canceled){    
     if (!fileOpened.endsWith(".vlt")){
-      return {fileContents:"INVALIDFILE", filePath:fileOpened, status:"INVALIDEXT"};
+
+      return {
+        status:"CLIENT_ERROR",
+        message:"invalid file extension",
+        response:{fileContents:"", filePath:""}
+      }
     }
     const fileContents =await fs.promises.readFile(fileOpened, 'utf-8');
     handleAddRecent(fileOpened);
-    return {fileContents,filePath:fileOpened, status:"OK"}
+    return {
+      status:"OK",
+      response:{fileContents,filePath:fileOpened}
+    }
   }
-  return {fileContents:undefined, filePath:fileOpened, status:"CANCELLED"}
+  return {
+    status:"CLIENT_ERROR",
+    message:"user did not open a vault",
+    response:{fileContents:undefined, filePath:fileOpened}
+  }
   
 })  
 
-ipcMain.handle('file:delete', async (_,filePath:string)=>{
+ipcMain.handle('file:delete', async (_,filePath:string):Promise<IPCResponse<string>>=>{
   unlinkSync(filePath);
+  return {
+    status:"OK",
+    response:"deleted vault"
+  }
 })
 
 
