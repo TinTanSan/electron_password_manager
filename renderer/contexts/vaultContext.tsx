@@ -3,8 +3,8 @@ import { Vault } from "../interfaces/Vault";
 
 
 type VaultCxtType = {
-    vault: Vault | undefined,
-    setVault: React.Dispatch<React.SetStateAction<Vault | undefined>>
+    vault: Vault ,
+    setVault: React.Dispatch<React.SetStateAction<Vault>>
 }
 
 export const defaultVaultState:Vault = {
@@ -21,6 +21,6 @@ export const defaultVaultState:Vault = {
 }
 
 export const VaultContext = createContext<VaultCxtType>({
-        vault: undefined,
+        vault: {...defaultVaultState},
         setVault: (_:Vault) => { throw new Error("setVault called outside provider") }
 })
