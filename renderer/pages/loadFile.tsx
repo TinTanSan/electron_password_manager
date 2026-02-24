@@ -1,5 +1,5 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
-import { VaultContext } from '../contexts/vaultContext'
+import { defaultVaultState, VaultContext } from '../contexts/vaultContext'
 import { useRouter } from 'next/router'
 import { BannerContext } from '../contexts/bannerContext'
 import { addBanner } from '../interfaces/Banner'
@@ -14,24 +14,38 @@ export default function LoadFile() {
     const [password, setPassword] = useState("");
     const [requiresInitialisation, setRequiresInitisalisation] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
-    const {banners, setBanners} = useContext(BannerContext);
+    const {setBanners} = useContext(BannerContext);
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
-        window.fileIPC.openCreateFile().then((filePath)=>{
-            if (filePath){
+        window.fileIPC.openCreateFile().then((ipcResponse)=>{
+            if (ipcResponse.status === 'ok'){
                 // since its a new file, the file content will be empty anyways
-                setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
-                window.fileIPC.addRecent(filePath)
-                setRecent(prev=>[...prev, filePath])
-                window.vaultIPC.openVault(filePath).then((response)=>{
+                setVault({ 
+                    filePath:ipcResponse.response.filePath, 
+                    isUnlocked:false, 
+                    entries:[], 
+                    vaultMetadata: {
+                        lastEditDate:new Date(), 
+                        lastRotateDate: new Date(), 
+                        version: '1.0.0.0', 
+                        createDate: new Date()
+                    }, 
+                    entryGroups: []
+                });
+
+                window.fileIPC.addRecent(ipcResponse.response.filePath)
+                setRecent(prev=>[...prev, ipcResponse.response.filePath])
+                window.vaultIPC.openVault(ipcResponse.response.filePath).then((response)=>{
                     if (response.message === 'NOT_OK'){
                         addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
                         return;
                     }
                     setRequiresInitisalisation(response.message === "SET_PASS");
                 })
+            }else if (ipcResponse.status === "CLIENT_ERROR" && ipcResponse.message.includes("user did not open a vault")){
+                addBanner(setBanners, "You did not open a vault", 'warning');
             }
         })
     }
@@ -56,12 +70,19 @@ export default function LoadFile() {
             })
         }else{
             window.vaultIPC.openVault(filepath).then((response)=>{
+                console.log(response)
                 if (response.message === 'NOT_OK'){
                     addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
                     return;
                 }
                 setRequiresInitisalisation(response.message === "SET_PASS");
-                setVault({ filePath:filepath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
+                console.log(response, filepath)
+                setVault(
+                    ()=>{
+                    const res = {...defaultVaultState, filePath:filepath};
+                    return res;
+                    }
+                );
             })
         }
         
@@ -116,26 +137,31 @@ export default function LoadFile() {
                 addBanner(setBanners, 'unable to verify password: '+error,'error')
             })
           }
-        }
+    }
 
-    const escapeHandler = (e:KeyboardEvent) => {
-        if (e.key === "Escape") {
-            if(showDeleteConfirmationPopup){
-                console.log(showDeleteConfirmationPopup);
-                setShowDeleteConfirmationPopup(false);
-                setVaultToDelete("");
-            }else{
-                console.log(showDeleteConfirmationPopup, 'cancelled')
-                handleCancel();
-            }    
-        }
-    };
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                if (showDeleteConfirmationPopup) {
+                    setShowDeleteConfirmationPopup(false);
+                    setVaultToDelete("");
+                } else if (vault.filePath) {
+                    setVault({ ...defaultVaultState });
+                    addBanner(setBanners, 'Vault closed successfully', 'info')
+                }
+            }
+        };
+        document.addEventListener("keydown", handler);
+        return () => {
+            document.removeEventListener("keydown", handler);
+        };
+    }, [vault]);
 
-    const handleCancel = ()=>{
-        setVault(prev=>({...prev,filePath:""}));
+    const handleCancelOpenVault = ()=>{
+        setVault({...defaultVaultState});
         setPassword("");
         setConfirmPassword("");
-        addBanner(setBanners, "Vault Closed successfully", 'info')
+        addBanner(setBanners, "Vault Closed successfully", 'info');
     }
 
     const handleDeleteVault = ()=>{
@@ -146,9 +172,8 @@ export default function LoadFile() {
                 setShowDeleteConfirmationPopup(false);
             })
         }else{
-            addBanner(setBanners, 'Cannot delete vault without knowing the filePath', 'error')
+            addBanner(setBanners, 'cannot delete a vault without knowing the file path', 'error')
         }
-        // stop the click from opening the vault
         
     }
     const handleRemoveRecent = (filePath:string)=>{
@@ -162,16 +187,17 @@ export default function LoadFile() {
         })
     }
 
-    useEffect(() => {
-        document.addEventListener("keydown", (escapeHandler), false);
-        return () => {
-            document.removeEventListener("keydown", escapeHandler, false);
-        };
-    }, []);
+
     useEffect(()=>{
-        window.fileIPC.getRecents().then((x)=>{
-            handleOpenFile(x[0]);
-            setRecent(x)
+        window.fileIPC.getRecents().then((ipcResponse)=>{
+            if (ipcResponse.status === "OK"){
+                setRecent(ipcResponse.response);
+                handleOpenFile(ipcResponse.response[0]);
+            }else{
+                addBanner(setBanners, 'unable to get recents list', 'error');
+                setRecent([]);
+            }
+            
         })
     },[])
 
@@ -253,7 +279,7 @@ export default function LoadFile() {
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
-                <button type='button' onClick={handleCancel} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
+                <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
                 <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
