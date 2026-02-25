@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Entry } from '../interfaces/Entry'
+import { Entry } from '../../interfaces/Entry'
 import EntryModal from './EntryModal';
 import Image from 'next/image';
-import { VaultContext } from '../contexts/vaultContext';
-import { addBanner } from '../interfaces/Banner';
-import { BannerContext } from '../contexts/bannerContext';
-import { Vault } from '../interfaces/Vault';
+import { VaultContext } from '../../contexts/vaultContext';
+import { addBanner } from '../../interfaces/Banner';
+import { BannerContext } from '../../contexts/bannerContext';
+import { Vault } from '../../interfaces/Vault';
 type props={
     entry: Entry,
 }

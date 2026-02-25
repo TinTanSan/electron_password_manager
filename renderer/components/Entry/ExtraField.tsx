@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Entry, ExtraField } from '../interfaces/Entry'
-import { VaultContext } from '../contexts/vaultContext' 
-import { BannerContext } from '../contexts/bannerContext';
-import { addBanner } from '../interfaces/Banner';
+import { Entry, ExtraField } from '@interfaces/Entry'
+import { VaultContext } from '@contexts/vaultContext' 
+import { BannerContext } from '@contexts/bannerContext';
+import { addBanner } from '@interfaces/Banner';
 
 type props = {
     extraField: ExtraField,

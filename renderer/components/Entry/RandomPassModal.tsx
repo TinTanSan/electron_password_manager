@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
-import { Entry } from '../interfaces/Entry';
-import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '../utils/commons';
+import { Entry } from '@interfaces/Entry';
+import { asciiSafeSpecialChars, digits, lowerCaseLetters, upperCaseLetters } from '@utils/commons';
 import zxcvbn from 'zxcvbn';
 
 export type RandomPassGeneratorSettings={
