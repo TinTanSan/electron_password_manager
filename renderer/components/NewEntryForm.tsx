@@ -4,8 +4,8 @@ import { VaultContext } from '../contexts/vaultContext'
 import { addBanner } from '../interfaces/Banner'
 import { BannerContext } from '../contexts/bannerContext'
 import Image from 'next/image'
-import RandomPassModal from './RandomPassModal'
-import ExtraFieldComponent from './ExtraField'
+import RandomPassModal from './Entry/RandomPassModal'
+import ExtraFieldComponent from './Entry/ExtraField'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -43,9 +43,9 @@ export default function NewEntryForm({setShowForm}:props) {
         passHash: Buffer.from(""),
         metadata: {
             createDate: new Date(),
-            lastEditedDate: new Date(),
+            lastEditDate: new Date(),
             version: '1.0.0',
-            lastRotate: new Date(),
+            lastRotateDate: new Date(),
             uuid: ''
         },
         group:''
