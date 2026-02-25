@@ -1,6 +1,5 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
-import { Entry, RendererSafeEntry } from "../interfaces/VaultServiceInterfaces";
 import { IPCResponse } from "../interfaces/IPCCHannelInterface";
 
 ipcMain.handle("vault:addEntryToGroup", async (_, entryUUID, groupName)=>vaultService.addEntryToGroup(entryUUID, groupName))
