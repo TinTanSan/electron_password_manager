@@ -1,13 +1,13 @@
 'use client'
 import React, { useContext, useEffect, useState } from 'react'
 import {useRouter} from 'next/navigation';
-import { VaultContext } from '../contexts/vaultContext';
-import Navbar from '../components/Navbar';
-import { Entry } from '../interfaces/Entry';
-import {SearchSettings} from '../components/searchBar';
-import EntryComponent from '../components/EntryComponent';
+import { VaultContext } from '@contexts/vaultContext';
+import Navbar from '@components/Navbar';
+import { Entry } from '@interfaces/Entry';
+import {SearchSettings} from '@components/searchBar';
+import EntryComponent from '@components/Entry/EntryComponent';
 import Image from 'next/image';
-import Sidebar from '../components/Sidebar';
+import Sidebar from '@components/Sidebar';
 
 
 export default function HomePage() {

@@ -1,10 +1,10 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
-import { defaultVaultState, VaultContext } from '../contexts/vaultContext'
+import { defaultVaultState, VaultContext } from '@contexts/vaultContext'
 import { useRouter } from 'next/router'
-import { BannerContext } from '../contexts/bannerContext'
-import { addBanner } from '../interfaces/Banner'
-import FancyInput from '../components/fancyInput'
-import { isStrongPassword } from '../utils/commons'
+import { BannerContext } from '@contexts/bannerContext'
+import { addBanner } from "@interfaces/Banner";
+import FancyInput from '@components/fancyInput'
+import { isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
 
 export default function LoadFile() {
