@@ -7,8 +7,7 @@ import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLet
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import Slider from '../Slider';
-import ExtraFieldComponent from './ExtraField';
-import ExtraFieldsList from './ExtraFieldsList';
+import ExtraFieldsTab from './ExtraFieldsTab';
 
 type props ={
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
@@ -508,20 +507,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             :
                             // extra fields
                             (tab === 1)?
-                                <div className='flex flex-col w-full h-full shrink-0 overflow-y-hidden gap-5 p-2'>
-                                    {/* search through extra fields */}
-                                    <div className='flex flex-col h-8 '>
-                                        <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
-                                    </div>
-                                    <ExtraFieldsList entry={entry} />
-                                    {/* add extrafield form */}
-                                    <div className='flex flex-col w-full h-1/3 grow-0  shrink-0 border-2 rounded-lg'>
-                                        <div className='flex w-full items-center justify-end relative border-2 h-10'>
-                                        <div className='flex items-center w-full justify-center absolute'>New Extra Field form</div>
-                                        </div>
-
-                                    </div>
-                                </div>
+                                <ExtraFieldsTab  entry={entry}/>
                                 :
                                 // group details
                                 <div className='flex flex-col w-full h-full shrink-0 gap-5 p-2'>
