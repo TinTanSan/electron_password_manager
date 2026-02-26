@@ -91,7 +91,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
     const [groups, setGroups] = useState([]);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    
     const isEqual = cmpEntry(vaultEntry, entry);
 
     // entryPass will be used when changing the password to update it
@@ -346,15 +345,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
         
         window.vaultIPC.addEntryToGroup(uuid, groupName).then((x)=>{
             if(x === "OK"){
-                addBanner(setBanners, "Entry added to group", 'success');
+                
+                window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
+                    setEntry(response)
+                    addBanner(setBanners, "Entry added to group", 'success'); 
+                }).catch((error)=>{
+                    addBanner(setBanners, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
+                })
             }else{
                 addBanner(setBanners, x.toLowerCase(), 'info');
             }
-            window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
-                setEntry(response)
-            }).catch((error)=>{
-                addBanner(setBanners, 'something went wrong when tryihng to set Entry after groupChange: '+error, 'error');
-            })
+            
             
         })
     }   
@@ -507,13 +508,17 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             :
                             // extra fields
                             (tab === 1)?
-                                <ExtraFieldsTab  entry={entry}/>
+                                <ExtraFieldsTab  entry={entry} setEntry={setEntry}/>
                                 :
                                 // group details
                                 <div className='flex flex-col w-full h-full shrink-0 gap-5 p-2'>
                                     <div className='flex flex-col w-full h-1/4 rounded-lg shrink-0 bg-base-200 border-2 p-2 border-base-300'>
                                         <p className='flex text-md font-semibold justify-center items-center'> Group Details </p>
-                                        
+                                        <div className='flex flex-row w-full h-full gap-2'>
+                                            <div> Current Group:  </div>
+                                            
+                                            <div className='flex w-fit px-5 max-w-20 bg-base-100 h-fit rounded-full border-base-300 border-2'>{entry.group}</div>
+                                        </div>
                                     </div>
                                     <div className='flex flex-col w-full h-3/4 grow-0 overflow-y-hidden bg-base-200 border-base-300 border-2 rounded-lg p-2'>
                                         <p className='flex w-full items-center justify-center h-fit'>All Groups</p>
@@ -533,8 +538,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                                 }
                                             </div>
                                         </div>
-
-
                                     </div>
                                 </div>
                         }
