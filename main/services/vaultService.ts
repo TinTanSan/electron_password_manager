@@ -142,21 +142,19 @@ class VaultService extends EventEmitter{
 
     addEntryToGroup(entryUUID:string, groupName:string){
         let entry = this.vault.entries.get(entryUUID);
-        if (entry.group === groupName){
-            return "ENTRY_ALREADY_IN_SPECIFIED_GROUP"
-        }
         if(!entry){
             return "ENTRY_NOT_FOUND"
         }   
-
+        if (entry.group === groupName){
+            return "ENTRY_ALREADY_IN_SPECIFIED_GROUP"
+        }
         if (entry.group){
             // the entry has a group so we have to first destroy that link
             let group = this.vault.entryGroups.findIndex(x=>x.groupName === entry.group);
-            if (group < 0){
-                entry.group = "";
-            }else{
+            if (group >=0){
                 this.vault.entryGroups[group].entries = this.vault.entryGroups[group].entries.filter(x=>x!==entry.metadata.uuid);
             }
+            entry.group = "";
         }
         // get index of new group
         let newGroupIdx = this.vault.entryGroups.findIndex(x=>x.groupName === groupName);
@@ -175,6 +173,7 @@ class VaultService extends EventEmitter{
                     entries:[entryUUID]
                 })     
         }
+        entry.group = groupName;
         this.sync();
         return "OK"
     }
