@@ -1,14 +1,20 @@
-import React, { useState } from 'react'
+import React, { Dispatch, SetStateAction, useState } from 'react'
 import ExtraFieldComponent from './ExtraField'
 import { Entry, ExtraField } from '@interfaces/Entry'
 
-export default function ExtraFieldsTab({entry}:{entry:Entry}) {
+type props = {
+    entry:Entry,
+    setEntry: Dispatch<SetStateAction<Entry>>
+}
+
+
+export default function ExtraFieldsTab({entry, setEntry}:props) {
     
     const [newExtraField, setNewExtraField] = useState<ExtraField>({name:"", data:Buffer.from(""), isProtected:false})
 
     const handleDeleteExtraField = (name:string)=>{
         window.vaultIPC.removeExtraField(entry.metadata.uuid, name).then((response)=>{
-            
+            setEntry(response);
         })
     }
 
