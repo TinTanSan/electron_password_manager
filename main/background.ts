@@ -12,12 +12,14 @@ if (isProd) {
   app.setPath('userData', `${app.getPath('userData')} (development)`)
 };
 
+// track the trusted window ids, so that if someone tries to send a message to the backend to perform 
+export const trustedIDS = new Set();
 
 export const createNextronWindow = async () => {
   await app.whenReady()
   
   // setupMenus();
-  
+
   const mainWindow = createWindow('main', {
     width: 1000,
     height: 600,
@@ -29,7 +31,8 @@ export const createNextronWindow = async () => {
     },
     minWidth:800,
     minHeight:600
-  })
+  });
+  trustedIDS.add(mainWindow.webContents.id);
 
   mainWindow.maximize();
   if (isProd) {
@@ -40,6 +43,9 @@ export const createNextronWindow = async () => {
     mainWindow.webContents.openDevTools();
     mainWindow.focus();
   }
+  mainWindow.on('close',()=>{
+    trustedIDS.delete(mainWindow.webContents.id);
+  })
 }
 
 createNextronWindow()
@@ -54,6 +60,7 @@ app.whenReady().then(()=>{
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    trustedIDS.clear();
     app.quit();
   }
 });
@@ -66,10 +73,12 @@ app.on('before-quit',(e)=>{
 async function gracefulShutdown(source: string) {
   try {
     console.log(`[shutdown] source=${source}`);
+    
     await vaultService.closeVault();
   } catch (err) {
     console.error('[shutdown] error', err);
   } finally {
+    trustedIDS.clear();
     app.exit(0);
   }
 }
