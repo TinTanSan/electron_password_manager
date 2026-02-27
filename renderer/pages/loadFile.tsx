@@ -17,6 +17,7 @@ export default function LoadFile() {
     const {setBanners} = useContext(BannerContext);
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
+    const [unlocked, setunlocked] = useState(false);
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
         window.fileIPC.openCreateFile().then((ipcResponse)=>{
@@ -261,24 +262,31 @@ export default function LoadFile() {
             
         </div>
     :
-    <div className='flex justify-center items-center w-screen h-screen'>
-       <div className='flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-5 items-center'>
+    <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
+       <div className='flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center'>
             <div className='flex justify-center w-full text-3xl font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
-            
-            <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-center items-center py-5'>
+            <div className='flex w-full h-fit justify-center flex-col items-center gap-2'>
+                <p className='flex text-md'>
+                    <b> {vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4)} </b> 
+                    &nbsp; 
+                    vault
+                </p>
+                <p className='flex text-xs'>{vault.filePath}</p>
+            </div>
+            <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-start items-center py-5'>
                 {requiresInitialisation && 
-                <div className='flex flex-nowrap text-sm w-full h-fit items-center justify-center gap-2'>
-                    <div className='flex w-4 h-4 rounded-full border justify-center items-center'>i</div>
-                    <div className='flex w-fit flex-wrap'>
-                    Create a strong master password
+                    <div className='flex flex-nowrap text-sm w-full h-fit items-center justify-center gap-2'>
+                        <div className='flex w-4 h-4 rounded-full border justify-center items-center'>i</div>
+                        <div className='flex w-fit flex-wrap'>
+                        Create a strong master password
+                        </div>
                     </div>
-                </div>
                 }
                 <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
                     <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
-                <div className='flex w-full h-fit gap-5 justify-center  text-lg'>
+                <div className='flex w-full h-fit gap-5 justify-center text-lg'>
                 <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
                 <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
