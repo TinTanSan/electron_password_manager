@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { VaultContext } from '../../contexts/vaultContext';
 import { addBanner } from '../../interfaces/Banner';
 import { BannerContext } from '../../contexts/bannerContext';
-import { Vault } from '../../interfaces/Vault';
 type props={
     entry: Entry,
 }
