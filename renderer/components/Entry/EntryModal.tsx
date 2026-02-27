@@ -364,6 +364,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
             console.log(response);
             if(response === "OK"){
                 addBanner(setBanners, 'entry removed from group', 'success');
+                setEntry(prev=>({...prev, group:""}))
             }else{
                 addBanner(setBanners, 'Unable to remove entry from group: '+response.toLowerCase(), 'error');
             }
@@ -512,27 +513,30 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                 :
                                 // group details
                                 <div className='flex flex-col w-full h-full shrink-0 gap-5 p-2'>
-                                    <div className='flex flex-col w-full h-1/4 rounded-lg shrink-0 bg-base-200 border-2 p-2 border-base-300'>
-                                        <p className='flex text-md font-semibold justify-center items-center'> Group Details </p>
-                                        <div className='flex flex-row w-full h-full gap-2'>
-                                            <div> Current Group:  </div>
-                                            
-                                            <div className='flex w-fit px-5 max-w-20 bg-base-100 h-fit rounded-full border-base-300 border-2'>{entry.group}</div>
+                                    <div className='flex flex-col w-full h-fit rounded-lg shrink-0 bg-base-200 border-2 p-2 border-base-300'>
+                                        <div className='flex flex-row w-full h-full gap-2 items-center'>
+                                            <div className='flex w-fit text-nowrap'> Current Group:  </div>    
+                                            <div className='flex w-full px-1 bg-base-100 h-full rounded-md border-base-300 border-2'>{entry.group ? entry.group : <i>Not in a group</i>}</div>
+                                            {entry.group && 
+                                                <button onClick={handleRemoveFromGroup} className='flex w-fit px-1 border-error text-error border-2 rounded-md items-center cursor-pointer h-8'> 
+                                                    Remove
+                                                </button>
+                                            }
                                         </div>
                                     </div>
-                                    <div className='flex flex-col w-full h-3/4 grow-0 overflow-y-hidden bg-base-200 border-base-300 border-2 rounded-lg p-2'>
+                                    <div className='flex flex-col w-full h-full overflow-y-hidden bg-base-200 border-base-300 border-2 rounded-lg p-2'>
                                         <p className='flex w-full items-center justify-center h-fit'>All Groups</p>
-                                        <input type="text" placeholder='Search for a group' value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='flex border-2 rounded-lg border-base-300 bg-base-100 px-1' />
+                                        <input type="text" placeholder='Search for a group' value={groupSearch} onChange={(e)=>{setGroupSearch(e.target.value)}} className='flex border-2 rounded-lg border-base-300 bg-base-100 px-1 h-10' />
                                         <div className='flex w-full h-full grow-0 gap-2 flex-col overflow-y-auto'>
-                                            <div className='flex flex-col  w-full h-fit gap-2 p-2'>
+                                            <div className='flex flex-col  w-full h-fit gap-2 py-2'>
                                                 {groups.map((group,i)=>
-                                                    <div onClick={()=>{handleGroupChange(group)}} key={i.toString()} className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300' >
+                                                    <div onClick={()=>{handleGroupChange(group)}} key={i.toString()} className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-8 shrink-0 border-2 border-base-300' >
                                                         {group}
                                                     </div>
                                                 )}
                                                 {
                                                     (groups.length === 0 && groupSearch.length > 0) &&
-                                                    <div className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-10 shrink-0 border-2 border-base-300'> 
+                                                    <div className='flex w-full min-w-10 px-2 items-center truncate text-ellipsis text-nowrap bg-base-100 rounded-lg h-8 shrink-0 border-2 border-base-300'> 
                                                         Create new group with name '{groupSearch}'
                                                     </div>
                                                 }
