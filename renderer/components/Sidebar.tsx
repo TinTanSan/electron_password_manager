@@ -10,7 +10,8 @@ export default function Sidebar() {
     const {vault, setVault} = useContext(VaultContext);
     const handleLock = ()=>{
         window.clipBoardIPC.clearClipboard();
-        window.vaultIPC.lockVault()
+        window.vaultIPC.lockVault();
+        setVault(prev=>({...prev, isUnlocked:false}))
         setBanners([]);
         addBanner(setBanners, 'Vault locked', 'info');
         console.log('done')
@@ -80,10 +81,10 @@ export default function Sidebar() {
                 </div>
                 :
                 <div className='flex flex-col justify-end w-full h-full items-center py-2 gap-5 relative'>
-                    <div onClick={handleLock} className='flex w-fit h-fit p-0.5 border-3 border-warning rounded-lg group hover:bg-warning'>
+                    {/* <div onClick={handleLock} className='flex w-fit h-fit p-0.5 border-3 border-warning rounded-lg group hover:bg-warning'>
                         <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>lock vault</span>
                         <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
-                    </div>
+                    </div> */}
                     <div onClick={handleClose}  className='flex w-fit h-fit p-0.5 border-3 border-error rounded-lg group hover:bg-error'>
                         <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>close & exit vault</span>
                         <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />

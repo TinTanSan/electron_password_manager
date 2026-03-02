@@ -141,7 +141,7 @@ export default function LoadFile() {
                         setunlocked(false);
                         setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
                         navigate.push('/home');    
-                    }, 2000);
+                    }, 2500);
                     
                 }else{
                     addBanner(setBanners, 'incorrect password','error');
@@ -275,7 +275,7 @@ export default function LoadFile() {
         </div>
     :
     <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
-       <div className='flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center'>
+       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center animate-modal-open duration-500 `}>
             <div className='flex justify-center w-full text-3xl font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
             <div className='flex w-full h-fit justify-center flex-col items-center gap-2'>
                 <p className='flex text-md'>
