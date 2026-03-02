@@ -296,7 +296,7 @@ export default function LoadFile() {
                         </div>
                     </div>
                 }
-                <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+                {unlocked && <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="128" height="128" className='flex absolute'>
                     {/* shackle and it's animation */}
                     <g>
                         <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.8s" begin="0.4s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
@@ -312,7 +312,7 @@ export default function LoadFile() {
                     {/* <!-- Keyhole --> */}
                     <circle fill="#ffffff" cx="100" cy="141" r="7"/>
                     <rect fill="#ffffff" x="97" y="141" width="6" height="12" rx="2"/>
-                </svg>
+                </svg>}
                 <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
                     <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
