@@ -47,8 +47,7 @@ export default function Sidebar() {
                     <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
                         <h1 className='flex w-full text-xl'>Settings</h1>  
                         <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
-                            <h3>Vault Settings</h3>
-                            <h3>Entry Settings</h3>
+                            <Link href={'/settings'}>Settings</Link>
                             <h3>Preferences</h3>
                         </div>
                     </div>
@@ -56,13 +55,12 @@ export default function Sidebar() {
                     <hr className='flex w-full text-xl text-base-300' />
                     
                     <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
-                        <h1 className='flex w-full text-xl'>Help</h1>  
-                        <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
+                        <Link href={"/helpPages"} className='flex w-full text-xl'>Help</Link>  
+                        {/* <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
                             <h3>Keybinds & shortcuts</h3>
                             <h3>Helpful documentation</h3>
                             <h3>How does this password manager work?</h3>
-                            
-                        </div>
+                        </div> */}
                     </div>
                     
                     <div className='flex w-full h-full items-end'>
