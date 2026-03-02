@@ -1,4 +1,4 @@
-import React, { FormEvent, useContext, useEffect, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react'
 import { defaultVaultState, VaultContext } from '@contexts/vaultContext'
 import { useRouter } from 'next/router'
 import { BannerContext } from '@contexts/bannerContext'
@@ -18,6 +18,8 @@ export default function LoadFile() {
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
     const [unlocked, setunlocked] = useState(false);
+    // simply for resetting unlock animation
+    const ref = useRef(null);
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
         window.fileIPC.openCreateFile().then((ipcResponse)=>{
@@ -110,8 +112,9 @@ export default function LoadFile() {
             window.vaultIPC.setMasterPassword(password).then((response)=>{
                 console.log(response);
                 if (response === true){
-                    setVault(prev=>({...prev, isUnlocked:true}))
-                    navigate.push('/home');
+                    setunlocked(true);
+                    // setVault(prev=>({...prev, isUnlocked:true}))
+                    // navigate.push('/home');
                 }else{
                     addBanner(setBanners, 'unable to write to file', 'error')
                 }
@@ -128,9 +131,20 @@ export default function LoadFile() {
                 setPassword("");
                 setConfirmPassword("");
                 if (response.status === "OK"){
+                    setunlocked(true);
                     addBanner(setBanners, 'vault unlocked', 'success')
-                    setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
-                    navigate.push('/home');
+                    const anim = ref.current;
+                    console.log(anim)
+                    if (anim){
+                        console.log(anim)
+                        anim.setCurrentTime(0);
+                    }
+                    setTimeout(() => {
+                        setunlocked(false);
+                        // setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
+                        // navigate.push('/home');    
+                    }, 3000);
+                    
                 }else{
                     addBanner(setBanners, 'incorrect password','error');
                 }
@@ -282,13 +296,30 @@ export default function LoadFile() {
                         </div>
                     </div>
                 }
+                <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+                    {/* shackle and it's animation */}
+                    <g>
+                        <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.8s" begin="0.4s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
+                        <path fill="none" stroke="oklch(19.616% 0.063 257.651)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
+                    </g>
+                    {/* <!-- Lock body --> */}
+                    <rect fill="oklch(19.616% 0.063 257.651)" x="53" y="113" width="94" height="72" rx="6"/>
+
+                    {/* <!-- Slot covers --> */}
+                    <rect fill="oklch(19.616% 0.063 257.651)" x="65" y="114" width="14" height="71"/>
+                    <rect fill="oklch(19.616% 0.063 257.651)" x="121" y="114" width="14" height="71"/>
+
+                    {/* <!-- Keyhole --> */}
+                    <circle fill="#ffffff" cx="100" cy="141" r="7"/>
+                    <rect fill="#ffffff" x="97" y="141" width="6" height="12" rx="2"/>
+                </svg>
                 <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
                     <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
                 <div className='flex w-full h-fit gap-5 justify-center text-lg'>
-                <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
+                    <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
+                    <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
