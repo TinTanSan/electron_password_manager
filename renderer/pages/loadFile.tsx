@@ -134,16 +134,14 @@ export default function LoadFile() {
                     setunlocked(true);
                     addBanner(setBanners, 'vault unlocked', 'success')
                     const anim = ref.current;
-                    console.log(anim)
                     if (anim){
-                        console.log(anim)
                         anim.setCurrentTime(0);
                     }
                     setTimeout(() => {
                         setunlocked(false);
-                        // setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
-                        // navigate.push('/home');    
-                    }, 3000);
+                        setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
+                        navigate.push('/home');    
+                    }, 2000);
                     
                 }else{
                     addBanner(setBanners, 'incorrect password','error');
