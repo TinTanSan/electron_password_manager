@@ -26,12 +26,12 @@ const preferenceDefaults: PreferenceType = {
 
 
 type PreferenceCTXType = {
-    preference: PreferenceType | undefined,
+    preference: PreferenceType,
     setPreference: React.Dispatch<React.SetStateAction<PreferenceType>>
 }
 
 
 export const PreferenceContext = createContext<PreferenceCTXType>({
-    preference: undefined,
+    preference: {...preferenceDefaults},
     setPreference:(_:PreferenceType)=>{throw new Error('Set prefence called outside of provider')} 
 })
