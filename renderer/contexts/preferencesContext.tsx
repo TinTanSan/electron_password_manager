@@ -1,7 +1,9 @@
 import { createContext } from "react";
 
+
+
 export type PreferenceType = {
-    vaultLockTimeOut: number; //  seconds
+    vaultLockTimeOut: number; //  minutes
     keyRotationPeriod: number; // days
     requireStrongMasterPassword: boolean;
     entriesPerPage: number;
@@ -12,7 +14,18 @@ export type PreferenceType = {
     openLastOpenedVault: boolean; // like how VS code opens the files that you were working on previously rahter than finding them again
 }
 
-const preferenceDefaults: PreferenceType = {
+// define upper and lower bounds for all numerical preferences
+export const minMaxValuesForPreferences = {
+    vaultLockTimeOut: [1,30],
+    keyRotationPeriod: [15,90],
+    entriesPerPage: [10,200],
+    maxGeneratedPassLength: [1, 128],
+    clearCliboardTime: [10,30],
+    fontSize: [8, 24],
+    fontSpacing: [1,5] ,
+}
+
+export const preferenceDefaults: PreferenceType = {
     vaultLockTimeOut: 30,
     keyRotationPeriod: 90,
     requireStrongMasterPassword: true,
