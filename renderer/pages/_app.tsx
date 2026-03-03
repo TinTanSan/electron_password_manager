@@ -8,9 +8,11 @@ import { BannerContext } from '../contexts/bannerContext'
 import { addBanner, BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
+import { PreferenceContext, preferenceDefaults, PreferenceType } from '@contexts/preferencesContext';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [vault, setVault] = useState<Vault>({...defaultVaultState});
+  const [preference, setPreference] = useState<PreferenceType> ({...preferenceDefaults});
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
@@ -51,10 +53,12 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <VaultContext.Provider value={{vault, setVault}}>
-      <BannerContext.Provider value={{banners, setBanners}}>
-        <Notifications />
-        <Component {...pageProps} />
-      </BannerContext.Provider>
+      <PreferenceContext.Provider value={{preference, setPreference}}>
+        <BannerContext.Provider value={{banners, setBanners}}>
+          <Notifications />
+          <Component {...pageProps} />
+        </BannerContext.Provider>
+      </PreferenceContext.Provider>
     </VaultContext.Provider>
   )
 }
