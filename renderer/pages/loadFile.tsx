@@ -6,7 +6,6 @@ import { addBanner } from "@interfaces/Banner";
 import FancyInput from '@components/fancyInput'
 import { isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
-
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
     const navigate = useRouter()
@@ -57,7 +56,7 @@ export default function LoadFile() {
         // filepath is undefined if the user clicked on open vault, 
         // the filepath will be defined and a valid path if they picked from the recent vaults
         if (filepath === undefined){
-            window.fileIPC.openFilePicker().then(({fileContents, filePath, status}:{fileContents:string, filePath:string, status:string})=>{
+            window.fileIPC.openFilePicker().then(({filePath, status}:{fileContents:string, filePath:string, status:string})=>{
                 if (status ==="OK"){
                     window.fileIPC.getRecents().then((recents:Array<string>)=>{
                         setRecent(recents);
@@ -79,7 +78,6 @@ export default function LoadFile() {
                     return;
                 }
                 setRequiresInitisalisation(response.message === "SET_PASS");
-                console.log(response, filepath)
                 setVault(
                     ()=>{
                     const res = {...defaultVaultState, filePath:filepath};
@@ -152,6 +150,14 @@ export default function LoadFile() {
           }
     }
 
+    useEffect(()=>{
+        if (vault && vault.filePath){
+            document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1)
+        }else{
+            document.title = "Open a vault"
+        }
+    }, [vault.filePath])
+
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
@@ -206,6 +212,7 @@ export default function LoadFile() {
             if (ipcResponse.status === "OK"){
                 setRecent(ipcResponse.response);
                 handleOpenFile(ipcResponse.response[0]);
+                document.title = 'Open a Vault'
             }else{
                 addBanner(setBanners, 'unable to get recents list', 'error');
                 setRecent([]);
@@ -217,7 +224,6 @@ export default function LoadFile() {
   return (
     (vault === undefined || !vault.filePath) ? 
     <div className='flex flex-col h-screen w-screen items-center bg-base-200 gap-20 text-base-content p-5'>
-            <title>Open Vault</title>
             <div className='flex flex-col w-full h-2/3 gap-2 justify-start overflow-y-auto  bg-base-100 rounded-lg border-2 border-base-300'>
                 <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
                 <div className='flex flex-col w-full h-fit gap-2 p-2 items-center'>
@@ -275,7 +281,7 @@ export default function LoadFile() {
         </div>
     :
     <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
-       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center animate-modal-open duration-500 `}>
+       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center animate-modal-open `}>
             <div className='flex justify-center w-full text-3xl font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
             <div className='flex w-full h-fit justify-center flex-col items-center gap-2'>
                 <p className='flex text-md'>
@@ -298,7 +304,7 @@ export default function LoadFile() {
                     {/* shackle and it's animation */}
                     <g>
                         <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.8s" begin="0.4s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
-                        <path fill="none" stroke="oklch(19.616% 0.063 257.651)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
+                        <path fill="none" stroke="oklch(19.616% 0.063 257.651)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
                     </g>
                     {/* <!-- Lock body --> */}
                     <rect fill="oklch(19.616% 0.063 257.651)" x="53" y="113" width="94" height="72" rx="6"/>
