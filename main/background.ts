@@ -56,6 +56,7 @@ app.whenReady().then(()=>{
   import('./ipcHandlers/GroupIPCHandlers');
   import('./ipcHandlers/EntryIPCHandlers');
   import("./helpers/store/preferencesStore");
+  import("./ipcHandlers/PreferenceIPCHandlers")
 })
 
 app.on("window-all-closed", () => {
