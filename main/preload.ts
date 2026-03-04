@@ -45,17 +45,23 @@ const fileIPCHandlers = {
 
 const clipBoardIPCHandlers = {
   clearClipboard: ()=>ipcRenderer.invoke('clipboard:clear'),
-  copyPassword: (entryUUID:string) =>{},
 }
 
+const preferenceIPCHandlers = {
+  setPreference: (preferenceName:string, newValue:string)=>ipcRenderer.invoke('preference:set', preferenceName, newValue),
+  getAllPreferences: ()=>ipcRenderer.invoke('preference:getAll'),
+  getPreference: (preferenceName:string)=>ipcRenderer.invoke('preference:get', preferenceName)
+};
 
 
 contextBridge.exposeInMainWorld('vaultIPC', vaultIPCHandlers);
 contextBridge.exposeInMainWorld('fileIPC', fileIPCHandlers);
 contextBridge.exposeInMainWorld('clipBoardIPC', clipBoardIPCHandlers);
+contextBridge.exposeInMainWorld('preferenceIPC', preferenceIPCHandlers);
 
 
 
 export type VaultIpcHandler = typeof vaultIPCHandlers;
 export type FileIpcHandler = typeof fileIPCHandlers;
 export type ClipBoardIPCHandler = typeof clipBoardIPCHandlers;
+export type PreferenceIPCHandlers = typeof preferenceIPCHandlers;
