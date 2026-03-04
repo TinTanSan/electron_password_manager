@@ -16,21 +16,22 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
   useEffect(()=>{
-    if(vault === undefined|| vault.filePath === ""){
-      navigate.push('/loadFile')
+    if (vault.filePath == ""){
+      navigate.push("/loadFile");
     }
     let timeout:NodeJS.Timeout;
-    if (vault !== undefined && vault.isUnlocked){
+    if (vault.filePath !== "" && vault.isUnlocked){
       timeout = setTimeout(() => {
         setVault(prev=>({...prev, isUnlocked: false}));
         navigate.push('/loadFile')
-      }, 1000*60*100);
+      }, preference.vaultLockTimeOut*1000);
     }
     return ()=>{
       if(timeout !== undefined){
         clearTimeout(timeout)  
-      }}
-  }, [vault])
+      }
+    }
+  }, [vault?.isUnlocked, preference?.vaultLockTimeOut])
 
   useEffect(()=>{
     window.vaultIPC.mainCloseVault(()=>{
@@ -49,6 +50,14 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     })
   }, [])
+  useEffect(()=>{
+    if(vault.filePath!==""){
+      window.preferenceIPC.getAllPreferences().then((response)=>{
+        console.log('preferences set', response.response)
+        setPreference(response.response);
+      })
+    }
+  },[])
 
 
   return (
@@ -56,7 +65,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <PreferenceContext.Provider value={{preference, setPreference}}>
         <BannerContext.Provider value={{banners, setBanners}}>
           <Notifications />
-          <Component {...pageProps} />
+          <Component {...pageProps}/>
         </BannerContext.Provider>
       </PreferenceContext.Provider>
     </VaultContext.Provider>
