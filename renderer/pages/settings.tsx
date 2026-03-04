@@ -14,20 +14,11 @@ export default function Settings() {
     // handle all numerical preference changes except for a couple of items such as font size and font spacing
     // which will have 3-5 predefined values they could be
     const handlePreferenceChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
-        const v = Number(e.target.value)
-        console.log(v)
-        if (!Number.isNaN(e.target.value)){
-            const {min, max} = preferenceInputMapper[e.target.id]
-            if (v < min){
-                e.target.value = min;
-            }else if (v > max){
-                e.target.value = max;
-            }
-        }else if (e.target.value === ""){
-
+        let v = Number(e.target.value)
+        if (!Number.isNaN(v) && preferenceInputMapper[e.target.id].max < v){
+            v = preferenceInputMapper[e.target.id].max;
         }
-
-        setPreference(prev=>({...prev, [e.target.id]:e.target.value}))
+        setPreference(prev=>({...prev, [e.target.id]:Number.isNaN(v)? "" : v}))
     }
 
 
@@ -36,7 +27,10 @@ export default function Settings() {
             // go back to the 'login' page 
             router.push("/loadFile");
         }else{
-            document.title = "Settings"
+            document.title = "Settings";
+            window.preferenceIPC.getAllPreferences().then((response)=>{
+                setPreference(response.response);
+            })
         }
     },[])
 
@@ -62,12 +56,12 @@ export default function Settings() {
                         {
                             const inputSettings = preferenceInputMapper[key];
                             return (
-                                <div className='flex flex-col w-[45vw] border-2 shrink-0 border-base-300 p-2 bg-base-100 rounded-lg gap-2'>
+                                <div key={key} className='flex flex-col w-[45vw] border-2 shrink-0 border-base-300 p-2 bg-base-100 rounded-lg gap-2'>
                                     <div className='flex flex-col'>
                                         <label>{inputSettings.label}</label>
                                         <i className='text-xs'>minimum: {inputSettings.min}, maximum: {inputSettings.max}</i>
                                     </div>
-                                    <input value={Number.isNaN(preference[key])?"": preference[key]} className='flex w-30 h-8 border-2 px-1 rounded-lg border-base-300' id={key} onChange={handlePreferenceChange} />
+                                    <input type='number' min={inputSettings.min} max={inputSettings.max} step={inputSettings.step} value={preference[key]} className='flex w-30 h-8 border-2 px-1 rounded-lg border-base-300' id={key} onChange={handlePreferenceChange} />
                                 </div>
                             )
                         }
