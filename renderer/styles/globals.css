@@ -1,6 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import 'tailwindcss';
-
 @theme {
+  --font-roboto: "Roboto Mono", san-serif;
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
   --color-base-300: oklch(93.268% 0.016 262.751);
@@ -94,6 +95,8 @@
   * {
     scrollbar-width: thin;
     scrollbar-color:  var(--color-base-100);
+    font-family: var(--font-roboto);
+
   }
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
