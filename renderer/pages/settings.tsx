@@ -21,6 +21,9 @@ export default function Settings() {
         setPreference(prev=>({...prev, [e.target.id]:Number.isNaN(v)? "" : v}))
     }
 
+    const confirmChanges = ()=>{
+        
+    }
 
     useEffect(()=>{
         if(vault === undefined){
@@ -28,16 +31,13 @@ export default function Settings() {
             router.push("/loadFile");
         }else{
             document.title = "Settings";
-            window.preferenceIPC.getAllPreferences().then((response)=>{
-                setPreference(response.response);
-            })
         }
     },[])
 
     return (
-    <div className='flex gap-5 w-scren h-screen bg-base-200 p-2 text-neutral'> 
+    <div className='flex gap-5 w-scren h-screen overflow-hidden bg-base-200 p-2 text-neutral'> 
         <Sidebar />
-        <div className='flex flex-col w-full h-full'>
+        <div className='flex flex-col w-full h-full overflow-y-autox'>
             <div className='flex flex-col w-full h-fit'>
                 <div className='flex flex-col text-xl justify-center w-full'>
                     Settings
