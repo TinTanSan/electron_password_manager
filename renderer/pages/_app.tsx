@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { AppProps } from 'next/app'
 
 import '../styles/globals.css'
@@ -15,23 +15,45 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [preference, setPreference] = useState<PreferenceType> ({...preferenceDefaults});
   const [banners, setBanners] = useState<Array<BannerDetails>>([]);
   const navigate = useRouter();
+  const activityTimeOut = useRef(null);
+
+  const resetTimeout =()=>{
+    if (activityTimeOut.current){
+      clearTimeout(activityTimeOut.current);
+    }
+    console.log('timeout setagain')
+    activityTimeOut.current = setTimeout(() => {
+      setVault({...defaultVaultState})
+      navigate.push('/loadFile')
+      console.log('vault locked due to timeout')
+    }, 100);
+  }
+
+  const handleActivity =()=>{
+    if (!vault.isUnlocked) return;
+    resetTimeout();
+  }
+
+  
   useEffect(()=>{
-    if (vault.filePath == ""){
-      navigate.push("/loadFile");
+    // ensure that even if the user only logs in, if they go inactive, then we don't want the vault to stay unlocked
+    if (vault && vault.isUnlocked){ 
+      handleActivity()
     }
-    let timeout:NodeJS.Timeout;
-    if (vault.filePath !== "" && vault.isUnlocked){
-      timeout = setTimeout(() => {
-        setVault(prev=>({...prev, isUnlocked: false}));
-        navigate.push('/loadFile')
-      }, preference.vaultLockTimeOut*1000);
-    }
-    return ()=>{
-      if(timeout !== undefined){
-        clearTimeout(timeout)  
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+    return () => {
+      if (activityTimeOut.current) {
+        clearTimeout(activityTimeOut.current);
       }
-    }
-  }, [vault?.isUnlocked, preference?.vaultLockTimeOut])
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+    };
+
+  },[vault])
+
 
   useEffect(()=>{
     window.vaultIPC.mainCloseVault(()=>{
@@ -50,6 +72,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     })
   }, [])
+
   useEffect(()=>{
     if(vault.filePath!==""){
       window.preferenceIPC.getAllPreferences().then((response)=>{
