@@ -21,12 +21,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (activityTimeOut.current){
       clearTimeout(activityTimeOut.current);
     }
-    console.log('timeout setagain')
     activityTimeOut.current = setTimeout(() => {
       setVault({...defaultVaultState})
       navigate.push('/loadFile')
       console.log('vault locked due to timeout')
-    }, 100);
+    }, 1000*preference.vaultLockTimeOut);
   }
 
   const handleActivity =()=>{
@@ -52,7 +51,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       window.removeEventListener('click', handleActivity);
     };
 
-  },[vault])
+  },[vault, preference.vaultLockTimeOut])
 
 
   useEffect(()=>{
