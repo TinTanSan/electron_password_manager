@@ -2,6 +2,12 @@
 @import 'tailwindcss';
 @theme {
   --font-roboto: "Roboto Mono", san-serif;
+  --text-title: 20px;
+  --text-subheading: calc(var(--text-title) - 2px);
+  --text-normal: calc(var(--text-title ) - 4px);
+  --text-subnotes: calc(var(--text-title ) - 6px);
+
+
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
   --color-base-300: oklch(93.268% 0.016 262.751);
@@ -96,7 +102,6 @@
     scrollbar-width: thin;
     scrollbar-color:  var(--color-base-100);
     font-family: var(--font-roboto);
-    letter-spacing: -0.05rem;
   }
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {

@@ -22,7 +22,7 @@ export default function Settings() {
     }
 
     const confirmChanges = ()=>{
-        
+
     }
 
     useEffect(()=>{
@@ -97,10 +97,10 @@ export default function Settings() {
                         <div className='flex flex-col gap-2 h-fit w-full'>
                             <div>Preview</div>
                             <div className='flex flex-col w-full h-full'>
-                                <div className='flex  w-full items-center'>Titles Look like this</div>
-                                <div className='flex  w-full items-center'>Sub headings</div>
-                                <div className='flex  w-full items-center'>main content</div>
-                                <div className='flex  w-full items-center'>subnotes</div>
+                                <div className='flex text-title  w-full items-center'>Title</div>
+                                <div className='flex text-subheading  w-full items-center'>Sub headings</div>
+                                <div className='flex text-normal  w-full items-center'>main content</div>
+                                <div className='flex text-subnotes  w-full items-center'>subnotes</div>
                             </div>
                         </div>
                         
