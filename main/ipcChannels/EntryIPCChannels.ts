@@ -19,5 +19,5 @@ export const EntryIPCChannels = {
   mutateEntry: (uuid:string, newState:RendererSafeEntry)=>ipcRenderer.invoke('entry:mutateEntry', uuid, newState),
   // extra field IPC Channels
   addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('entry:addExtraField', uuid,extraField),
-  removeExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('vault:removeExtraField', uuid, name),
+  removeExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('entry:removeExtraField', uuid, name),
 }

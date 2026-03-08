@@ -1,6 +1,10 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
 
+ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
+
+ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
+
 ipcMain.handle('vault:open', (_,filePath)=>{
     try{
         if (typeof filePath === 'string'){
