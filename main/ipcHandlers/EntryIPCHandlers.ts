@@ -1,6 +1,8 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
 import { Entry, RendererSafeEntry } from "../interfaces/VaultServiceInterfaces";
+import { trustedIDS } from "@main/background";
+import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
 
 
 
@@ -23,5 +25,22 @@ ipcMain.handle('entry:mutateEntry', (_, uuid:string, newState:RendererSafeEntry)
 
 ipcMain.handle('entry:removeEntry', async(_, uuid:string)=>vaultService.removeEntry(uuid))
 
-ipcMain.handle('entry:getPassword', async (_, uuid:string)=>vaultService.decryptPassword(uuid))
+ipcMain.handle(
+    'entry:getPassword', 
+    
+    async (event ,uuid:string):Promise<IPCResponse<string>>=>{
+        if (trustedIDS.has(event.frameId)){
+            return {
+                status: "OK",
+                response: await vaultService.decryptPassword(uuid)
+            }
+        }
+        return {
+            status: "CLIENT_ERROR",
+            message:"Error: You are not allowed to invoke this method",
+            response: ""
+        }
+        
+    }
+)
 
