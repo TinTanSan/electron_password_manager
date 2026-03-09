@@ -3,15 +3,16 @@ import {vaultIPCChannels} from './ipcChannels/vaultIPCChannels';
 import { preferenceIPCChannels } from './ipcChannels/preferenceIPCChannels';
 import { clipBoardIPCChannels } from './ipcChannels/clipBoardIPCChannels';
 import { fileIPCChannels } from './ipcChannels/fileIPCChannels';
+import {entryIPCChannels} from "./ipcChannels/EntryIPCChannels";
 
 contextBridge.exposeInMainWorld('vaultIPC', vaultIPCChannels);
 contextBridge.exposeInMainWorld('fileIPC', fileIPCChannels);
 contextBridge.exposeInMainWorld('clipBoardIPC', clipBoardIPCChannels);
 contextBridge.exposeInMainWorld('preferenceIPC', preferenceIPCChannels);
+contextBridge.exposeInMainWorld('entryIPC', entryIPCChannels);
 
-
-
-export type VaultIpcHandler = typeof vaultIPCChannels;
-export type FileIpcHandler = typeof fileIPCChannels;
-export type ClipBoardIPCHandler = typeof clipBoardIPCChannels;
-export type PreferenceIPCHandlers = typeof preferenceIPCChannels;
+export type      EntryIPCChannels = typeof entryIPCChannels;
+export type      VaultIPCChannels = typeof vaultIPCChannels;
+export type       FileIPCChannels = typeof fileIPCChannels;
+export type  ClipBoardIPCChannels = typeof clipBoardIPCChannels;
+export type PreferenceIPCChannels = typeof preferenceIPCChannels;
