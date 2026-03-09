@@ -1,10 +1,11 @@
 // import { IpcHandler } from '../main/preload'
-import {ClipBoardIPCHandler, FileIpcHandler, PreferenceIPCHandlers, VaultIpcHandler,} from "../main/preload";
+import {ClipBoardIPCChannels, EntryIPCChannels, FileIPCChannels, PreferenceIPCChannels, VaultIPCChannels,} from "../main/preload";
 declare global {
   interface Window {
-    vaultIPC: VaultIpcHandler,
-    fileIPC: FileIpcHandler,
-    clipBoardIPC: clipBoardIPCHandler,
-    preferenceIPC: PreferenceIPCHandlers
+    vaultIPC: VaultIPCChannels,
+    fileIPC: FileIPCChannels,
+    clipBoardIPC: ClipBoardIPCChannels,
+    preferenceIPC: PreferenceIPCChannels,
+    entryIPC:EntryIPCChannels
   }
 }
