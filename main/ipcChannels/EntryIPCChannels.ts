@@ -1,7 +1,7 @@
 import { ExtraField, RendererSafeEntry } from "@main/interfaces/VaultServiceInterfaces";
 import { ipcRenderer } from "electron";
 
-export const EntryIPCChannels = {
+export const entryIPCChannels = {
     // Entry Group based IPC channels
   addEntryToGroup: (entryUUID:string, groupName:string)=>ipcRenderer.invoke('entry:addEntryToGroup', entryUUID, groupName),
   removeEntryFromGroup: (entryUUID:string)=>ipcRenderer.invoke('entry:removeEntryFromGroup',entryUUID),
