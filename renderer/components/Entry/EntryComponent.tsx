@@ -20,7 +20,7 @@ export default function EntryComponent({entry}:props) {
         if (!showPass)
         {   
             setShowPass(true);
-            window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+            window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
                 setDecryptedPass(response);
                 setTimeout(() => {
                     handleShowPass()
@@ -44,7 +44,7 @@ export default function EntryComponent({entry}:props) {
                 }, 5000);
             })
         }else{
-            window.vaultIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
+            window.entryIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
                 navigator.clipboard.writeText(pass).then(()=>{
                     addBanner(setBanners, 'password copied to clipboard', 'success')
                     setTimeout(() => {
@@ -61,7 +61,7 @@ export default function EntryComponent({entry}:props) {
     }
     
     const handleDelete = ()=>{
-        window.vaultIPC.deleteEntry(entry.metadata.uuid);
+        window.entryIPC.deleteEntry(entry.metadata.uuid);
         setVault((prev)=>({...prev, entries:prev.entries.filter(x=>x.metadata.uuid !== entry.metadata.uuid)}))
     }
     return (
