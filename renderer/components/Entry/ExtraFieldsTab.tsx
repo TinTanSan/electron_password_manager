@@ -13,7 +13,7 @@ export default function ExtraFieldsTab({entry, setEntry}:props) {
     const [newExtraField, setNewExtraField] = useState<ExtraField>({name:"", data:Buffer.from(""), isProtected:false})
 
     const handleDeleteExtraField = (name:string)=>{
-        window.vaultIPC.removeExtraField(entry.metadata.uuid, name).then((response)=>{
+        window.entryIPC.removeExtraField(entry.metadata.uuid, name).then((response)=>{
             setEntry(response);
         })
     }

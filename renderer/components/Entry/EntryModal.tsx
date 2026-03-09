@@ -111,10 +111,9 @@ export default function EntryModal({setShowModal, uuid}:props) {
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
     const [extraFieldSearch, setEFSearch] = useState("");
     useEffect(()=>{
-        window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+        window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
             setEntryPass(response);
         }).catch((error)=>{
-            console.error(error);
             addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
         });
         return ()=>{
@@ -147,9 +146,8 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     const handleDecryptPass = ()=>{
         if (!showPass){
-            window.vaultIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+            window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
                 setEntryPass(response);
-                console.log(response);
                 setShowPass(true);
             }).catch((error)=>{
                 addBanner(setBanners, "Something went wrong when decrypting password for display", 'error');
@@ -173,7 +171,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         // easy way to check whether the password has changed
         window.crypto.subtle.digest('SHA-256', Buffer.from(entryPass)).then((digest)=>{
             if (!Buffer.from(vaultEntry.passHash).equals(Buffer.from(digest))){
-                window.vaultIPC.updateEntryField(uuid, 'password', entryPass).then((response)=>{
+                window.entryIPC.updateEntryField(uuid, 'password', entryPass).then((response)=>{
                     console.log(response)
                     if (response.status === "OK"){
                         setEntry(response.response)
@@ -191,7 +189,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 })
             }else if (!isEqual){
                 
-                window.vaultIPC.mutateEntry(uuid, entry).then((response)=>{
+                window.entryIPC.mutateEntry(uuid, entry).then((response)=>{
                     console.log(response)
                     if (response.status === "OK"){
                         setEntry(response.response)
@@ -263,7 +261,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
     
     const handleMakeFavourite = ()=>{
-        window.vaultIPC.updateEntryField(uuid, 'isFavourite', !entry.isFavourite).then((response)=>{
+        window.entryIPC.updateEntryField(uuid, 'isFavourite', !entry.isFavourite).then((response)=>{
             if (response.status === "OK"){
                 addBanner(setBanners, entry.isFavourite ? "Entry removed from favourites": 'Entry added to favourites', 'success');
                 setEntry(response.response);
@@ -302,7 +300,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     }
 
     const handleDeleteEntry = ()=>{
-        window.vaultIPC.deleteEntry(uuid).then((response)=>{
+        window.entryIPC.deleteEntry(uuid).then((response)=>{
             console.log(response)
             if (response){
                 addBanner(setBanners, 'Successfully deleted the entry', 'success');
@@ -343,10 +341,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
     
     const handleGroupChange=(groupName: string)=>{
         
-        window.vaultIPC.addEntryToGroup(uuid, groupName).then((x)=>{
+        window.entryIPC.addEntryToGroup(uuid, groupName).then((x)=>{
             if(x === "OK"){
                 
-                window.vaultIPC.getEntry(entry.metadata.uuid).then((response)=>{
+                window.entryIPC.getEntry(entry.metadata.uuid).then((response)=>{
                     setEntry(response)
                     addBanner(setBanners, "Entry added to group", 'success'); 
                 }).catch((error)=>{
@@ -360,7 +358,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         })
     }   
     const handleRemoveFromGroup = ()=>{
-        window.vaultIPC.removeEntryFromGroup(uuid).then((response)=>{
+        window.entryIPC.removeEntryFromGroup(uuid).then((response)=>{
             console.log(response);
             if(response === "OK"){
                 addBanner(setBanners, 'entry removed from group', 'success');
@@ -373,7 +371,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     useEffect(()=>{
         if (groupSearch.length === 0 ){
-            window.vaultIPC.getGroups().then((response)=>{
+            window.entryIPC.getGroups().then((response)=>{
                 setGroups(response.response);
             }).catch((error)=>{
                 addBanner(setBanners, 'Unable to get groups', 'error')
@@ -381,7 +379,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
             })
         }else{
             // searchGroups does not have any values from which anything can go wrong
-            window.vaultIPC.searchGroups(groupSearch).then((ipcResponse)=>{
+            window.entryIPC.searchGroups(groupSearch).then((ipcResponse)=>{
                 setGroups(ipcResponse.response);
             })
         }

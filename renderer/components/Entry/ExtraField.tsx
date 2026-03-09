@@ -29,7 +29,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   const handleConfirm = (e:React.MouseEvent)=>{
     e.preventDefault();
-    window.vaultIPC.addExtraField(entry.metadata.uuid, extraField).then((response)=>{
+    window.entryIPC.addExtraField(entry.metadata.uuid, extraField).then((response)=>{
       if (response ==="OK"){
         addBanner(setBanners, "Added extra field", 'success');
 
