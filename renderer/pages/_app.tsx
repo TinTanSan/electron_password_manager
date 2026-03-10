@@ -82,6 +82,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   },[])
 
 
+  useEffect(()=>{
+    document.documentElement.style.setProperty('--text-title', preference.fontSize.toString()+"px");
+
+
+
+  },[preference])
+
+
   return (
     <VaultContext.Provider value={{vault, setVault}}>
       <PreferenceContext.Provider value={{preference, setPreference}}>
