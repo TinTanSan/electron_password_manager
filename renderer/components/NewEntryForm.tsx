@@ -76,7 +76,7 @@ export default function NewEntryForm({setShowForm}:props) {
         e.preventDefault()
         if (vault !== undefined){
             // go ahead
-            window.vaultIPC.addEntry(entry).then((x)=>{
+            window.entryIPC.addEntry(entry).then((x)=>{
                 if (x.status === "OK"){
                     addBanner(setBanners, 'Entry Added','success');
                     window.vaultIPC.getPaginatedEntries(0).then((response)=>{
@@ -183,7 +183,6 @@ export default function NewEntryForm({setShowForm}:props) {
                                 <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
                             )}
                         </div>
-                    
                 </div>    
             
             }
