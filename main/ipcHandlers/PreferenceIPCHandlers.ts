@@ -8,7 +8,7 @@ ipcMain.handle('preference:getAll', (_):IPCResponse<Preferences>=>{
         response: preferenceStore.store
     }
 })
-ipcMain.handle('preference:setPreference', (_, preferenceName, newVaule):IPCResponse<boolean>=>{
+ipcMain.handle('preference:set', (_, preferenceName, newVaule):IPCResponse<boolean>=>{
     if(preferenceStore.has(preferenceName)){
         preferenceStore.set(preferenceName,newVaule)
         return {
@@ -20,5 +20,19 @@ ipcMain.handle('preference:setPreference', (_, preferenceName, newVaule):IPCResp
         status:"CLIENT_ERROR",
         message:"Preference key not found: "+preferenceName,
         response:false
+    }
+})
+
+ipcMain.handle('preference:get', (_, key:string):IPCResponse<any>=>{
+    if (!preferenceStore.has(key)){
+        return {
+            status:"CLIENT_ERROR",
+            message:"Key "+key+" does not exist in preferences",
+            response: undefined
+        }
+    }
+    return {
+        status:"OK",
+        response: preferenceStore.get(key)
     }
 })
