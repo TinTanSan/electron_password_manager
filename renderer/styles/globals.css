@@ -1,12 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import 'tailwindcss';
 @theme {
-  --font-roboto: "Roboto Mono", san-serif;
-  --text-title: 20px;
+
+  --text-title: var(20px);
   --text-subheading: calc(var(--text-title) - 2px);
   --text-normal: calc(var(--text-title ) - 4px);
   --text-subnotes: calc(var(--text-title ) - 6px);
-
 
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
@@ -101,7 +100,8 @@
   * {
     scrollbar-width: thin;
     scrollbar-color:  var(--color-base-100);
-    font-family: var(--font-roboto);
+    font-family: "Roboto Mono", system-ui;
+    letter-spacing: -0.025rem;
   }
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
@@ -110,4 +110,21 @@
   }
 }
 
+.text-title{
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+}
+.text-subheading{
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-medium);
+}
+.text-normal{
+  font-size: var(--text-normal);
+  font-weight: var(--font-weight-normal);
+}
+
+.text-subnotes{
+  font-size: var(--text-subnotes);
+  font-weight: var(--font-weight-light);
+}
 
