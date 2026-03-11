@@ -31,7 +31,10 @@ export default function Settings() {
     const handleFontSizeChange = (newSize:number)=>{
         window.preferenceIPC.setPreference('fontSize', newSize).then((response)=>{
             if (response.status === "OK"){
-                addBanner(setBanners, 'font size updated', 'success')
+                addBanner(setBanners, 'font size updated', 'success');
+                window.preferenceIPC.getAllPreferences().then((response)=>{
+                    setPreference(response.response);
+                })
             }else if (response.status === "CLIENT_ERROR"){
                 addBanner(setBanners, response.message, 'error')
             }else{
@@ -94,17 +97,17 @@ export default function Settings() {
                         </div>
                         <div className='flex flex-row gap-2 h-28 shrink-0 w-full'>
                             <div className='flex flex-row w-full h-full p-2 items-center rounded-lg gap-5 text-base-content'>
-                                <div onClick={()=>{handleFontSizeChange(14)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24 shrink-0 p-1 items-center justify-between border-2 border-base-300 rounded-md text-sm'>
+                                <div onClick={()=>{handleFontSizeChange(20)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24 shrink-0 p-1 items-center justify-between border-2 border-base-300 rounded-md text-sm'>
                                     <p>Small</p>
                                     <p>aA</p>
                                     <p>14 px</p>
                                 </div>  
-                                <div onClick={()=>{handleFontSizeChange(16)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24  shrink-0 p-1 border-2 border-base-300 justify-between items-center rounded-lg text-md'>
+                                <div onClick={()=>{handleFontSizeChange(28)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24  shrink-0 p-1 border-2 border-base-300 justify-between items-center rounded-lg text-md'>
                                     <p>Medium <br/> <i className='text-subnotes'>(Default)</i></p>
                                     <p>aA</p>
                                     <p>16 px</p>
                                 </div>  
-                                <div onClick={()=>{handleFontSizeChange(20)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24 shrink-0  p-1 border-2 items-center justify-between border-base-300 rounded-lg text-xl'>
+                                <div onClick={()=>{handleFontSizeChange(32)}} className='flex flex-col cursor-pointer hover:bg-base-300 hover:w-30 transition-all duration-300 h-24 w-24 shrink-0  p-1 border-2 items-center justify-between border-base-300 rounded-lg text-xl'>
                                     <p>Large</p>
                                     <p>aA</p>
                                     <p>20 px</p>
