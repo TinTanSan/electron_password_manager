@@ -300,28 +300,32 @@ export default function LoadFile() {
                         </div>
                     </div>
                 }
-                {unlocked && <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="128" height="128" className='flex absolute'>
-                    {/* shackle and it's animation */}
-                    <g>
-                        <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.75s" begin="0.3s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
-                        <path fill="none" stroke="oklch(19.616% 0.063 257.651)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
-                    </g>
-                    {/* <!-- Lock body --> */}
-                    <rect fill="oklch(19.616% 0.063 257.651)" x="53" y="113" width="94" height="72" rx="6"/>
+                {unlocked && 
+                    <div className='flex bg-base-100 z-10 w-full items-center justify-center h-fit'>
+                    <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="96" height="96" className='flex absolute'>
+                        {/* shackle and it's animation */}
+                        <g>
+                            <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.75s" begin="0.3s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
+                            <path fill="none" stroke="oklch(19.616% 0.063 257.651)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
+                        </g>
+                        {/* <!-- Lock body --> */}
+                        <rect fill="oklch(19.616% 0.063 257.651)" x="53" y="113" width="94" height="72" rx="6"/>
 
-                    {/* <!-- Slot covers --> */}
-                    <rect fill="oklch(19.616% 0.063 257.651)" x="65" y="114" width="14" height="71"/>
-                    <rect fill="oklch(19.616% 0.063 257.651)" x="121" y="114" width="14" height="71"/>
+                        {/* <!-- Slot covers --> */}
+                        <rect fill="oklch(19.616% 0.063 257.651)" x="65" y="114" width="14" height="71"/>
+                        <rect fill="oklch(19.616% 0.063 257.651)" x="121" y="114" width="14" height="71"/>
 
-                    {/* <!-- Keyhole --> */}
-                    <circle fill="#ffffff" cx="100" cy="141" r="7"/>
-                    <rect fill="#ffffff" x="97" y="141" width="6" height="12" rx="2"/>
-                </svg>}
-                <div id='mainPassInput' className='flex flex-col h-full  justify-center items-center w-[80%] gap-5'>
+                        {/* <!-- Keyhole --> */}
+                        <circle fill="#ffffff" cx="100" cy="141" r="7"/>
+                        <rect fill="#ffffff" x="97" y="141" width="6" height="12" rx="2"/>
+                    </svg>
+                    </div>
+                }
+                <div id='mainPassInput' className='flex flex-col h-full justify-center items-center text-normal w-[80%] gap-5'>
                     <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
-                <div className='flex w-full h-fit gap-5 justify-center text-lg'>
+                <div className='flex w-full h-1/2 gap-5 justify-center items-end text-normal'>
                     <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
                     <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
