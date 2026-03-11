@@ -5,7 +5,7 @@ import '../styles/globals.css'
 import { defaultVaultState, VaultContext } from '../contexts/vaultContext';
 import {Vault} from '../interfaces/Vault';
 import { BannerContext } from '../contexts/bannerContext'
-import { addBanner, BannerDetails } from '../interfaces/Banner'
+import {BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 import { PreferenceContext, preferenceDefaults, PreferenceType } from '@contexts/preferencesContext';
@@ -73,20 +73,20 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [])
 
   useEffect(()=>{
-    if(vault.filePath!==""){
-      window.preferenceIPC.getAllPreferences().then((response)=>{
-        console.log('preferences set', response.response)
-        setPreference(response.response);
-      })
-    }
+    window.preferenceIPC.getAllPreferences().then((response)=>{
+      console.log('preferences set', response.response)
+      setPreference(response.response);
+    })
   },[])
 
+  useEffect(()=>{
+    if (vault.filePath === ""){
+      navigate.push("/loadFile");
+    }
+  }, [vault.filePath])
 
   useEffect(()=>{
-    document.documentElement.style.setProperty('--text-title', preference.fontSize.toString()+"px");
-
-
-
+    document.documentElement.style.setProperty('--text-title', preference.fontSize.toString()+'px');
   },[preference])
 
 
