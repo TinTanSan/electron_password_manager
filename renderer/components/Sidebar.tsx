@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import Image from 'next/image';
-import { VaultContext } from '../contexts/vaultContext';
+import { defaultVaultState, VaultContext } from '../contexts/vaultContext';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Link from 'next/link';
@@ -14,13 +14,12 @@ export default function Sidebar() {
         setVault(prev=>({...prev, isUnlocked:false}))
         setBanners([]);
         addBanner(setBanners, 'Vault locked', 'info');
-        console.log('done')
     }
     const handleClose = ()=>{
         setBanners([])
         window.vaultIPC.closeVault();
         addBanner(setBanners, "Vault Closed successfully", 'info')
-        setVault(prev=>({...prev, filePath:""}));
+        setVault({...defaultVaultState});
     }
     return (
         <div className={`flex flex-col relative justify-center shadow-[0.5rem_0_1.25rem_rgba(0,0,0,0.1)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/4 items-end':'w-14 items-center'} h-full transition-all duration-400 bg-base-100 p-2`}>
@@ -65,13 +64,13 @@ export default function Sidebar() {
                     
                     <div className='flex w-full h-full items-end'>
                         <div className='flex w-full h-10 justify-between'>
-                            <div onClick={handleLock} className='flex w-fit h-fit p-0.5 items-center hover:bg-warning border-3 border-warning rounded-lg group'>
+                            {/* <div onClick={handleLock} className='flex w-fit h-fit p-0.5 items-center hover:bg-warning border-3 border-warning rounded-lg group'>
                                 <Image  src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                                 <p className='flex group-hover:visible w-0 group-hover:w-28  h-full overflow-hidden group-hover:text-warning-content text-lg font-medium justify-center items-center text-nowrap transition-all duration-500'>Lock Vault</p>
-                            </div>
+                            </div> */}
                             
-                            <div onClick={handleClose} className='flex w-fit items-center h-fit p-0.5 border-3 border-error hover:bg-error rounded-lg group'>
-                                <p className='flex group-hover:items-center group-hover:visible w-0 h-full group-hover:w-28 overflow-hidden group-hover:text-warning-content text-lg font-medium justify-center items-center text-nowrap transition-all duration-500'>Close & exit</p>
+                            <div onClick={handleClose} className='flex w-fit items-center cursor-pointer h-fit p-0.5 border-3 border-error hover:bg-error rounded-lg group'>
+                                <p className='flex group-hover:items-center group-hover:visible w-0 h-full group-hover:w-32 overflow-hidden group-hover:text-warning-content text-lg font-medium justify-center items-center text-nowrap transition-all duration-500'>Close Vault</p>
                                 <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                             </div>
                         </div>
