@@ -25,12 +25,12 @@ export default function HomePage() {
 
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
-
   useEffect(()=>{
     if(!vault || !vault.isUnlocked || !vault.filePath){
       navigate.push('/loadFile');
     }
-    window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
+      window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
+    
   },[])
 
   useEffect(()=>{
@@ -51,9 +51,14 @@ export default function HomePage() {
 
 
   useEffect(()=>{
-    window.vaultIPC.getPaginatedEntries(page).then((response)=>{
-      setVault(prev=>({...prev,response}));
-    })
+    if(!vault.filePath){
+      navigate.push('/loadFile')
+    }else{
+      window.vaultIPC.getPaginatedEntries(page).then((response)=>{
+        setVault(prev=>({...prev,response}));
+      })
+    }
+    
   }, [page])
 
   return (
