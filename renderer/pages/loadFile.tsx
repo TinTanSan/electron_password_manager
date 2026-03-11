@@ -72,7 +72,6 @@ export default function LoadFile() {
             })
         }else{
             window.vaultIPC.openVault(filepath).then((response)=>{
-                console.log(response)
                 if (response.message === 'NOT_OK'){
                     addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
                     return;
@@ -108,11 +107,10 @@ export default function LoadFile() {
               return;
             }
             window.vaultIPC.setMasterPassword(password).then((response)=>{
-                console.log(response);
                 if (response === true){
                     setunlocked(true);
-                    // setVault(prev=>({...prev, isUnlocked:true}))
-                    // navigate.push('/home');
+                    setVault(prev=>({...prev, isUnlocked:true}))
+                    navigate.push('/home');
                 }else{
                     addBanner(setBanners, 'unable to write to file', 'error')
                 }
@@ -150,13 +148,29 @@ export default function LoadFile() {
           }
     }
 
+
+
+    useEffect(()=>{
+        window.fileIPC.getRecents().then((ipcResponse)=>{
+            if (ipcResponse.status === "OK"){
+                setRecent(ipcResponse.response);
+                handleOpenFile(ipcResponse.response[0]);
+                document.title = 'Open a Vault'
+            }else{
+                addBanner(setBanners, 'unable to get recents list', 'error');
+                setRecent([]);
+            }
+            
+        })
+    },[])
+
     useEffect(()=>{
         if (vault && vault.filePath){
             document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1)
         }else{
             document.title = "Open a vault"
         }
-    }, [vault.filePath])
+    }, [vault])
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -207,19 +221,7 @@ export default function LoadFile() {
     }
 
 
-    useEffect(()=>{
-        window.fileIPC.getRecents().then((ipcResponse)=>{
-            if (ipcResponse.status === "OK"){
-                setRecent(ipcResponse.response);
-                handleOpenFile(ipcResponse.response[0]);
-                document.title = 'Open a Vault'
-            }else{
-                addBanner(setBanners, 'unable to get recents list', 'error');
-                setRecent([]);
-            }
-            
-        })
-    },[])
+    
 
   return (
     (vault === undefined || !vault.filePath) ? 
@@ -281,20 +283,18 @@ export default function LoadFile() {
         </div>
     :
     <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
-       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-2 items-center animate-modal-open `}>
-            <div className='flex justify-center w-full text-3xl font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
-            <div className='flex w-full h-fit justify-center flex-col items-center gap-2'>
-                <p className='flex text-md'>
-                    <b> {vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4)} </b> 
-                    &nbsp; 
-                    vault
-                </p>
-                <p className='flex text-xs'>{vault.filePath}</p>
+       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-4 items-center animate-modal-open `}>
+            <div className='flex justify-center w-full text-title font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
+            <div className='flex w-full h-fit justify-center flex-col items-center'>
+                <div className='flex text-subheading'>
+                    <b> {vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4)} </b>  <div className='flex w-1 font-normal' />vault
+                </div>
+                <p className='flex text-subnotes'>{vault.filePath}</p>
             </div>
-            <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-start items-center py-5'>
+            <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-start items-center text-normal py-5'>
                 {requiresInitialisation && 
                     <div className='flex flex-nowrap text-sm w-full h-fit items-center justify-center gap-2'>
-                        <div className='flex w-4 h-4 rounded-full border justify-center items-center'>i</div>
+                        <div className='flex w-4 h-4 rounded-full border justify-center items-center cursor-default'>i</div>
                         <div className='flex w-fit flex-wrap'>
                         Create a strong master password
                         </div>
@@ -303,7 +303,7 @@ export default function LoadFile() {
                 {unlocked && <svg ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="128" height="128" className='flex absolute'>
                     {/* shackle and it's animation */}
                     <g>
-                        <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.8s" begin="0.4s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
+                        <animateTransform id="shackleAnim" attributeName="transform" type="translate" from="0 0" to="0 -22" dur="0.75s" begin="0.3s" calcMode="spline" keySplines="0.4 0 0.2 1" keyTimes="0;1" fill="freeze" />
                         <path fill="none" stroke="oklch(19.616% 0.063 257.651)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" d="M 72 143 L 72 98 Q 72 78 100 78 Q 128 78 128 98 L 128 118" />
                     </g>
                     {/* <!-- Lock body --> */}
@@ -317,7 +317,7 @@ export default function LoadFile() {
                     <circle fill="#ffffff" cx="100" cy="141" r="7"/>
                     <rect fill="#ffffff" x="97" y="141" width="6" height="12" rx="2"/>
                 </svg>}
-                <div id='mainPassInput' className='flex flex-col h-full justify-center items-center w-[80%] gap-5'>
+                <div id='mainPassInput' className='flex flex-col h-full  justify-center items-center w-[80%] gap-5'>
                     <FancyInput autoFocus={true}  placeHolder='Enter your password' type='password'  value={password} setValue={setPassword}/>
                     {requiresInitialisation && <FancyInput autoFocus={false} placeHolder='Confirm password' type='password'  value={confirmPassword} setValue={setConfirmPassword}/>}
                 </div>
