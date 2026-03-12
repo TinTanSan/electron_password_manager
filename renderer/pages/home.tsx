@@ -30,7 +30,7 @@ export default function HomePage() {
       navigate.push('/loadFile');
     }
       window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
-    
+    document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length - 4) + " vault"
   },[])
 
   useEffect(()=>{
