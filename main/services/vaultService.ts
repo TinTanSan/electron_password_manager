@@ -213,7 +213,7 @@ class VaultService extends EventEmitter{
     }
 
     getAllGroups(){
-        return this.vault.entryGroups.map(x=>x.groupName);
+        return this.vault.entryGroups;
     }
 
 
