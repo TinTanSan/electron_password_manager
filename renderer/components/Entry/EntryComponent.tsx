@@ -69,14 +69,14 @@ export default function EntryComponent({entry}:props) {
                 {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
                 <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2 relative'>
                     <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
-                    <div className='flex h-full w-full px-2 justify-start text-nowrap overflow-hidden overflow-ellipsis items-center text-lg font-medium'>
+                    <div className='flex h-full w-full px-2 justify-start text-nowrap overflow-hidden overflow-ellipsis items-center text-subheading font-medium'>
                         {entry.title? entry.title : <i>No title</i>}
                     </div>
                     <div className='flex w-fit justify-end'>
                         <Image src={`/images/${extend?'collapse':'expand'}.svg`} alt='expand' width={0} height={0} className='flex w-6 h-auto  shrink-0 grow-0'/>
                     </div>
                 </div>
-                <div className={`flex text-md font-normal flex-col w-full text-base-content p-2 overflow-hidden ${extend ? 'h-full visible': 'collapse'}`}>
+                <div className={`flex text-normal font-normal flex-col w-full text-base-content p-2 overflow-hidden ${extend ? 'h-full visible': 'collapse'}`}>
                     <div className='flex flex-col w-fit h-full gap-2 overflow-hidden overflow-ellipsis'>
                         <div className='flex w-full h-6 gap-2'>
                             <div className='flex w-32 h-full'>Username</div>
@@ -94,9 +94,9 @@ export default function EntryComponent({entry}:props) {
                             <div className='flex w-full h-full'>This feature to come soon</div>
                         </div>
                     </div>
-                    <div className='flex flex-row w-full h-14 gap-2'>
-                        <button onClick={()=>{handleDelete()}} className='flex items-center justify-center text-xl rounded-lg border-error text-error hover:text-error-content hover:bg-error transition-all duration-300 border-2 w-full h-full'>Delete</button>
-                        <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center text-xl rounded-lg hover:text-info-content hover:bg-info outline-none duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>                    </div>
+                    <div className='flex flex-row w-full h-14 gap-2 text-normal'>
+                        <button onClick={()=>{handleDelete()}} className='flex items-center justify-center rounded-lg border-error text-error hover:text-error-content hover:bg-error transition-all duration-300 border-2 w-full h-full'>Delete</button>
+                        <button onClick={()=>{setShowEditModal(true)}} className='flex items-center justify-center  rounded-lg hover:text-info-content hover:bg-info outline-none duration-300 transition-all border-info border-2 w-full h-full'>Details &amp; Edit</button>                    </div>
                 </div>
             </div>
     )
