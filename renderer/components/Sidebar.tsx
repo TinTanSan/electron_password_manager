@@ -31,21 +31,21 @@ export default function Sidebar() {
                 <div className='flex flex-col gap-5 w-full h-full   '>
                     <div className='flex flex-col gap-5 w-full h-1/4 shrink-0 text-base-content'>
                         <div className='flex flex-col gap-2 w-full h-fit text-lg '>
-                            <h1 className='flex w-full text-xl'>Entries</h1>  
-                            <div className='flex flex-col gap-2 w-full h-fit pl-5'>
-                            <Link href={"/home"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</Link> 
-                            <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
-                            <Link href={"/groups"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</Link>
-                            <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
+                            <h1 className='flex w-full text-subheading'>Entries</h1>  
+                            <div className='flex flex-col gap-2 w-full h-fit pl-5 text-normal'>
+                                <Link href={"/home"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</Link> 
+                                <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
+                                <Link href={"/groups"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</Link>
+                                <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
                             </div>
                         </div>
                     </div>
                     
-                    <hr className='flex w-full text-xl text-base-300' />
+                    <hr className='flex w-full text-base-300' />
                     
                     <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
-                        <h1 className='flex w-full text-xl'>Settings</h1>  
-                        <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
+                        <h1 className='flex w-full text-subheading'>Settings</h1>  
+                        <div className='flex flex-col gap-2 w-full h-fit text-normal pl-5'>
                             <Link href={'/settings'}>Settings</Link>
                             <h3>Preferences</h3>
                         </div>
@@ -54,7 +54,7 @@ export default function Sidebar() {
                     <hr className='flex w-full text-xl text-base-300' />
                     
                     <div className='flex flex-col gap-5 w-full  h-1/5 shrink-0 text-base-content'>
-                        <Link href={"/helpPages"} className='flex w-full text-xl'>Help</Link>  
+                        <Link href={"/helpPages"} className='flex w-full text-subheading'>Help</Link>  
                         {/* <div className='flex flex-col gap-2 w-full h-fit text-lg pl-5'>
                             <h3>Keybinds & shortcuts</h3>
                             <h3>Helpful documentation</h3>
