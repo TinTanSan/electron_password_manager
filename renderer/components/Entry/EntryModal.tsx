@@ -341,7 +341,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
     
     const handleGroupChange=(groupName: string)=>{
         
-        window.entryIPC.addEntryToGroup(uuid, groupName).then((x)=>{
+        window.groupIPC.addEntryToGroup(uuid, groupName).then((x)=>{
             if(x === "OK"){
                 
                 window.entryIPC.getEntry(entry.metadata.uuid).then((response)=>{
@@ -358,7 +358,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
         })
     }   
     const handleRemoveFromGroup = ()=>{
-        window.entryIPC.removeEntryFromGroup(uuid).then((response)=>{
+        window.groupIPC.removeEntryFromGroup(uuid).then((response)=>{
             console.log(response);
             if(response === "OK"){
                 addBanner(setBanners, 'entry removed from group', 'success');
@@ -371,7 +371,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
 
     useEffect(()=>{
         if (groupSearch.length === 0 ){
-            window.entryIPC.getGroups().then((response)=>{
+            window.groupIPC.getGroups().then((response)=>{
                 setGroups(response.response);
             }).catch((error)=>{
                 addBanner(setBanners, 'Unable to get groups', 'error')
@@ -379,7 +379,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
             })
         }else{
             // searchGroups does not have any values from which anything can go wrong
-            window.entryIPC.searchGroups(groupSearch).then((ipcResponse)=>{
+            window.groupIPC.findGroup(groupSearch).then((ipcResponse)=>{
                 setGroups(ipcResponse.response);
             })
         }

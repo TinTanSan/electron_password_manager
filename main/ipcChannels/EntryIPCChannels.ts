@@ -2,15 +2,6 @@ import { ExtraField, RendererSafeEntry } from "@main/interfaces/VaultServiceInte
 import { ipcRenderer } from "electron";
 
 export const entryIPCChannels = {
-    // Entry Group based IPC channels
-  addEntryToGroup: (entryUUID:string, groupName:string)=>ipcRenderer.invoke('entry:addEntryToGroup', entryUUID, groupName),
-  removeEntryFromGroup: (entryUUID:string)=>ipcRenderer.invoke('entry:removeEntryFromGroup',entryUUID),
-  deleteGroup: (groupName:string)=>ipcRenderer.invoke('entry:deleteGroup', groupName),
-  getGroups: ()=>ipcRenderer.invoke('entry:getGroups'),
-  searchGroups: (searchString:string)=>ipcRenderer.invoke('entry:searchGroups', searchString),
-
-
-  // Entry CRUD operations IPC channels
   getEntry:(uuid:string)=>ipcRenderer.invoke('entry:getEntry', uuid),
   decryptPass: (uuid:string)=>ipcRenderer.invoke("entry:decryptPass", uuid),
   deleteEntry:(uuid:string)=>ipcRenderer.invoke('entry:removeEntry', uuid),
