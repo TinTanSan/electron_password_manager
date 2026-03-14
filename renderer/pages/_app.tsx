@@ -27,10 +27,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       console.log('vault locked due to timeout')
     }, 1000*preference.vaultLockTimeOut);
   }
-
+  // REMEMBER to uncomment the resetTimeout, it is currently commented due to inconvenience of vault locking whilst developing
   const handleActivity =()=>{
     if (!vault.isUnlocked) return;
-    resetTimeout();
+    // resetTimeout();
   }
 
   
