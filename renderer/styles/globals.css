@@ -3,9 +3,9 @@
 @theme {
 
   --text-title: var(32px);
-  --text-subheading: calc(var(--text-title) * 0.60);
-  --text-normal: calc(var(--text-title) * 0.45);
-  --text-subnotes: calc(var(--text-title) * 0.375);
+  --text-subheading: calc(var(--text-title) * 0.75);
+  --text-normal: calc(var(--text-title) * 0.5);
+  --text-subnotes: calc(var(--text-title) * 0.4);
 
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
