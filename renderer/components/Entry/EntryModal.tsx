@@ -115,6 +115,7 @@ export default function EntryModal({setShowModal, uuid}:props) {
             setEntryPass(response);
         }).catch((error)=>{
             addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
+            console.error(error)
         });
         return ()=>{
             setEntryPass("");
@@ -144,19 +145,6 @@ export default function EntryModal({setShowModal, uuid}:props) {
         setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
     }
 
-    const handleDecryptPass = ()=>{
-        if (!showPass){
-            window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
-                setEntryPass(response);
-                setShowPass(true);
-            }).catch((error)=>{
-                addBanner(setBanners, "Something went wrong when decrypting password for display", 'error');
-            })
-        }else{
-            setShowPass(false);
-        }
-        
-    }
 
     const handleCopy = ()=>{
         navigator.clipboard.writeText(entryPass.toString());
@@ -372,13 +360,13 @@ export default function EntryModal({setShowModal, uuid}:props) {
     useEffect(()=>{
         if (groupSearch.length === 0 ){
             window.groupIPC.getGroups().then((response)=>{
-                setGroups(response.response);
+                setGroups(response.response.map((x:{groupName:string, entries:Array<string>})=>x.groupName));
             }).catch((error)=>{
                 addBanner(setBanners, 'Unable to get groups', 'error')
                 console.error(error);
             })
         }else{
-            // searchGroups does not have any values from which anything can go wrong
+           
             window.groupIPC.findGroup(groupSearch).then((ipcResponse)=>{
                 setGroups(ipcResponse.response);
             })
