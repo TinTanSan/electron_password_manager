@@ -7,7 +7,7 @@ export default function GroupsPage() {
     const {vault, setVault} = useContext(VaultContext);
     useEffect(()=>{
         if(vault.filePath){
-            window.entryIPC.getGroups().then((response)=>{
+            window.groupIPC.getGroups().then((response)=>{
                 setVault(prev=>({...prev, entryGroups: response.response}))
             })
         }
