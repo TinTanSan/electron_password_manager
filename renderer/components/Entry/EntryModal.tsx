@@ -408,15 +408,15 @@ export default function EntryModal({setShowModal, uuid}:props) {
                 {/* main section */}
                 <div className='flex flex-col w-full h-full items-center justify-between overflow-hidden'>
                     {/* NavBar */}
-                    <div className='flex flex-row w-9/10 h-1/20 rounded-full bg-base-300 overflow-hidden p-0.75 gap-2 justify-between'>
-                        <div onClick={()=>{setTab(0)}} className={`flex w-full justify-center items-center rounded-full cursor-pointer   ${tab ===0? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                    <div className='flex flex-row w-9/10 h-1/20 rounded-full bg-base-300  overflow-hidden p-0.75 gap-2 justify-between'>
+                        <div onClick={()=>{setTab(0)}} className={`flex w-full justify-center items-center rounded-full text-normal cursor-pointer   ${tab ===0? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             General Details
                         </div>
 
-                        <div onClick={()=>{setTab(1)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab === 1 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                        <div onClick={()=>{setTab(1)}} className={`flex  w-full justify-center items-center cursor-pointer text-normal rounded-full ${tab === 1 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             Extra Fields
                         </div>
-                        <div onClick={()=>{setTab(2)}} className={`flex  w-full justify-center items-center cursor-pointer  rounded-full ${tab === 2 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
+                        <div onClick={()=>{setTab(2)}} className={`flex  w-full justify-center items-center cursor-pointer  text-normal rounded-full ${tab === 2 ? 'bg-base-100 shadow-md shadow-base-300 border-base-darken border-2': "hover:bg-base-200"}`}>
                             Group Details                        
                         </div>
                     </div>
@@ -424,15 +424,15 @@ export default function EntryModal({setShowModal, uuid}:props) {
                         {
                             // general details
                             (tab ===0) ? 
-                            <div className='flex flex-col w-full h-full rounded-lg px-4 gap-2'>
-                                <div className='flex w-full text-sm items-center gap-1'>
+                            <div className='flex flex-col w-full h-full rounded-lg overflow-y-auto px-4 gap-2'>
+                                <div className='flex w-full text-sm items-center gap-1 border-error border text-subnotes font-bold p-2 rounded-lg'>
                                     <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
                                     This entry has the same password as another entry. Change it now to increase security</div>
-                                <div className='flex flex-col gap-2 relative items-center justify-center text-sm w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
+                                <div className='flex flex-col shrink-0 gap-2 relative items-center justify-center text-sm w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
                                     <div className='flex flex-row w-full h-fit gap-2'>
                                         <p className='flex text-md font-semibold mb-1 w-full'> Entry Details </p>
                                         <div className='flex w-10 h-10 items-center justify-center'>
-                                            <Image onClick={handleMakeFavourite} src={entry.isFavourite? "/images/starFill.svg":"/images/starNoFill.svg"} alt='fav' width={0} height={0} className={`flex ${entry.isFavourite ? "w-7 h-7": "w-10 h-10"} cursor-pointer `} title='add to favourites' />
+                                            <Image onClick={handleMakeFavourite} src={entry.isFavourite? "/images/starFill.svg":"/images/starNoFill.svg"} alt='fav' width={0} height={0} className={`flex ${entry.isFavourite ? "w-7 h-7": "w-10 h-10"} cursor-pointer `} title={entry.isFavourite?"remove from favourites":'add to favourites'} />
                                         </div>
                                     </div>
                                     {/* Title */}
@@ -490,6 +490,14 @@ export default function EntryModal({setShowModal, uuid}:props) {
                                         <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
                                     </div>
                                 </div>
+                                <div className='flex flex-col text-normal gap-2 border-2 h-fit px-2 text-base-content shrink-0 rounded-lg border-base-300 bg-base-200'>
+                                    <div className='flex h-8 shrink-0 w-full'>
+                                        created on: {entry.metadata.createDate.getDay()}/{entry.metadata.createDate.getMonth()}/{entry.metadata.createDate.getFullYear()}
+                                    </div>
+                                    <div className='flex h-8 shrink-0 w-full'>
+                                        last edited on: {entry.metadata.lastEditDate.getDay()}/{entry.metadata.lastEditDate.getMonth()}/{entry.metadata.lastEditDate.getFullYear()}
+                                    </div>
+                                </div>      
                                 
                             </div>
                             :
