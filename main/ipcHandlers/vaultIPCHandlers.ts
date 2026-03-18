@@ -1,5 +1,6 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
+import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
 
 ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
 
@@ -29,3 +30,11 @@ ipcMain.on('vault:lock', ()=>vaultService.lockVault())
 ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
 ipcMain.handle('vault:setPass', async (_,password)=>vaultService.setMasterPassword(password))
+
+ipcMain.handle('vault:getEntriesWithSamePass', async(_):Promise<IPCResponse<Array<Array<string>>>>=>{
+    
+    return {
+        status:"OK",
+        response: await vaultService.getEntriesWithSamePass()
+    }
+})

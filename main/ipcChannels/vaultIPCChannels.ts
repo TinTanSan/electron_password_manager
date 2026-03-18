@@ -13,5 +13,6 @@ export const vaultIPCChannels = {
   searchEntries: (title:string, username:string, notes:string)=>ipcRenderer.invoke('vault:searchEntries',title, username, notes),
   getNumEntries: ()=>ipcRenderer.invoke('vault:getNumEntries'),
 
+  getEntriesWithSamePass: ()=>ipcRenderer.invoke('vault:getEntriesWithSamePass'),
   
 }
