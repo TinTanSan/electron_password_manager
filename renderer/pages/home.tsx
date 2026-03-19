@@ -14,7 +14,6 @@ export default function HomePage() {
   const {vault, setVault} = useContext(VaultContext);
   const navigate = useRouter();
   const [searchFilter, setSearchFilter] = useState("");
-  
   const [page, setPage] = useState(0);
   // total number of entries
   const [numEntries, setNumEntries]= useState(0);
@@ -25,11 +24,16 @@ export default function HomePage() {
 
   const [searchSettings, setSearchSettings] = useState<SearchSettings>({searchUsername:true, searchNotes:true, searchTitle:true})
 
+
+  const [entriesWithSamePass, setEntriesWithSamePass] = useState([]);
+  const [dismissEntriesWithSamePassWarning, setDismissEntriesWithSamePassWarning] = useState(false);
+
   useEffect(()=>{
     if(!vault || !vault.isUnlocked || !vault.filePath){
       navigate.push('/loadFile');
     }
-      window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
+    console.log(entriesWithSamePass);
+    window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
     document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length - 4) + " vault"
   },[])
 
@@ -48,6 +52,12 @@ export default function HomePage() {
     }
       
   }, [searchFilter, searchSettings])
+  
+  useEffect(()=>{
+    window.vaultIPC.getEntriesWithSamePass().then((response)=>{
+      setEntriesWithSamePass(response.response);
+    })
+  },[])
 
 
   useEffect(()=>{
@@ -72,8 +82,24 @@ export default function HomePage() {
         {/* main section */}
         <div className='flex w-full h-full flex-col gap-3 py-2'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
-          <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2 px-3'>
-            {vault.entries.map((entry:Entry, i:number)=><EntryComponent key={i} entry={entry}/>)}
+          {
+            (entriesWithSamePass.length > 0 && !dismissEntriesWithSamePassWarning) && 
+            <div className='flex w-full h-10 shrink-0 text-subnotes items-center justify-center text-error font-bold gap-2' >
+              Certain entries have re-used passwords, you should change the passwords for those entries as soon as possible. Said entries are marked with an icon
+              <button className='flex ml-2 border-2 font-normal px-2 rounded-sm hover:bg-error hover:text-error-content hover:border-error' onClick={()=>{setDismissEntriesWithSamePassWarning(true)}}>Dismiss</button>
+            </div>
+          }
+          
+          <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2'>
+            {vault.entries.map((entry:Entry, i:number)=>
+              <div className='flex w-full h-fit items-start gap-2' key={i}>
+                {(!dismissEntriesWithSamePassWarning) && <div className='flex h-full items-start py-2'>
+                  {entriesWithSamePass.findIndex(x=>x===entry.metadata.uuid)!== -1 && <Image src={'/images/error.svg'} alt='err' width={20} height={10} className='flex h-auto w-6'/>}
+                </div>}
+                <EntryComponent entry={entry}/>
+              </div>
+            )
+            }
           </div>
         
           {/* bottom pages bar  */}
