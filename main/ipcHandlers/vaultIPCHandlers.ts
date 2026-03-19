@@ -31,7 +31,7 @@ ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
 ipcMain.handle('vault:setPass', async (_,password)=>vaultService.setMasterPassword(password))
 
-ipcMain.handle('vault:getEntriesWithSamePass', async(_):Promise<IPCResponse<Array<Array<string>>>>=>{
+ipcMain.handle('vault:getEntriesWithSamePass', async(_):Promise<IPCResponse<Array<string>>>=>{
     
     return {
         status:"OK",
