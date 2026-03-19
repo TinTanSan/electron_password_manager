@@ -423,30 +423,29 @@ class VaultService extends EventEmitter{
         return {entries: this.searchResults.slice(page*pageLen,page*pageLen+ pageLen).map((x)=>this.vault.entries.get(x)), numEntries: filteredEntries.length}
     }
 
-    async getEntriesWithSamePass():Promise<Array<Array<string>>>{
+    async getEntriesWithSamePass():Promise<Array<string>>{
+        // early return 
+        if (this.vault.entries.size === 0){
+            return  []
+        }
         // store previously encountered hashes in the map
-        const encounteredPasswordHashes = new Map<string, Array<string>>();
+        let encounteredPasswordHashes = new Map<string, string>();
+        let collisions = new Set<string>();
         let entriesIterator = this.vault.entries.entries();
         let entryVal = entriesIterator.next();
+
         while (!entryVal.done){
             const [uuid, entry]:[string, Entry]=entryVal.value;
-            const passHashB64 = entry.passHash.toString('base64');
-            if (encounteredPasswordHashes.has(passHashB64)){
-                encounteredPasswordHashes.set(passHashB64, [...encounteredPasswordHashes.get(passHashB64), uuid]);
+            const passHash = entry.passHash.toString('base64');
+            if (encounteredPasswordHashes.has(passHash)){
+                collisions.add(uuid);
+                collisions.add(encounteredPasswordHashes.get(passHash));
             }else{
-                encounteredPasswordHashes.set(passHashB64, [uuid]);
+                encounteredPasswordHashes.set(passHash, uuid);
             }
             entryVal = entriesIterator.next();
-        }   
-        let collisionsArray:Array<Array<string>> = [];
-
-        let hashesIterator = encounteredPasswordHashes.entries();
-        let hashVal = hashesIterator.next();
-        while (!hashVal.done){
-            collisionsArray.push(hashVal.value[1]);
-            hashVal = hashesIterator.next();
         }
-        return collisionsArray;
+        return Array.from(collisions);
     }
     
     serialiseVault(){
