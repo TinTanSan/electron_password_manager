@@ -13,7 +13,31 @@ ipcMain.handle('entry:addEntry', async (_,entry)=>vaultService.addEntry(entry))
 
 ipcMain.handle('vault:searchEntries', (_,title:string, username:string, notes:string)=>vaultService.searchEntries(title, username, notes))
 
-ipcMain.handle('entry:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} )=>vaultService.addExtraField(uuid, extraField));
+ipcMain.handle('entry:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} ):Promise<IPCResponse<boolean>>=>{
+    
+    try {
+        const response = vaultService.addExtraField(uuid, extraField);
+        if (response === "OK"){
+            return {
+                status:"OK",
+                response: true
+            }
+        }
+
+        return{
+            status:"CLIENT_ERROR",
+            message: response==="ALREADY_EXISTS"? "extra field already exists" : "entry with uuid"+uuid+"not found",
+            response: false
+        }        
+    } catch (error) {
+        return{
+            status:"INTERNAL_ERROR",
+            message:error,
+            response:false
+        }
+    }
+    
+});
 
 ipcMain.handle('entry:removeExtraField', async (_, uuid, name)=>vaultService.removeExtraField(uuid,name))
 
