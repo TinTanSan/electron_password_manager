@@ -7,9 +7,10 @@ import { addBanner } from '../../interfaces/Banner';
 import { BannerContext } from '../../contexts/bannerContext';
 type props={
     entry: Entry,
+    hasCollidingPassword:boolean
 }
 
-export default function EntryComponent({entry}:props) {
+export default function EntryComponent({entry, hasCollidingPassword}:props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const {vault, setVault} = useContext(VaultContext);
     const {banners, setBanners} = useContext(BannerContext);
@@ -66,7 +67,7 @@ export default function EntryComponent({entry}:props) {
     }
     return (
             <div className={`flex flex-col w-full transition-all duration-500 ${extend?'h-56':"h-14 items-center"} overflow-hidden border-2 px-2 gap-2 rounded-lg border-base-300 bg-base-100 `}>
-                {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid}/>}
+                {showEditModal && <EntryModal setShowModal={setShowEditModal} uuid={entry.metadata.uuid} hasCollidingPassword={hasCollidingPassword}/>}
                 <div onClick={()=>{setExtend(prev=>!prev)}} className='flex w-full h-12 grow-0 shrink-0 items-center px2 gap-2 relative'>
                     <Image src={"/images/defaultGroup.svg"} alt="entry" width={0} height={0} className='flex w-8 h-auto shrink-0 grow-0' />
                     <div className='flex h-full w-full px-2 justify-start text-nowrap overflow-hidden overflow-ellipsis items-center text-subheading font-medium'>
