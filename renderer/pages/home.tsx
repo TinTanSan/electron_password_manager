@@ -93,10 +93,14 @@ export default function HomePage() {
           <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2'>
             {vault.entries.map((entry:Entry, i:number)=>
               <div className='flex w-full h-fit items-start gap-2' key={i}>
-                {(!dismissEntriesWithSamePassWarning) && <div className='flex h-full items-start py-2'>
-                  {entriesWithSamePass.findIndex(x=>x===entry.metadata.uuid)!== -1 && <Image src={'/images/error.svg'} alt='err' width={20} height={10} className='flex h-auto w-6'/>}
-                </div>}
-                <EntryComponent entry={entry}/>
+                {(!dismissEntriesWithSamePassWarning) && 
+                  <div className='flex h-full items-start py-4'>
+                    { entriesWithSamePass.findIndex(x=>x===entry.metadata.uuid)!== -1 && 
+                      <Image src={'/images/errorRed.svg'} alt='err' width={20} height={10} className='flex h-auto w-6'/>
+                    }
+                  </div>
+                }
+                <EntryComponent entry={entry} hasCollidingPassword={entriesWithSamePass.findIndex(x=>x===entry.metadata.uuid) !== -1}/>
               </div>
             )
             }
