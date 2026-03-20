@@ -9,10 +9,7 @@ import zxcvbn from 'zxcvbn';
 import Slider from '../Slider';
 import ExtraFieldsTab from './ExtraFieldsTab';
 
-type props ={
-    setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
-    uuid:string
-}
+
 export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
     /*
 
@@ -83,7 +80,14 @@ export type RandomPassGeneratorSettings={
     allowSpecChars:boolean,
     excludedChars: string,
 }
-export default function EntryModal({setShowModal, uuid}:props) {
+
+type props ={
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
+    uuid:string,
+    hasCollidingPassword : boolean,
+}
+
+export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:props) {
     const {vault, setVault} = useContext(VaultContext);
     const {banners, setBanners} = useContext(BannerContext);
     const [showPass, setShowPass] = useState(false);
@@ -425,9 +429,10 @@ export default function EntryModal({setShowModal, uuid}:props) {
                             // general details
                             (tab ===0) ? 
                             <div className='flex flex-col w-full h-full rounded-lg overflow-y-auto px-4 gap-2'>
-                                <div className='flex w-full text-sm items-center gap-1 border-error border text-subnotes font-bold p-2 rounded-lg'>
-                                    <Image  src={"/images/info.svg"} alt='show' width={20} height={20} className='flex w-4 h-4 cursor-pointer rotate-180'/>
-                                    This entry has the same password as another entry. Change it now to increase security</div>
+                                {hasCollidingPassword && <div className='flex w-full text-sm items-center gap-1 border-error border text-subnotes font-semibold p-1 rounded-lg'>
+                                    <Image  src={"/images/errorRed.svg"} alt='show'  width={20} height={20} className='flex w-4 h-auto cursor-pointer'/>
+                                    <p className='text-error'>This entry has the same password as another entry. Change it now to increase security</p>
+                                </div>}
                                 <div className='flex flex-col shrink-0 gap-2 relative items-center justify-center text-sm w-full h-full border-base-300 bg-base-200 border-2 rounded-lg p-2 '>
                                     <div className='flex flex-row w-full h-fit gap-2'>
                                         <p className='flex text-md font-semibold mb-1 w-full'> Entry Details </p>
