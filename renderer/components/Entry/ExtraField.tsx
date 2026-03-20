@@ -29,6 +29,13 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   const handleConfirm = (e:React.MouseEvent)=>{
     e.preventDefault();
+    if (ef.name.length  === 0){
+      addBanner(setBanners, "Cannot add extra field without a name","warning")
+    }
+    if (ef.data.length  === 0){
+      addBanner(setBanners, "Cannot add extra field without data","warning")
+    }
+
     window.entryIPC.addExtraField(entry.metadata.uuid, extraField).then((response)=>{
       if (response ==="OK"){
         addBanner(setBanners, "Added extra field", 'success');
@@ -100,21 +107,21 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   return (
     <div className='flex flex-col w-full h-80 shrink-0 border-2 text-base-content rounded-lg border-base-300 p-2 gap-2 bg-base-100'>
       <div className='flex flex-col w-full h-full'>
-        <div className='flex flex-col w-full gap-2'>
+        <div className='flex flex-col w-full gap-1'>
           <div>Name</div>
           <input id='name' onChange={handleChange} className='flex border-2 rounded-md items-center px-1 h-8 border-base-300' value={ef.name}/>
         </div>
-        <div className='flex flex-col w-full h-full gap-2'>
+        <div className='flex flex-col w-full h-full gap-1'>
           <div>Data</div>
-          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 rounded-lg h-full resize-none px-1' value={showData ? data: "Click Reveal to show "} />
+          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 border-base-300 outline-none rounded-lg h-full resize-none px-1' value={(!ef.isProtected || showData) ? data: "Click Reveal to show "} />
           <div className='flex w-full h-8 gap-2'>
           {ef.isProtected && <button className='flex border-2 border-neutral rounded-lg h-8 items-center justify-center w-1/2' onClick={()=>{setShowData(!showData)}}>Reveal</button>}
-          <button onClick={handleChangeProtection} className='flex border-2 border-warning text-warning-content w-1/2 items-center justify-center rounded-lg hover:bg-warning '>{ef.isProtected? "Expose":"Protect"}</button>
+          <button onClick={handleChangeProtection} className='flex border-2 border-warning text-warning-content w-1/2 items-center justify-center rounded-lg hover:bg-warning h-8'>{ef.isProtected? "Expose":"Protect"}</button>
           </div>
         </div>
       </div>
       <div className='flex flex-row w-full h-10 gap-2 duration-300 transition-all'>
-        <button onClick={()=>{handleDelete()}} className='flex w-full items-center cursor-pointer justify-center rounded-lg h-8 bg-error hover:bg-error-darken hover:text-white text-white'>Delete</button>
+        <button onClick={()=>{handleDelete()}} className='flex w-full items-center cursor-pointer justify-center rounded-lg h-8 hover:bg-error hover:text-error-content text-error border-error border-2'>Delete</button>
         {!hasChanged && <button className='flex justify-center items-center w-full border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>}
       </div>
     </div>
