@@ -162,7 +162,6 @@ Project Link: [https://github.com/TinTanSan/electron_password_manager](https://g
 
 * [Choose an Open Source License](https://choosealicense.com)
 * [Img Shields](https://shields.io)
-* [Font Awesome](https://fontawesome.com)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -170,13 +169,6 @@ Project Link: [https://github.com/TinTanSan/electron_password_manager](https://g
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
 [issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
 [issues-url]: https://github.com/TinTanSan/electron_password_manager/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
