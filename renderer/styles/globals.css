@@ -126,6 +126,6 @@
 
 .text-subnotes{
   font-size: var(--text-subnotes);
-  font-weight: var(--font-weight-light);
+  /* font-weight: var(--font-weight-light); */
 }
 
