@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { VaultContext } from '../../contexts/vaultContext';
 import { addBanner } from '../../interfaces/Banner';
 import { BannerContext } from '../../contexts/bannerContext';
+import { PreferenceContext } from '@contexts/preferencesContext';
 type props={
     entry: Entry,
     hasCollidingPassword:boolean
@@ -12,8 +13,9 @@ type props={
 
 export default function EntryComponent({entry, hasCollidingPassword}:props) {
     const [showEditModal, setShowEditModal] = useState(false);
-    const {vault, setVault} = useContext(VaultContext);
-    const {banners, setBanners} = useContext(BannerContext);
+    const {preference} = useContext(PreferenceContext);
+    const {setVault} = useContext(VaultContext);
+    const {setBanners} = useContext(BannerContext);
     const [decryptedPass, setDecryptedPass] = useState<string>("");
     const [showPass, setShowPass] = useState(false);
     const [extend, setExtend] = useState(false);
@@ -42,7 +44,7 @@ export default function EntryComponent({entry, hasCollidingPassword}:props) {
                 setTimeout(() => {
                     window.clipBoardIPC.clearClipboard();
                     addBanner(setBanners, 'password removed from clipboard','info');
-                }, 5000);
+                }, preference.clearClipboardTime ?? 5000);
             })
         }else{
             window.entryIPC.decryptPass(entry.metadata.uuid).then((pass)=>{
@@ -51,7 +53,7 @@ export default function EntryComponent({entry, hasCollidingPassword}:props) {
                     setTimeout(() => {
                         window.clipBoardIPC.clearClipboard();
                         addBanner(setBanners, 'password removed from clipboard','info');
-                    }, 5000)
+                    }, preference.clearClipboardTime ?? 5000)
                 })
             }).catch((error)=>{
                 addBanner(setBanners, 'unable to copy password to clipboard', 'error');
