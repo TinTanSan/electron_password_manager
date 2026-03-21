@@ -1,4 +1,4 @@
-import React, { FormEvent, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { FormEvent, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { VaultContext } from '../../contexts/vaultContext';
 import { Entry, ExtraField } from '../../interfaces/Entry';
 import { BannerContext } from '../../contexts/bannerContext';
@@ -8,6 +8,7 @@ import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import Slider from '../Slider';
 import ExtraFieldsTab from './ExtraFieldsTab';
+import { PreferenceContext } from '@contexts/preferencesContext';
 
 
 export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
@@ -89,7 +90,8 @@ type props ={
 
 export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:props) {
     const {vault, setVault} = useContext(VaultContext);
-    const {banners, setBanners} = useContext(BannerContext);
+    const {setBanners} = useContext(BannerContext);
+    const {preference} = useContext(PreferenceContext);
     const [showPass, setShowPass] = useState(false);
     
     const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
@@ -155,7 +157,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         addBanner(setBanners, 'password copied successfully', 'success')
         setTimeout(() => {
             window.clipBoardIPC.clearClipboard();
-        }, 10000);
+        }, preference.clearClipboardTime ?? 5000);
     }
 
     const handleConfirm = (e:FormEvent)=>{
@@ -495,12 +497,17 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                         <textarea title='change username' id='notes' value={entry.notes} onChange={handleChange} className='flex w-full h-full border-2 border-base-300 outline-none focus:border-primary rounded-lg resize-none px-1 bg-white '/>
                                     </div>
                                 </div>
-                                <div className='flex flex-col text-normal gap-2 border-2 h-fit px-2 text-base-content shrink-0 rounded-lg border-base-300 bg-base-200'>
+                                <div className='flex flex-col text-normal gap-1 border-2 h-fit px-2 text-base-content shrink-0 rounded-lg border-base-300 bg-base-200'>
                                     <div className='flex h-8 shrink-0 w-full'>
                                         created on: {entry.metadata.createDate.getDay()}/{entry.metadata.createDate.getMonth()}/{entry.metadata.createDate.getFullYear()}
                                     </div>
                                     <div className='flex h-8 shrink-0 w-full'>
                                         last edited on: {entry.metadata.lastEditDate.getDay()}/{entry.metadata.lastEditDate.getMonth()}/{entry.metadata.lastEditDate.getFullYear()}
+                                    </div>
+                                    <div className='flex h-8 shrink-0 w-full overflow-hidden gap-1'>
+                                        <div className='flex w-1/2 gap-0 shrink-0 overflow-hidden hover:w-fit cursor-pointer text-ellipsis border-2 h-fit text-nowrap'>uuid: {entry.metadata.uuid} </div>
+                                        | 
+                                        <div className='text-nowrap'>entry version: {entry.metadata.version}</div>
                                     </div>
                                 </div>      
                                 
