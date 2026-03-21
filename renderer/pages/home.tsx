@@ -76,7 +76,7 @@ export default function HomePage() {
       {vault === undefined && <title>Vault Manager</title>}
     
     {(vault !== undefined && vault.isUnlocked) && 
-      <div className='flex w-full h-full gap-3'>
+      <div className='flex w-full h-full gap-2'>
         <title>{vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault"}</title>    
         <Sidebar />
         {/* main section */}
@@ -107,7 +107,7 @@ export default function HomePage() {
           </div>
         
           {/* bottom pages bar  */}
-          <div className='flex relative w-full h-10 shrink-0 px-3 mb-2 justify-center items-center text-base-content'>
+          <div className='flex relative w-full h-10 shrink-0 px-3 justify-center items-center text-base-content'>
             {maxPages > 1 && 
               <div className='flex w-1/2 bg-base-100 h-full rounded-lg items-center  shadow-xl border-2 border-base-300'>
               <button className='flex'>
