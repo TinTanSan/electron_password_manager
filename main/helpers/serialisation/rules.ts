@@ -16,13 +16,7 @@ export const entryMDVersionConstituents:Record<string, Array<Array<string>>>= {
     // example : 1.0.0.0$25-06-2025T00:00:00Z000$25-06-2025T00:00:00Z000$25-06-2025T00:00:00Z000$ab12-cd34-ef56-gh78
 
 }
-export const entryDEKConstituents = {
- '1.0.0'  :[
-    ['iv','b64Buff'],
-    ['tag','b64Buff'],
-    ['wrappedKey','b64Buff']
- ]
-}
+
 export const entryConstituents = {
     '1.0.0':[
         ['split'      , "$"],
