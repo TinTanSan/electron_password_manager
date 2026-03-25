@@ -39,6 +39,29 @@ ipcMain.handle('entry:addExtraField', async (_, uuid:string, extraField:{name:st
     
 });
 
+ipcMain.handle('entry:decryptExtrafield', async (_, uuid:string, name:string):Promise<IPCResponse<Buffer>>=>{
+    const response = vaultService.decryptExtraField(uuid, name);
+    if (response.status === "OK"){
+        return {
+            status:"OK",
+            response:Buffer.from(response.data),
+        }
+    }else if (response.status === "ENT_NOT_FOUND" || "EF_NOT_FOUND"){
+        return {
+            status: "CLIENT_ERROR",
+            message:response.status === "ENT_NOT_FOUND"?"Entry with uuid given not found":"Extrafield with given name not found",
+            response: Buffer.from([])
+        }
+    }else{
+        return {
+            status: "INTERNAL_ERROR",
+            message:response.status,
+            response: Buffer.from([])
+        }
+    }
+
+})
+
 ipcMain.handle('entry:removeExtraField', async (_, uuid, name)=>vaultService.removeExtraField(uuid,name))
 
 ipcMain.handle('entry:decryptPass', async(_,uuid)=>vaultService.decryptPassword(uuid))
