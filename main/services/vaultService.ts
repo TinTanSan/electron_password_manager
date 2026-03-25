@@ -3,8 +3,7 @@ import * as argon2 from 'argon2';
 import { decrypt, encrypt, shaHash } from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {   makeNewKEK } from "../crypto/keyFunctions";
-import {KEKParts} from '../crypto/keyFunctions';
-import { openFile, writeToFile } from "../ipcHandlers/fileIPCHandlers";
+import { openFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
 import { createUUID } from "../crypto/commons";
@@ -133,8 +132,9 @@ class VaultService extends EventEmitter{
     async setMasterPassword(password:string){
         const KEKParts = await makeNewKEK(password);
         this.vault.kek = KEKParts;
-    
-        const toWrite = Buffer.concat([Buffer.from(KEKParts.passHash), Buffer.from(KEKParts.salt.toString('base64')),Buffer.from("\n"),Buffer.from(serialisers.vault(this.vault))]);
+        // we add the serialisers.vault call to allow future updates to password without overwriting the other content
+        const toWrite = Buffer.from( KEKParts. passHash+KEKParts.salt.toString('base64')+"\n"+serialisers.vault(this.vault))
+        this.vault.fileContents = toWrite;
         const response = await this.syncService.forceUpdate(toWrite);
         return response === "OK";
     }
@@ -237,7 +237,7 @@ class VaultService extends EventEmitter{
                 password: encBuffConcated,
                 isFavourite: false,
                 notes,
-                extraFields,
+                extraFields: [],
                 group,
                 metadata:{
                     uuid,
@@ -256,6 +256,8 @@ class VaultService extends EventEmitter{
                     this.vault.entryGroups.at(gIdx).entries.push(uuid)
                 }
             }
+            
+            this.addExtraFields(uuid, extraFields);
             this.sync();
             response =  {
                 status:"OK",
@@ -276,7 +278,6 @@ class VaultService extends EventEmitter{
     }
 
     addExtraField(entryUUID:string, extraField:ExtraField){
-       
             const entry = this.vault.entries.get(entryUUID);
             if (entry){
                 const wrappedDEK = entry.dek;
@@ -284,27 +285,66 @@ class VaultService extends EventEmitter{
                 try{
                     let ef = entry.extraFields.find(x=>x.name === extraField.name);
                     if (ef) return "ALREADY_EXISTS";
+                    extraField.data = Buffer.from(extraField.data)
                     if (extraField.isProtected){
                         // expect the extraField to be plaintext on first request and encrypt
                         
                         const encrypted = encrypt(extraField.data, dek);
-                        ef.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                        extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
                     }
-                    entry.extraFields.push(ef);
+                    entry.extraFields.push(extraField);
+                    this.sync();
                     return "OK";
                 }finally{
                     dek.fill(0);
-                    this.sync();
+                    
                 }
             }
             return "ENTRY_NOT_FOUND"
        
     }
 
-    decryptExtraField(entryUUID:string, extraFieldName:string, ef:ExtraField | undefined = undefined){
-        let {status, extraField} = ef? {status:"INJECTED_PARAM_OK", extraField:ef} : this.getExtraFieldByName(entryUUID, extraFieldName);
+    addExtraFields(entryUUID:string, extraFields:Array<ExtraField>){
+        let entry = this.vault.entries.get(entryUUID);
+        if (entry){
+            const wrappedDEK = entry.dek;
+            let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
+            try {
+                let retVal = "OK";
+                
+               
+                extraFields.forEach((extraField)=>{
+                    // only add new extrafield if we can't already find it
+                    if (entry.extraFields.findIndex(x=>x.name===extraField.name)  ===-1){
+                        extraField.data = Buffer.from(extraField.data)
+                        if (extraField.isProtected){
+                            // expect the extraField to be plaintext on first request and encrypt
+                            const encrypted = encrypt(extraField.data, dek);
+                            extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                        }
+                        entry.extraFields.push(extraField);
+                    }else{
+                        retVal= "EF_ALREADY_EXISTS";
+                    }
+                })
+                this.sync();
+                return retVal;    
+            } catch (error) {
+                return error;
+            }finally{
+                dek.fill(0);
+            }
+            
+        }
+        return "ENTRY_NOT_FOUND";
+    }
+
+    decryptExtraField(entryUUID:string, extraFieldName:string){
+        if (!this.vault.entries.has(entryUUID))return {status:"ENT_NOT_FOUND", data:""};
+
+        let extraField =this.getExtraFieldByName(entryUUID, extraFieldName);
         if(!extraField){
-            return {status, data:""};
+            return {status:"EF_NOT_FOUND", data:""};
         }
         const entry = this.vault.entries.get(entryUUID);
         const wrappedDEK = entry.dek;
@@ -324,17 +364,16 @@ class VaultService extends EventEmitter{
     }
 
 
-    private getExtraFieldByName(entryUUID:string, extraFieldName:string):{status:string, extraField:ExtraField | undefined}{
+    private getExtraFieldByName(entryUUID:string, extraFieldName:string):ExtraField{
         const entry = this.vault.entries.get(entryUUID);
-        if(entry === undefined) return {status:"ENTRY_NOT_FOUND", extraField:undefined}
         let extraField = entry.extraFields.find(x=>x.name===extraFieldName);
-        extraField ? { status: "OK", extraField } : { status: "EXTRA_FIELD_NOT_FOUND", extraField }
+        return extraField;
     }
 
 
     extraFieldChangeIsProtected(entryUUID:string, extraFieldName:string, protectedness:boolean){
         const entry = this.vault.entries.get(entryUUID);
-        let {status, extraField} = this.getExtraFieldByName(entryUUID, extraFieldName);
+        let extraField= this.getExtraFieldByName(entryUUID, extraFieldName);
         if(!extraField) return status;
         try {
             extraField.isProtected = protectedness;
@@ -355,7 +394,7 @@ class VaultService extends EventEmitter{
             // if the user wants to unprotect the extraField and it is protected
             else if (!protectedness && extraField.isProtected){
                 extraField.isProtected = false;
-                const {status, data} = this.decryptExtraField(entryUUID, extraFieldName, extraField);
+                const {status, data} = this.decryptExtraField(entryUUID, extraFieldName);
                 if(status === "OK"){
                     extraField.data = data;
                 }
@@ -454,12 +493,13 @@ class VaultService extends EventEmitter{
         if (idx ===-1){
             throw new Error('attempted to use serialise without having set Master password, please first use setMasterPassword to set the master password the first time')
         }
-        const passwordComponents = this.vault.fileContents.subarray(0, idx).toString()
-        const toWrite = passwordComponents + "\n"+  serialisers.vault(this.vault);
-        return Buffer.from(toWrite);
+        const passwordComponents = this.vault.fileContents.subarray(0, idx).toString();
+        return Buffer.from(passwordComponents + "\n"+  serialisers.vault(this.vault));
     }
     sync(){
-        this.syncService.updateBuffer(this.serialiseVault());
+        const content = this.serialiseVault();
+        this.syncService.updateBuffer(content);
+        this.vault.fileContents = content
     }
     
     async decryptPassword(uuid:string) {
