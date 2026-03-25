@@ -1,10 +1,10 @@
-import { DataEncryptionKey, Entry, EntryGroup, EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../services/vaultService";
+import { DataEncryptionKey, Entry, EntryGroup,MetaData as EntryMetaData, ExtraField, Vault, vaultMetaData } from "../../interfaces/VaultServiceInterfaces";
 import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {
     'date': (d:Date)=>d.toISOString(),
     'string':(s:string|Buffer):string=>s.toString(),
-    'buffer':(b:Buffer):string=>b.toString(),
+    'buffer':(b:Buffer):string=>b.toString('utf8'),
     'isFavToBool': (bool:boolean) => bool ? '1' : '0',
     'b64Buff': (b:Buffer) => b.toString('base64'),
     'dek': (dek:DataEncryptionKey)=>{
@@ -41,7 +41,7 @@ export const serialisers = {
     },
     'extraFields': (extrafields:Array<ExtraField>)=>{
         return extrafields.map((ef)=>{
-            return ef.name + "_"+ serialisers.buffer(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected); 
+            return ef.name + "_"+ serialisers.b64Buff(ef.data) + "_"+serialisers.isFavToBool(ef.isProtected); 
         }).join(extraFieldsSplit);
     },
 

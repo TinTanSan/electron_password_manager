@@ -1,13 +1,13 @@
 import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
-import { Entry, EntryGroup, EntryMetaData, ExtraField, Vault } from "../../services/vaultService";
-import assert from "node:assert";
+import { Entry, EntryGroup, MetaData as EntryMetaData, ExtraField, Vault } from "../../interfaces/VaultServiceInterfaces";
+import assert from "node:assert"; 
 
 
 export const parsers = {
     // primitive parsers
     'string':(s:string|Buffer):string=>typeof s === 'string'? s : s.toString(),
     'b64Buff':(b64:string)=>Buffer.from(b64, 'base64'),
-    'buffer':(s:string):Buffer=>Buffer.from(s),
+    'buffer':(s:string):Buffer=>Buffer.from(s, 'utf8'),
     'date': (d:string):Date=>new Date(d),
     'isFavToBool': (str:string):boolean=>str==="1",
     'dek':(dek:string)=>{
@@ -35,10 +35,10 @@ export const parsers = {
     // all extrafields
     'extraFields': (efs:string)=>{
         return efs ? efs.split(extraFieldsSplit).map((ef:string)=>{
-            const split = ef.split("_");
+            const split = ef.split("_"); 
             return {
                 name: split[0], 
-                data: parsers.buffer(split[1]), 
+                data: parsers.b64Buff(split[1]), 
                 isProtected: parsers.isFavToBool(split[2])
             };
         }) : []
