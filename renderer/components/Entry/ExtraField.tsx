@@ -3,6 +3,7 @@ import { Entry, ExtraField } from '@interfaces/Entry'
 import { VaultContext } from '@contexts/vaultContext' 
 import { BannerContext } from '@contexts/bannerContext';
 import { addBanner } from '@interfaces/Banner';
+import { IPCResponse } from '@utils/commons';
 
 type props = {
     extraField: ExtraField,
@@ -13,18 +14,17 @@ type props = {
 export default function ExtraFieldComponent({extraField, entry, onDelete}:props) {
   const {vault, setVault} = useContext(VaultContext);
   const {banners, setBanners} = useContext(BannerContext);
-  const [data, setData] = useState<undefined | string>(undefined);
+  const [data, setData] = useState<Buffer>(extraField.data);
   const [showData, setShowData] = useState(false);
   const [ef, setEf] = useState<ExtraField>({...extraField});
   const [encryptedData, setEncryptedData] = useState<undefined | Buffer>(ef.isProtected?ef.data : undefined);
-  const hasChanged = (ef.name === extraField.name && (extraField.data.equals(ef.data)) && ef.isProtected == extraField.isProtected);
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
     setEf(prev=>({
         ...prev,
         [e.target.id] : e.target.id === 'data'? Buffer.from(e.target.value): e.target.value
       })
     )
-    setData(e.target.value)
+    setData(Buffer.from(e.target.value))
   }
 
   const handleConfirm = (e:React.MouseEvent)=>{
@@ -49,51 +49,32 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   // we assume that just clicking on the Expose/Protect button doesn't automatically update the field in the vault, the user must
   // confirm the action with the save button at the bottom.
   const handleChangeProtection = ()=>{
-    throw new Error ("Implement via IPC calls")
-    // if (ef.isProtected){
-    //   if (encryptedData === undefined){
-    //     setEncryptedData(ef.data);
-    //   }
-    //   entry.decryptExtraField(ef.name, vault.kek).then((results)=>{
-    //     if (results.status === "OK"){
-    //       setEf(prev=>({...prev, data:results.data, isProtected:false}));
-    //       setData(results.data.toString());
-    //     }else{
-    //       addBanner(bannerContext, "Unable to permanently expose extrafield data because something went wrong decrypting the data", "error");
-    //     }
-    //   })
-    // }else{
-    //   if (encryptedData === undefined){
-    //     entry.encryptField(vault.kek, ef.name, ef.data).then((encryptedEf)=>{
-    //       setEf(encryptedEf)
-    //     });
-    //   }else{
-    //     setEf(prev=>({...prev, isProtected:true, data: encryptedData}));
-    //   }
-    //   setShowData(false);
-    //   setData(undefined);
-    // }
+    throw new Error("Implement via IPC channels")
+    
   }
 
   useEffect(()=>{
-    setShowData(false)
+    setShowData(false);
   },[extraField])
 
   useEffect(()=>{
     if (!extraField.isProtected){
-      setData(extraField.data.toString());
+      setData(extraField.data);
       return;
     }
     if (extraField.isProtected && showData && !data){
-        throw new Error ("Implement via IPC calls")  
-        // entry.decryptExtraField(extraField.name, vault.kek).then((d)=>{
-        //   if (d.status === "ERROR"){
-        //     addBanner(bannerContext, 'error decrypting extra field data', 'error')
-        //     setData(undefined);
-        //   }else{
-        //     setData(d.data.toString());
-        //   }
-        // })
+        if (ef.isProtected){
+          window.entryIPC.decryptExtraField(entry.metadata.uuid, extraField.name).then((response:IPCResponse<Buffer>)=>{
+            if (response.status === "OK"){
+              setData(response.response);
+            }else if (response.status === "CLIENT_ERROR"){
+              addBanner(setBanners, response.message ?? "Unable to decrypt extraField",'error')
+            }else{ 
+              addBanner(setBanners, 'unable to decrypt extrafield data','error');
+              console.error(response)
+            }
+          })
+        }
     }else if (!showData){
       setData(undefined);
     }
@@ -113,7 +94,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
         </div>
         <div className='flex flex-col w-full h-full gap-1'>
           <div>Data</div>
-          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 border-base-300 outline-none rounded-lg h-full resize-none px-1' value={(!ef.isProtected || showData) ? data: "Click Reveal to show "} />
+          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 border-base-300 outline-none rounded-lg h-full resize-none px-1' value={(!ef.isProtected || showData) ? data.toString(): "Click Reveal to show "} />
           <div className='flex w-full h-8 gap-2'>
           {ef.isProtected && <button className='flex border-2 border-neutral rounded-lg h-8 items-center justify-center w-1/2' onClick={()=>{setShowData(!showData)}}>Reveal</button>}
           <button onClick={handleChangeProtection} className='flex border-2 border-warning text-warning-content w-1/2 items-center justify-center rounded-lg hover:bg-warning h-8'>{ef.isProtected? "Expose":"Protect"}</button>
@@ -122,7 +103,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
       </div>
       <div className='flex flex-row w-full h-10 gap-2 duration-300 transition-all'>
         <button onClick={()=>{handleDelete()}} className='flex w-full items-center cursor-pointer justify-center rounded-lg h-8 hover:bg-error hover:text-error-content text-error border-error border-2'>Delete</button>
-        {!hasChanged && <button className='flex justify-center items-center w-full border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>}
+        {/* {!hasChanged && <button className='flex justify-center items-center w-full border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>} */}
       </div>
     </div>
 
