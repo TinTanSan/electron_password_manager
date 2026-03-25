@@ -18,7 +18,7 @@ export const trustedIDS = new Set();
 export const createNextronWindow = async () => {
   await app.whenReady()
   
-  // setupMenus();
+  
 
   const mainWindow = createWindow('main', {
     width: 1000,
@@ -32,6 +32,10 @@ export const createNextronWindow = async () => {
     minWidth:800,
     minHeight:600
   });
+
+
+  // setupMenus();
+
   trustedIDS.add(mainWindow.webContents.id);
 
   mainWindow.maximize();
