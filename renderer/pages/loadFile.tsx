@@ -143,6 +143,7 @@ export default function LoadFile() {
                     addBanner(setBanners, 'incorrect password','error');
                 }
             }).catch((error)=>{
+                console.error(error)
                 addBanner(setBanners, 'unable to verify password: '+error,'error')
             })
           }
@@ -327,7 +328,7 @@ export default function LoadFile() {
                 </div>
                 <div className='flex w-full h-1/2 gap-5 justify-center items-end text-normal'>
                     <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                    <button type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
+                    <button onClick={handleEnter} type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
