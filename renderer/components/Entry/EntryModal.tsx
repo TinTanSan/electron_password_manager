@@ -1,9 +1,9 @@
 import React, { FormEvent, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { VaultContext } from '../../contexts/vaultContext';
-import { Entry, ExtraField } from '../../interfaces/Entry';
-import { BannerContext } from '../../contexts/bannerContext';
-import { addBanner } from '../../interfaces/Banner';
-import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLetters } from '../../utils/commons';
+import { VaultContext } from '@contexts/vaultContext';
+import { Entry, ExtraField } from '@interfaces/Entry';
+import { BannerContext } from '@contexts/bannerContext';
+import { addBanner } from '@interfaces/Banner';
+import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLetters } from '@utils/commons';
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import Slider from '../Slider';
@@ -94,7 +94,11 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const {preference} = useContext(PreferenceContext);
     const [showPass, setShowPass] = useState(false);
     
-    const vaultEntry = useMemo(()=>vault.entries.find(x=>x.metadata.uuid === uuid), [uuid]);
+    const vaultEntry = useMemo(()=>{
+        let ent = vault.entries.find(x=>x.metadata.uuid === uuid);
+        ent.extraFields = ent.extraFields.map(x=>({...x, data:Buffer.from(x.data)}));
+        return ent;
+    }, [uuid]);
     const [groups, setGroups] = useState([]);
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const isEqual = cmpEntry(vaultEntry, entry);
@@ -103,7 +107,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const [entryPass, setEntryPass] = useState("");
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     // for random password
-    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:false, allowNumbers:false, allowSpecChars:false, excludedChars:""});
+    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:true, allowNumbers:true, allowSpecChars:true, excludedChars:""});
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
     const [showRandomPass, setShowRandomPass] = useState(false);
     const [randomPass, setRandomPass] = useState("");
@@ -121,7 +125,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
             setEntryPass(response);
         }).catch((error)=>{
             addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
-            console.error(error)
         });
         return ()=>{
             setEntryPass("");
@@ -279,8 +282,8 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                 if (length <= 0){
                     length = 8;
                 }
-                if (length >50){
-                    length = 50;
+                if (length >preference.maxGeneratedPassLength){
+                    length = preference.maxGeneratedPassLength;
                 }    
             }
             setRandomSettings((prev)=>({...prev, length}))
@@ -315,10 +318,20 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
 
     const closeModal = ()=>{
         setEntryPass("");
+
         setShowModal(false);
     }
     const escapeHandler = (e:KeyboardEvent) => {
-        if (e.key === "Escape") closeModal()
+        if (e.key === "Escape" ) {
+            if (showRandomPassModal === true){
+                setShowRandomPassModal(false);
+            }
+            else{
+                closeModal();
+            }
+        }
+
+        
     };
 
     const copyHandler = (e:KeyboardEvent)=>{
@@ -397,7 +410,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
 
     useEffect(()=>{
         if (!Number.isNaN(randomSettings.length) && showRandomPassModal){
-            setEntryPass(generateRandomPass(randomSettings))
+            setRandomPass(generateRandomPass(randomSettings))
         }
     },[randomSettings])
 
@@ -472,16 +485,32 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                     </div>
                                     {/* Random password modal */}
                                     {showRandomPassModal && 
-                                        <div className='flex flex-col w-9/10 p-2 bg-base-300 border-base-darken rounded-lg absolute border-2 h-1/4'>
-                                            <p>New password</p>
+                                        <div className='flex text-base-content flex-col w-9/10 p-2 text-normal bg-base-300 border-base-darken rounded-lg absolute border-2 justify-between h-1/3'>
+                                            <p className='flex text-subheading'>New password</p>
                                             <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
-                                                <input type={showRandomPass ? "text": "password"} id='password' value={showRandomPass ? entryPass.toString() : "*".repeat(8)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
+                                                <input type={showRandomPass ? "text": "password"} id='password' value={showRandomPass ? randomPass : "*".repeat(randomPass.length)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
                                                 <Image onClick={()=>{setShowRandomPass(prev=>!prev)}} title={showRandomPass? "hide password": 'show password'} src={showRandomPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
                                             </div>
                                             {/*random settings */}
-                                            <div className='flex flex-col w-full h-fit'>
-                                                <p>Length</p>
-                                                <Slider value={randomSettings.length} minimum={8} maximum={50} selectedHeight='h-2' thumbDimensions='h-4 w-4 border-2' className='h-1' bgStyle='h-2 rounded-lg' setValue={(newVal:number)=>{setRandomSettings(prev=>({...prev, length:newVal}))}} />
+                                            <div className='flex flex-col w-full h-fit py-2 gap-2'>
+                                                {/* length */}
+                                                <div className='flex flex-row gap-2 items-center'>
+                                                    <p>Length</p>
+                                                    <Slider value={randomSettings.length} minimum={8} maximum={50} selectedHeight='h-2' thumbDimensions='h-4 w-4 border-2' className='h-1' bgStyle='h-2 rounded-lg' setValue={(newVal:number)=>{setRandomSettings(prev=>({...prev, length:newVal}))}} />
+                                                </div>
+                                                {/* capitals, numbers, special chars */}
+                                                <div className='flex flex-row justify-between px-2'>
+                                                    <button className={` flex ${randomSettings.allowCapitals&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowCapitals')}}>capitals</button>
+                                                    <button className={` flex ${randomSettings.allowNumbers&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowNumbers')}}>numbers</button>
+                                                    <button className={` flex ${randomSettings.allowSpecChars&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}}>special</button>
+                                                </div>
+                                            </div>
+
+                                            {/* buttons */}
+
+                                            <div className='flex flex-row w-full justify-between pt-2'>
+                                                <button onClick={()=>{setRandomPass(""); setShowRandomPassModal(false)}} className='flex w-fit h-8 px-5 border-2 items-center justify-center rounded-lg'>Cancel</button>
+                                                <button onClick={()=>{setEntryPass(randomPass); setShowRandomPassModal(false)}} className='flex w-fit h-8 px-5 border-2 items-center justify-center rounded-lg'>Confirm</button>
                                             </div>
                                         </div>
                                     }
