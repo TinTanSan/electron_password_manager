@@ -1,11 +1,12 @@
 import React, { ChangeEvent, useContext, useEffect, useState } from 'react'
-import { Entry, ExtraField } from '../interfaces/Entry'
-import { VaultContext } from '../contexts/vaultContext'
-import { addBanner } from '../interfaces/Banner'
-import { BannerContext } from '../contexts/bannerContext'
+import { Entry, ExtraField } from '@interfaces/Entry'
+import { VaultContext } from '@contexts/vaultContext'
+import { addBanner } from '@interfaces/Banner'
+import { BannerContext } from '@contexts/bannerContext'
 import Image from 'next/image'
-import RandomPassModal from './Entry/RandomPassModal'
-import ExtraFieldComponent from './Entry/ExtraField'
+import RandomPassModal from '@components/Entry/RandomPassModal'
+import ExtraFieldComponent from '@components/Entry/ExtraField'
+import ToggleSwitch from './toggleSwitch'
 type props ={
     setShowForm: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -116,7 +117,7 @@ export default function NewEntryForm({setShowForm}:props) {
   
     return (
         <div className='backdrop-blur-lg z-20 fixed w-screen h-screen top-0 left-0 flex flex-col justify-center items-center'>
-            <form onSubmit={handleAdd} className='flex flex-col relative w-1/2 h-[80vh] border-2 border-base-300 bg-base-200 z-10 shadow-lg rounded-xl p-2 items-center'>
+            <form onSubmit={handleAdd} className='flex flex-col relative w-1/2 h-[80vh] border-2 border-base-300 bg-base-200 z-10 shadow-lg rounded-xl p-2 items-center animate-scale-x duration-1000 transition-all'>
                 {/* tab selector */}
                 <div className='flex w-full h-10 items-center text-normal'>
                     <div className='flex items-center h-full'>
@@ -124,9 +125,9 @@ export default function NewEntryForm({setShowForm}:props) {
                         <button onClick={()=>{setTab(false)}} type='button' className={`h-full ${!tab? "bg-base-100 border-t-2 border-base-300 border-r-2 border-l-2 top-0.5 relative p-2": "bg-base-200"} rounded-t-lg w-20 items-center justify-center shrink-0 flex`}>Extra</button>
                     </div>
                     {/* title */}
-                    <div className='flex w-full items-center h-8 justify-center text-title'>Create New Entry</div>
+                    <div className='flex w-full items-center h-8 justify-center text-subheading'>Create New Entry</div>
                     {/* close button */}
-                    <button type='button' onClick={()=>{setShowForm(false)}} className='flex justify-center items-center rounded-lg bg-neutral font-bold text-xl text-accent-content h-8 w-14 hover:rounded-xl duration-500 transition-all'>&#x2715;</button>
+                    <button type='button' onClick={()=>{setShowForm(false)}} className='flex justify-center items-center rounded-lg bg-base-300 hover:bg-neutral hover:text-neutral-content font-bold text-xl text-base-content h-8 w-14 hover:rounded-xl duration-500 transition-all'>&#x2715;</button>
                 </div>
 
                 {tab ? 
@@ -157,7 +158,7 @@ export default function NewEntryForm({setShowForm}:props) {
                 :
                 <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg overflow-y-hidden'>
                     <div className='flex flex-col w-full h-fit shrink-0'>
-                        <div className='flex w-full h-fit justify-center text-lg'>New Extra field</div>
+                        <div className='flex w-full h-fit justify-center text-subheading'>New Extra field</div>
                         <div className='flex flex-col gap-5'>
                             <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
                                 <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
@@ -170,7 +171,7 @@ export default function NewEntryForm({setShowForm}:props) {
                             <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
                                 <div className='flex w-full items-center '>
                                     <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>Protect Field</label>
-                                    <input type='checkbox' onChange={handleEFieldChange} checked={extraField.isProtected}  className='px-1 outline-none w-4 h-4 rounded-r-md'/>
+                                    <ToggleSwitch value={extraField.isProtected} setValue={(newVal:boolean)=>{setExtraField(prev=>({...prev, isProtected:newVal}))}} />
                                 </div>
                                 <div className='flex w-full h-full justify-end'>
                                     <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
@@ -178,10 +179,11 @@ export default function NewEntryForm({setShowForm}:props) {
                             </div>
                         </div>
                     </div>
-                        <div className='flex flex-col w-full h-full gap-2 overflow-y-auto'>
+                        <div className='flex flex-col w-full h-full gap-2 border-2 border-base-300 rounded-lg overflow-y-auto'>
                             {entry.extraFields.map((ef, i)=>
                                 <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
                             )}
+                            {entry.extraFields.length === 0 && <p className='text-normal opacity-50 w-full h-full justify-center items-center flex'>Extrafields you add will show up here</p>}
                         </div>
                 </div>    
             
