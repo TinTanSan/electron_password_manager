@@ -6,6 +6,7 @@ import { addBanner } from "@interfaces/Banner";
 import FancyInput from '@components/fancyInput'
 import { isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
+import { PreferenceContext } from '@contexts/preferencesContext';
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
     const navigate = useRouter()
@@ -17,6 +18,9 @@ export default function LoadFile() {
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
     const [unlocked, setunlocked] = useState(false);
+    const {preference} = useContext(PreferenceContext);
+
+
     // simply for resetting unlock animation
     const ref = useRef(null);
     // when using a file dialog to create a file
@@ -99,8 +103,8 @@ export default function LoadFile() {
             if (password !== confirmPassword){
               addBanner(setBanners, "The two password fields were not the same", 'error');
               return;
-            } 
-            const passMessage = isStrongPassword(password)
+            }  
+            const passMessage = preference.requireStrongMasterPassword? isStrongPassword(password): password.length ===0? "Password cannot be empty" : "";
             if (passMessage.length !== 0){
               // give the user a warning about unsafe master pass
               addBanner(setBanners,passMessage, 'warning' )
