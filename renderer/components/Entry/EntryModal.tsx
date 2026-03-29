@@ -416,7 +416,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
 
     return (
         <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
-            <div className='flex flex-col text-base-content w-[40%] h-full bg-base-100 rounded-xl z-10 overflow-hidden ' onClick={(e)=>{e.stopPropagation()}}>
+            <div className='flex flex-col text-base-content w-[40%] min-w-96 h-full bg-base-100 rounded-xl z-10 overflow-hidden ' onClick={(e)=>{e.stopPropagation()}}>
                 <div className='flex w-full h-10 justify-end shrink-0 px-2'>
                     <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
                         {entry.title}
