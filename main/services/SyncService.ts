@@ -9,12 +9,14 @@ export class SyncService{
         this.filePath = filePath;
         this.stopSync = false;
         this.writeBuffer = Buffer.from("");
-        this.startSyncLoop();
+        if (filePath !== ""){
+            this.startSyncLoop();
+        }
     }
 
     async startSyncLoop(){
         let result = "";
-        while (!this.stopSync){
+        while (!this.stopSync && this.filePath !==""){
             if(this.writeBuffer.length  > 0 && !this.isFlushing){
                 result = await writeToFileAsync({filePath:this.filePath, toWrite: this.writeBuffer})
                 if (result !== "OK"){
