@@ -2,7 +2,7 @@ import Sidebar from '@components/Sidebar';
 import Slider from '@components/Slider';
 import ToggleSwitch from '@components/toggleSwitch';
 import { BannerContext } from '@contexts/bannerContext';
-import { PreferenceContext, preferenceInputMapper } from '@contexts/preferencesContext';
+import { PreferenceContext, preferenceInputMapper, PreferenceType } from '@contexts/preferencesContext';
 import { VaultContext } from '@contexts/vaultContext'
 import { addBanner } from '@interfaces/Banner';
 import Image from 'next/image';
