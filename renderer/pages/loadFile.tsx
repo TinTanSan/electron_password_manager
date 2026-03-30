@@ -288,7 +288,7 @@ export default function LoadFile() {
         </div>
     :
     <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
-       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-4 items-center animate-modal-open `}>
+       <div className={` flex flex-col bg-base-100 text-base-content w-2/5 max-w-187.5 max-h-200 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-4 items-center animate-modal-open `}>
             <div className='flex justify-center w-full text-title font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
             <div className='flex w-full h-fit justify-center flex-col items-center'>
                 <div className='flex text-subheading'>
