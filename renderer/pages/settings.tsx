@@ -5,6 +5,7 @@ import { BannerContext } from '@contexts/bannerContext';
 import { PreferenceContext, preferenceInputMapper, PreferenceType } from '@contexts/preferencesContext';
 import { VaultContext } from '@contexts/vaultContext'
 import { addBanner } from '@interfaces/Banner';
+import { cmpObj, IPCResponse } from '@utils/commons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useRef, useState } from 'react'
@@ -15,8 +16,9 @@ export default function Settings() {
     const {vault, setVault} = useContext(VaultContext);
     const {setBanners} = useContext(BannerContext)
     const router = useRouter();
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    
     const initialPreference = useRef(preference);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(cmpObj(initialPreference.current, preference));
     // handle all numerical preference changes except for a couple of items such as font size and font spacing
     // which will have 3-5 predefined values they could be
     const handlePreferenceChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
@@ -29,20 +31,23 @@ export default function Settings() {
 
     const handleChangeBooleanPreference = <K extends keyof PreferenceType> (preferenceName:K, newVal?:boolean)=>{
         if (typeof preference[preferenceName] === "boolean"){
-            setPreference(prev=>({...prev, [preferenceName]:newVal ?? !prev[preferenceName]}));
+            const prefNewVal = newVal ?? !preference[preferenceName];
+            window.preferenceIPC.setPreference(preferenceName, prefNewVal).then((response:IPCResponse<any>)=>{
+                console.log(response)
+                if (response.response === true){
+                    addBanner(setBanners, "preference set succesfully", 'success');
+                    setPreference((prev)=>({...prev, [preferenceName] : prefNewVal}))
+                }else{
+                    addBanner(setBanners, "unable to set preference", 'error');
+                    console.error(response);
+                }
+            })
         }else{
             addBanner(setBanners, "Unable to change setting", 'error');
             console.error("you tried to use a handler which is made for boolean-like preferences, the preference you tried to change `"+preferenceName+"` is not a boolean-like preference")
         }
     }
 
-    const comparePreference = (left:PreferenceType, right:PreferenceType)=>{
-
-    }
-
-    const confirmChanges = ()=>{
-
-    }
 
     const handleFontSizeChange = (newSize:number)=>{
         window.preferenceIPC.setPreference('fontSize', newSize).then((response)=>{
@@ -65,15 +70,20 @@ export default function Settings() {
         if(vault === undefined || vault.filePath===""){
             // go back to the 'login' page 
             router.push("/loadFile");
+            
         }else{
             document.title = "Settings";
+            cmpObj(initialPreference.current, preference);
         }
     },[])
+    useEffect(()=>{
+        setHasUnsavedChanges(cmpObj(preference, initialPreference.current))
+    },[preference])
 
     return (
     <div className='flex gap-5 w-scren h-screen overflow-hidden bg-base-200 p-2 text-neutral'> 
         <Sidebar />
-        <div className='flex flex-col w-full h-full'>            
+        <div className='flex flex-col w-full h-full gap-2'>            
             <div className='flex flex-col w-full h-full overflow-y-auto '>
                 <div className='flex flex-col w-full h-fit'>
                     <div className='flex flex-col text-xl justify-center w-full text-title'>
@@ -159,9 +169,9 @@ export default function Settings() {
                     
                 </div>
             </div>
-            {hasUnsavedChanges &&   <div className='flex w-full h-12 flex-row-reverse items-center'>
-                <button className='flex cursor-pointer border-2 border-base-content rounded-lg items-center justify-center px-5 h-8 text-normal'>Save Changes</button>
-            </div>}
+            {/* {!hasUnsavedChanges &&   <div className='flex w-full bg-base-100 rounded-lg h-12 flex-row-reverse items-center'>
+                <button onClick={handleSave} className='flex cursor-pointer border-2 border-base-content rounded-lg items-center justify-center px-5 h-8 text-normal'>Save Changes</button>
+            </div>} */}
 
         </div>
     </div>
