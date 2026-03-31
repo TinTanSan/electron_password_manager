@@ -18,7 +18,7 @@ export function isStrongPassword(password:string):string{
     return passwordMessage.length > 0? "The password "+passwordMessage.join(", ") : "";
 }
 
-function cmpObj(left:any, right:any){
+export function cmpObj(left:any, right:any){
     for (let k in left){
         // recurse
         if (typeof left[k] === 'object' && right[k]){
