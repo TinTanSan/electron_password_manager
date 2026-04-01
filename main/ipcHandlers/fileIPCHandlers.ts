@@ -7,20 +7,23 @@ import { IPCResponse } from '../interfaces/IPCCHannelInterface';
 const data_path = app.getPath('userData');
 const handleAddRecent = (filePath:string)=>{
   let content:Array<string> = [];
-  if(!fs.existsSync(path.join(data_path,"/recents.json"))){
-    fs.writeFileSync(path.join(data_path,"/recents.json"), "[]");
+  const recentsFilePath = path.join(data_path, "/recents.json");
+  if(!fs.existsSync(recentsFilePath)){
+    fs.writeFileSync(recentsFilePath, "[]");
     content = [];
   }else{
     // ensure no duplicates are in the recents
     const absoluteFilePath = resolve(filePath);
     
-    content = JSON.parse(fs.readFileSync(data_path+"/recents.json").toString()).filter((x:string)=>x!==absoluteFilePath)
+    const fileContents = fs.readFileSync(data_path+"/recents.json").toString();
+    const recentVaults = JSON.parse(fileContents);
+    content = recentVaults.filter((x:string)=>x!==absoluteFilePath)
   }
   // only allow 10 entries
   if (content.length >= 10){
     content.pop();
   }
-  // only add file if we can't find it
+  
   content.unshift(filePath);
   fs.writeFileSync(path.join(data_path+"/recents.json"), JSON.stringify(content));
 }
