@@ -6,7 +6,7 @@ ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
 
 ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
 
-ipcMain.handle('vault:open', (_,filePath)=>{
+ipcMain.handle('vault:open', (_,filePath):IPCResponse<string>=>{
     try{
         if (typeof filePath === 'string'){
             vaultService.openVault(filePath);
@@ -17,9 +17,9 @@ ipcMain.handle('vault:open', (_,filePath)=>{
                 vaultService.openVault(filePath[0]);
             }
         }
-        return {message:vaultService.vaultInitialised? "PASS_SET":"SET_PASS"};
+        return {status: "OK", response:vaultService.vaultInitialised? "PASS_SET":"SET_PASS"};
     }catch(e:any){
-        return {message:"NOT_OK"}
+        return {status: "INTERNAL_ERROR",message:e, response:""}
     }
 })
 
