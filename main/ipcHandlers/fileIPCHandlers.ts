@@ -60,21 +60,30 @@ export const writeToFileAsync = async (args:{filePath:string, toWrite: Buffer | 
     }
 }
 
-ipcMain.handle('fileDialog:create', async()=>{
-  const fileDialog = await dialog.showSaveDialog({title:"Create new file"
-    ,filters:[{
-      name:'vault', extensions:['.vlt']
-    }]
-  });
-  if (!fileDialog.canceled){
-    const filePath = fileDialog.filePath;
-    handleAddRecent(filePath);
-    fs.open(filePath,'w+', (_)=>{
-    })
-    
-    return filePath;
+ipcMain.handle('fileDialog:create', async():Promise<IPCResponse<string>>=>{
+  try {
+    const fileDialog = await dialog.showSaveDialog({title:"Create new file"
+      ,filters:[{
+        name:'vault', extensions:['.vlt']
+      }]
+    });
+    if (!fileDialog.canceled){
+      const filePath = fileDialog.filePath;
+      handleAddRecent(filePath);
+      fs.open(filePath,'w+', (_)=>{
+      })
+      
+      return {status:"OK", response:filePath};
+    }
+    return {status:"CLIENT_ERROR", message:"user did not open a vault", response:""};  
+  } catch (error) {
+      return {
+        status:"INTERNAL_ERROR",
+        message:error,
+        response:""
+      }
   }
-  return undefined;
+  
 })
 
 ipcMain.handle('fileDialog:open', async():Promise<IPCResponse<{fileContents:string, filePath:string}>>=>{
