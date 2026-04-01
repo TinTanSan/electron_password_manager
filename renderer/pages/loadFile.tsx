@@ -28,7 +28,7 @@ export default function LoadFile() {
         window.fileIPC.openCreateFile().then((ipcResponse)=>{
             if (ipcResponse.status === 'OK'){
                 window.vaultIPC.openVault(ipcResponse.response).then((response)=>{
-                    
+
                     if (response.status === "OK"){
                         setRequiresInitisalisation(response.response === "SET_PASS");
                         
@@ -63,37 +63,36 @@ export default function LoadFile() {
         })
     }
 
-    const handleOpenFile = (filepath:string | undefined= undefined)=>{
+    const handleOpenFile = (filePath:string | undefined= undefined)=>{
         // filepath is undefined if the user clicked on open vault, 
         // the filepath will be defined and a valid path if they picked from the recent vaults
-        if (filepath === undefined){
-            window.fileIPC.openFilePicker().then(({filePath, status}:{fileContents:string, filePath:string, status:string})=>{
-                if (status ==="OK"){
-                    window.fileIPC.getRecents().then((recents:Array<string>)=>{
-                        setRecent(recents);
-                        setVault({ filePath, isUnlocked:false, entries:[], vaultMetadata: {lastEditDate:new Date(), lastRotateDate: new Date(), version: '1.0.0.0', createDate: new Date()}, entryGroups: []});
-                        const recent_vault = recents[0].substring(recents[0].lastIndexOf("/")+1, recents[0].length-4);
-                        addBanner(setBanners, "Vault "+recent_vault+" Opened successfully", 'success')
-                    })
-                }else if (status==="CANCELLED"){
+        if (filePath === undefined){
+            window.fileIPC.openFilePicker().then((response)=>{
+                if (response.status ==="OK"){
+                    const res = response.response;    
+                    setVault({...defaultVaultState, filePath:res.filePath});
+                    window.fileIPC.addRecent(res.filePath);
+                    addBanner(setBanners, "Vault Opened successfully", 'success')
+                }else if (response.status==="CANCELLED"){
                     addBanner(setBanners, "No vault chosen", 'warning')
                 }else{
                     addBanner(setBanners, "Extension not valid for a vault", "error")
                 }
             })
         }else{
-            window.vaultIPC.openVault(filepath).then((response)=>{
-                if (response.message === 'NOT_OK'){
-                    addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
+            window.vaultIPC.openVault(filePath).then((response)=>{
+                if (response.status === 'INTERNAL_ERROR'){
+                    addBanner(setBanners, '"Internal error, unable to open the vault', 'error');
+                    console.error(response)
                     return;
                 }
-                setRequiresInitisalisation(response.message === "SET_PASS");
-                setVault(
-                    ()=>{
-                    const res = {...defaultVaultState, filePath:filepath};
-                    return res;
-                    }
-                );
+                if (response.status === "CLIENT_ERROR"){
+                    addBanner(setBanners, "Unable to open vault"+response.message, 'error');
+                    console.error(response);
+                    return;
+                }
+                setRequiresInitisalisation(response.response === "SET_PASS");
+                setVault(({...defaultVaultState, filePath:filePath}));
             })
         }
         
