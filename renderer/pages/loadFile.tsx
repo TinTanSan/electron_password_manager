@@ -26,32 +26,39 @@ export default function LoadFile() {
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
         window.fileIPC.openCreateFile().then((ipcResponse)=>{
-            if (ipcResponse.status === 'ok'){
-                // since its a new file, the file content will be empty anyways
-                setVault({ 
-                    filePath:ipcResponse.response.filePath, 
-                    isUnlocked:false, 
-                    entries:[], 
-                    vaultMetadata: {
-                        lastEditDate:new Date(), 
-                        lastRotateDate: new Date(), 
-                        version: '1.0.0.0', 
-                        createDate: new Date()
-                    }, 
-                    entryGroups: []
-                });
-
-                window.fileIPC.addRecent(ipcResponse.response.filePath)
-                setRecent(prev=>[...prev, ipcResponse.response.filePath])
-                window.vaultIPC.openVault(ipcResponse.response.filePath).then((response)=>{
-                    if (response.message === 'NOT_OK'){
+            if (ipcResponse.status === 'OK'){
+                window.vaultIPC.openVault(ipcResponse.response).then((response)=>{
+                    
+                    if (response.status === "OK"){
+                        setRequiresInitisalisation(response.response === "SET_PASS");
+                        
+                        recent.forEach((x)=>{console.log(x)});
+                        setVault({ 
+                            filePath:ipcResponse.response, 
+                            isUnlocked:false, 
+                            entries:[], 
+                            vaultMetadata: {
+                                lastEditDate:new Date(), 
+                                lastRotateDate: new Date(), 
+                                version: '1.0.0.0', 
+                                createDate: new Date()
+                            }, 
+                            entryGroups: []
+                        });           
+                        window.fileIPC.getRecents().then((response)=>{setRecent(response.response)})
+                    }
+                    else if (response.status === 'INTERNAL_ERROR'){
                         addBanner(setBanners, '"Unable to move further, something went wrong opening the vault', 'error');
+                        console.error(response);
                         return;
                     }
-                    setRequiresInitisalisation(response.message === "SET_PASS");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
                 })
             }else if (ipcResponse.status === "CLIENT_ERROR" && ipcResponse.message.includes("user did not open a vault")){
                 addBanner(setBanners, "You did not open a vault", 'warning');
+            }else{
+                addBanner(setBanners, 'internal error when opening vault', 'error');
+                console.error(ipcResponse);
             }
         })
     }
