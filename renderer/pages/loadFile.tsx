@@ -186,10 +186,7 @@ export default function LoadFile() {
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                if (showDeleteConfirmationPopup) {
-                    setShowDeleteConfirmationPopup(false);
-                    setVaultToDelete("");
-                } else if (vault.filePath) {
+                if (vault.filePath) {
                     setVault({ ...defaultVaultState });
                     addBanner(setBanners, 'Vault closed successfully', 'info')
                 }
@@ -207,6 +204,16 @@ export default function LoadFile() {
         setConfirmPassword("");
         addBanner(setBanners, "Vault Closed successfully", 'info');
     }
+    useEffect(()=>{
+        const handler = (e:KeyboardEvent)=>{
+            if (e.key === "Enter" && showDeleteConfirmationPopup) handleDeleteVault()
+        }
+    
+        document.addEventListener('keydown', handler);
+        return ()=>{
+            document.removeEventListener('keydown', handler)
+        }
+    },[showDeleteConfirmationPopup])
 
     const handleDeleteVault = ()=>{
         if (vaultToDelete){
