@@ -2,14 +2,18 @@
   "extends": "../tsconfig.json",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"],
+  
   "compilerOptions": {
+    "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@components/*" : ["components/*"],
-      "@pages/*":["pages/*"],
-      "@contexts/*": ["contexts/*"],
-      "@interfaces/*": ["interfaces/*"],
-      "@utils/*" :["utils/*"]
+      "@components/*" : ["./components/*"],
+      "@pages/*":["./pages/*"],
+      "@contexts/*": ["./contexts/*"],
+      "@interfaces/*": ["./interfaces/*"],
+      "@utils/*" :["./utils/*"],
+      "*": ["./*"]
     }
   }
 }
