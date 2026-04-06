@@ -72,7 +72,7 @@ export default function HomePage() {
   }, [page])
 
   return (
-    <div className='flex w-screen h-screen items-center justify-center bg-linear-to-b from-20% from-base-200 to-base-300 via-80% overflow-hidden'>
+    <div className='flex w-screen h-screen items-center justify-center bg-linear-to-b from-base-200 from-42% to-72% to-base-300 overflow-hidden'>
       {vault === undefined && <title>Vault Manager</title>}
     
     {(vault !== undefined && vault.isUnlocked) && 
