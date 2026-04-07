@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-export default function Slider({value, setValue, minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6 border-4", className="", roundTo=0}:{ value:number, setValue:React.Dispatch<React.SetStateAction<number>>,minimum:number, maximum:number , bgStyle?:string, selectedHeight?:string,thumbDimensions?:string, className?:string, roundTo?:number}) {
+type props = { 
+    value:number, 
+    setValue:React.Dispatch<React.SetStateAction<number>> | ((newVal: number) => void),
+    minimum:number, 
+    maximum:number , 
+    bgStyle?:string, 
+    selectedHeight?:string,
+    thumbDimensions?:string, 
+    className?:string, 
+    roundTo?:number
+}
+export default function Slider({value, setValue, minimum, maximum, selectedHeight="h-6", bgStyle="bg-base-100 h-4", thumbDimensions="h-6 w-6 border-4", className="", roundTo=0}:props) {
     const [position, setPosition] = useState(maximum);
     const sliderRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
