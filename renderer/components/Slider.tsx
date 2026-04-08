@@ -25,7 +25,7 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
 
         // If clicking directly on the track, move handle immediately
         if (e.target === sliderRef.current) {
-            const clampedX = Math.max(8 / 2, Math.min(x, rect.width -( thumbXSize ) / 2));
+            const clampedX = Math.max(minimum, Math.min(x, rect.width -( thumbXSize ) / 2));
             setPosition(clampedX);
         }
         isDragging.current = true;
@@ -35,7 +35,6 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
         isDragging.current = false;
     };
     const handleMouseMove = (e: MouseEvent) => {
-    
         if (!isDragging.current || !sliderRef.current) return;
         const rect = sliderRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left; // mouse position relative to slider
@@ -58,9 +57,7 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
         const range = maximum - minimum;
 
         // normalize position → value
-        const normalized =
-            minimum +
-            ((position - thumbXSize / 2) / (rect.width - thumbXSize)) * range;
+        const normalized = minimum + ((position - thumbXSize / 2) / (rect.width - thumbXSize)) * range;
         setV(Number(normalized.toFixed(roundTo)));
         setValue(Number(normalized.toFixed(roundTo)))
     } ,[position, minimum, maximum, thumbXSize])
@@ -76,10 +73,8 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
             else if (length > maximum){
                 length = maximum;
                 
-            }else{
-                setValue(length); 
-            } 
-            console.log('changing val')
+            }
+            setValue(length); 
             setPos(length);
         }
         
@@ -97,7 +92,7 @@ export default function Slider({value, setValue, minimum, maximum, selectedHeigh
     }
   
   return (
-    <div className={`flex w-full h-fit gap-2 items-center`}>
+    <div className={`flex w-full h-fit gap-2 items-center p-0 m-0`}>
         <div onMouseDown={handleMouseDown}  id='slider' ref={sliderRef} className={`relative flex w-full h-4 rounded-full items-center ${className}`}>
             <div  className={`flex w-full absolute bg-base-100 pointer-events-none ${bgStyle}`} />
             {/* Track (fill to current position) */}
