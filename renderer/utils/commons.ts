@@ -18,6 +18,13 @@ export function isStrongPassword(password:string):string{
     return passwordMessage.length > 0? "The password "+passwordMessage.join(", ") : "";
 }
 
+
+export async function shaHash(password:string | Buffer){
+    const pwd = password instanceof Buffer ? password : Buffer.from(password);
+    return await window.crypto.subtle.digest('SHA-256', Buffer.from(pwd))
+}
+
+
 export function cmpObj(left:any, right:any){
     for (let k in left){
         // recurse
