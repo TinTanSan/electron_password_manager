@@ -59,10 +59,17 @@ export default function NewEntryForm({setShowForm}:props) {
     }
 
     const handleAddExtraField = ()=>{
-        setEntry(prev=>({
-            ...prev,
-            extraFields: [...prev.extraFields, extraField]
-        }))
+        if (extraField.name.length === 0){
+            addBanner(setBanners, 'Extra field name cannot be empty', 'warning');
+        }else if (extraField.data.length === 0){
+            addBanner(setBanners, 'Extra field must contain some data', 'warning');
+        }else{
+            setEntry(prev=>({
+                ...prev,
+                extraFields: [...prev.extraFields, extraField]
+            }))
+        }
+        
     }
 
     const handleRemoveExtraField = (name:string)=>{
@@ -159,22 +166,27 @@ export default function NewEntryForm({setShowForm}:props) {
                 <div className='flex flex-col w-full h-full gap-5 p-2 bg-base-100 border-2 border-base-300 rounded-lg overflow-y-hidden'>
                     <div className='flex flex-col w-full h-fit shrink-0'>
                         <div className='flex w-full h-fit justify-center text-subheading'>New Extra field</div>
-                        <div className='flex flex-col gap-5'>
-                            <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
-                                <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
-                                <input onChange={handleEFieldChange} id='name' value={extraField.name} className='px-1 outline-none w-full bg-base-200 focus:bg-base-300 rounded-r-md'/>
+                        <div className='flex flex-col gap-2 text-normal'>
+                            <div className='flex flex-row w-full h-fit'>
+                                <div className='flex rounded-lg gap-2 h-8 w-full '>
+                                    <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>Name</label>
+                                    <input onChange={handleEFieldChange} id='name' value={extraField.name} className='px-1 outline-none w-full rounded-md border-2 border-base-300 focus:border-primary'/>
+                                </div>
+                                <div className='flex w-[40%] items-center '>
+                                    <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>Protect Field</label>
+                                    <div className='flex w-full'>
+                                        <ToggleSwitch value={extraField.isProtected} setValue={(newVal:boolean)=>{setExtraField(prev=>({...prev, isProtected:newVal}))}} />
+                                    </div>
+                                </div>
                             </div>
-                            <div className='flex border-2 rounded-lg focus-within:shadow-lg duration-700 h-8 focus-within:border-primary'>
-                                <label className='flex w-24 justify-center h-full items-center' title='the name of this extra field or what it is used for'>Data</label>
-                                <input onChange={handleEFieldChange} id='data' value={extraField.data.toString()} className='px-1 outline-none w-full focus:bg-base-200 rounded-r-md'/>
+                            <div className='flex h-fit w-full gap-2'>
+                                <label className='flex w-fit px-2 h-full' title='the name of this extra field or what it is used for'>Data</label>
+                                <textarea  onChange={handleEFieldChange} maxLength={512} id='data' value={extraField.data.toString()} className='flex border-2 border-base-300 p-1 outline-none w-full rounded-lg focus:border-primary duration-300 rounded-r-md resize-none h-30'/>
                             </div>
                             <div className='flex rounded-lg duration-700 h-8 items-center gap-5'>
-                                <div className='flex w-full items-center '>
-                                    <label className='flex w-fit px-2 text-nowrap justify-center h-full items-center' title='the name of this extra field or what it is used for'>Protect Field</label>
-                                    <ToggleSwitch value={extraField.isProtected} setValue={(newVal:boolean)=>{setExtraField(prev=>({...prev, isProtected:newVal}))}} />
-                                </div>
+                                
                                 <div className='flex w-full h-full justify-end'>
-                                    <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-primary hover:bg-primary-darken text-primary-content items-center justify-center rounded-lg h-full'>Create</button>
+                                    <button type='button' onClick={handleAddExtraField} className='flex w-fit px-5  md:px-10 shrink bg-base-300 text-base-content items-center justify-center rounded-lg h-full hover:bg-neutral hover:text-neutral-content duration-500'>Create</button>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +200,7 @@ export default function NewEntryForm({setShowForm}:props) {
                 </div>    
             
             }
-                <button type='submit' className='bg-primary mt-2 shrink-0 hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-12 flex justify-center items-center'>Create</button>
+                <button type='submit' className='bg-primary mt-2 shrink-0 hover:bg-primary-darken rounded-lg text-primary-content w-1/3 h-10 flex justify-center items-center'>Create</button>
             </form>
             {
                 showRandomPassModal &&
