@@ -110,9 +110,7 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
     const {score, feedback} = zxcvbn(randomPass);
     
     const handleConfirm = ()=>{
-        shaHash(randomPass).then((digest)=>{
-            setEntry(prev=>({...prev, passHash:Buffer.from(digest), password:Buffer.from(randomPass)}))
-        })
+        setEntry(prev=>({...prev, password:Buffer.from(randomPass)}));
         setShowRandomPassModal(false);
     }
 
@@ -123,7 +121,7 @@ export default function RandomPassModal({setShowRandomPassModal, setEntry}:props
     },[randomSettings])
     return (
 
-    <div className='flex flex-col w-[30%] h-1/2 absolute border-2 justify-between text-normal bg-base-100 items-center z-20 rounded-lg shadow-lg p-2'>
+    <div className='flex flex-col w-[30vw] h-[50vh] max-h-100 max-w-100 absolute border-2 justify-between text-normal bg-base-100 items-center z-20 rounded-lg shadow-lg p-2'>
         <div className='flex text-subheading'> Generate random password </div>
         {/* password preview and strength meter */}
         <div className='flex flex-col gap-2 w-full h-fit'>
