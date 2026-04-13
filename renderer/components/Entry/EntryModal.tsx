@@ -9,6 +9,7 @@ import zxcvbn from 'zxcvbn';
 import Slider from '../Slider';
 import ExtraFieldsTab from './ExtraFieldsTab';
 import { PreferenceContext } from '@contexts/preferencesContext';
+import RandomPassModal from './RandomPassModal';
 
 
 export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
@@ -93,13 +94,17 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const {setBanners} = useContext(BannerContext);
     const {preference} = useContext(PreferenceContext);
     const [showPass, setShowPass] = useState(false);
+    const [entryUpdated, setEntryUpdated] = useState(false);
     
     const vaultEntry = useMemo(()=>{
-        let ent = vault.entries.find(x=>x.metadata.uuid === uuid);
-        ent.extraFields = ent.extraFields.map(x=>({...x, data:Buffer.from(x.data)}));
-        return ent;
-    }, [uuid]);
-    const [groups, setGroups] = useState([]);
+        if (entryUpdated){
+            let ent = vault.entries.find(x=>x.metadata.uuid === uuid);
+            ent.extraFields = ent.extraFields.map(x=>({...x, data:Buffer.from(x.data)}));
+            setEntryUpdated(false);
+            return ent;
+        }
+    }, [entryUpdated]);
+    
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
     const isEqual = cmpEntry(vaultEntry, entry);
 
@@ -113,28 +118,14 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const [randomPass, setRandomPass] = useState("");
 
     const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
-    
-    
-    
+    const [extraFieldSearch, setEFSearch] = useState("");    
     const [collapseNewEf, setCollapseNewEf] = useState(true);
 
+    const [groups, setGroups] = useState([]);
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
-    const [extraFieldSearch, setEFSearch] = useState("");
-    useEffect(()=>{
-        window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
-            setEntryPass(response);
-        }).catch((error)=>{
-            addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
-        });
-        return ()=>{
-            setEntryPass("");
-        }
-    },[])
-
+    
     const [tab, setTab] = useState(0);
     
-    
-
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
             if (showPass){
@@ -153,7 +144,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         }
         setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
     }
-
 
     const handleCopy = ()=>{
         navigator.clipboard.writeText(entryPass.toString());
@@ -174,6 +164,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                         setEntry(response.response)
                         setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
                         addBanner(setBanners, "Updated entry successfully", 'error');
+                        setEntryUpdated(true);
                     }else if (response.status = "CLIENT_ERROR"){
                         addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
                     }else{
@@ -185,13 +176,12 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                     addBanner(setBanners, 'unable to update password', 'success')
                 })
             }else if (!isEqual){
-                
                 window.entryIPC.mutateEntry(uuid, entry).then((response)=>{
-                    console.log(response)
                     if (response.status === "OK"){
                         setEntry(response.response)
                         setVault(prev=>({...prev, entries: prev.entries.map(x=>x.metadata.uuid === uuid ? response.response : x)}))
                         addBanner(setBanners, "Updated entry successfully", 'success');
+                        setEntryUpdated(true);
                     }else if (response.status = "CLIENT_ERROR"){
                         addBanner(setBanners, 'Unable to update entry: '+response.message, 'error')
                     }else{
@@ -207,7 +197,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         })
         
     }
-
 
     const handleAddExtraField = ()=>{
         if (extraFeild.name){
@@ -414,6 +403,21 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         }
     },[randomSettings])
 
+    useEffect(()=>{
+        window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
+            setEntryPass(response);
+        }).catch((error)=>{
+            addBanner(setBanners, 'unable to decrypt password to set up the entry', 'error');
+        });
+        return ()=>{
+            setEntryPass("");
+        }
+    },[])
+
+    useEffect(()=>{
+        setEntryPass(entry.password.toString());
+    },[entry.password])
+
     return (
         <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
             <div className='flex flex-col text-base-content w-[40%] min-w-96 h-full bg-base-100 rounded-xl z-10 overflow-hidden ' onClick={(e)=>{e.stopPropagation()}}>
@@ -485,34 +489,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                     </div>
                                     {/* Random password modal */}
                                     {showRandomPassModal && 
-                                        <div className='flex text-base-content flex-col w-9/10 p-2 text-normal bg-base-300 border-base-darken rounded-lg absolute border-2 justify-between h-1/3'>
-                                            <p className='flex text-subheading'>New password</p>
-                                            <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
-                                                <input type={showRandomPass ? "text": "password"} id='password' value={showRandomPass ? randomPass : "*".repeat(randomPass.length)} onChange={handleChange} className='flex w-full outline-none items-center rounded-lg h-full bg-white '/>
-                                                <Image onClick={()=>{setShowRandomPass(prev=>!prev)}} title={showRandomPass? "hide password": 'show password'} src={showRandomPass ?"/images/hidePass.svg" : "/images/showPass.svg"} alt='show' width={20} height={20} className='flex w-6 h-6 cursor-pointer'/>
-                                            </div>
-                                            {/*random settings */}
-                                            <div className='flex flex-col w-full h-fit py-2 gap-2'>
-                                                {/* length */}
-                                                <div className='flex flex-row gap-2 items-center'>
-                                                    <p>Length</p>
-                                                    <Slider value={randomSettings.length} minimum={8} maximum={50} selectedHeight='h-2' thumbDimensions='h-4 w-4 border-2' className='h-1' bgStyle='h-2 rounded-lg' setValue={(newVal:number)=>{setRandomSettings(prev=>({...prev, length:newVal}))}} />
-                                                </div>
-                                                {/* capitals, numbers, special chars */}
-                                                <div className='flex flex-row justify-between px-2'>
-                                                    <button className={` flex ${randomSettings.allowCapitals&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowCapitals')}}>capitals</button>
-                                                    <button className={` flex ${randomSettings.allowNumbers&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowNumbers')}}>numbers</button>
-                                                    <button className={` flex ${randomSettings.allowSpecChars&& 'bg-neutral text-neutral-content'} h-8 items-center justify-center w-fit px-5 border-2 rounded-lg cursor-pointer`} onClick={()=>{handleRandomPassSettingChange('allowSpecChars')}}>special</button>
-                                                </div>
-                                            </div>
-
-                                            {/* buttons */}
-
-                                            <div className='flex flex-row w-full justify-between pt-2'>
-                                                <button onClick={()=>{setRandomPass(""); setShowRandomPassModal(false)}} className='flex w-fit h-8 px-5 border-2 items-center justify-center rounded-lg'>Cancel</button>
-                                                <button onClick={()=>{setEntryPass(randomPass); setShowRandomPassModal(false)}} className='flex w-fit h-8 px-5 border-2 items-center justify-center rounded-lg'>Confirm</button>
-                                            </div>
-                                        </div>
+                                        <RandomPassModal setShowRandomPassModal={setShowRandomPassModal}  setEntry={setEntry}/>
                                     }
 
                                     {/* Website */}
