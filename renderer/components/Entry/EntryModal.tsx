@@ -511,7 +511,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                         last edited on: {entry.metadata.lastEditDate.getDay()}/{entry.metadata.lastEditDate.getMonth()}/{entry.metadata.lastEditDate.getFullYear()}
                                     </div>
                                     <div className='flex h-8 shrink-0 w-full overflow-hidden gap-1'>
-                                        <div className='flex w-1/2 gap-0 shrink-0 overflow-hidden hover:w-fit cursor-pointer text-ellipsis border-2 h-fit text-nowrap'>uuid: {entry.metadata.uuid} </div>
+                                        <div className='flex w-1/2 gap-0 shrink-0 overflow-hidden hover:w-fit cursor-pointer text-ellipsis h-fit text-nowrap'>uuid: {entry.metadata.uuid} </div>
                                         | 
                                         <div className='text-nowrap'>entry version: {entry.metadata.version}</div>
                                     </div>
