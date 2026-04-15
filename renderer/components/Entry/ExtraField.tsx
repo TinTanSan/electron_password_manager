@@ -14,9 +14,9 @@ type props = {
 export default function ExtraFieldComponent({extraField, entry, onDelete}:props) {
   const {vault, setVault} = useContext(VaultContext);
   const {banners, setBanners} = useContext(BannerContext);
-  const [data, setData] = useState<Buffer>(extraField.data);
-  const [showData, setShowData] = useState(false);
-  const [ef, setEf] = useState<ExtraField>({...extraField});
+  const [data, setData] = useState<Buffer>(Buffer.from(extraField.data));
+  const [showData, setShowData] = useState((!extraField.isProtected)); //by default we set show data to be true if the extrafield is not protected
+  const [ef, setEf] = useState<ExtraField>({...extraField, data:Buffer.from(extraField.data)});
   const [encryptedData, setEncryptedData] = useState<undefined | Buffer>(ef.isProtected?ef.data : undefined);
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
     setEf(prev=>({
@@ -59,14 +59,14 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   useEffect(()=>{
     if (!extraField.isProtected){
-      setData(extraField.data);
+      setData(Buffer.from(extraField.data));
       return;
     }
     if (extraField.isProtected && showData && !data){
         if (ef.isProtected){
           window.entryIPC.decryptExtraField(entry.metadata.uuid, extraField.name).then((response:IPCResponse<Buffer>)=>{
             if (response.status === "OK"){
-              setData(response.response);
+              setData(Buffer.from(response.response));
             }else if (response.status === "CLIENT_ERROR"){
               addBanner(setBanners, response.message ?? "Unable to decrypt extraField",'error')
             }else{ 
@@ -76,7 +76,8 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
           })
         }
     }else if (!showData){
-      setData(undefined);
+      setData(prev=>prev.fill(0));
+      setData(undefined)
     }
   },[showData])
 
