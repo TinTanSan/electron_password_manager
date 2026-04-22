@@ -363,6 +363,28 @@ class VaultService extends EventEmitter{
         }
     }
 
+    encryptExtraField(entryUUID:string, extraFieldName:string){
+        if (!this.vault.entries.has(entryUUID)) return {status:"ENT_not_found", data:Buffer.from("")};
+        
+        let extraField = this.getExtraFieldByName(entryUUID, extraFieldName);
+        
+        let retVal = {status:"OK", data:Buffer.from("")};
+        
+        if (!extraField){
+            retVal.status = "EF_not_found"
+        }
+        
+        const wrappedDEK = this.vault.entries.get(entryUUID).dek;
+        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
+        const {iv, encrypted, tag} = encrypt(extraField.data, dek)
+        extraField.data = Buffer.concat([encrypted, iv,tag]);
+        extraField.isProtected = true;
+
+        retVal.data = Buffer.from(extraField.data);
+        this.sync();
+        return retVal;
+    }
+
 
     private getExtraFieldByName(entryUUID:string, extraFieldName:string):ExtraField{
         const entry = this.vault.entries.get(entryUUID);
@@ -497,6 +519,7 @@ class VaultService extends EventEmitter{
         return Buffer.from(passwordComponents + "\n"+  serialisers.vault(this.vault));
     }
     sync(){
+        this.vault.vaultMetadata.lastEditDate = new Date();
         const content = this.serialiseVault();
         this.syncService.updateBuffer(content);
         this.vault.fileContents = content
