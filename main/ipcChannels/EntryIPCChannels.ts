@@ -12,5 +12,6 @@ export const entryIPCChannels = {
   addExtraField: (uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean})=>ipcRenderer.invoke('entry:addExtraField', uuid,extraField),
   decryptExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('entry:decryptExtrafield', uuid, name),
   removeExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('entry:removeExtraField', uuid, name),
+  encryptExtraField: (uuid:string, name:string)=>ipcRenderer.invoke('entry:encryptExtraField', uuid, name),
 
 }
