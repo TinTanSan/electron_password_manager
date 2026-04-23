@@ -363,28 +363,6 @@ class VaultService extends EventEmitter{
         }
     }
 
-    encryptExtraField(entryUUID:string, extraFieldName:string){
-        if (!this.vault.entries.has(entryUUID)) return {status:"ENT_not_found", data:Buffer.from("")};
-        
-        let extraField = this.getExtraFieldByName(entryUUID, extraFieldName);
-        
-        let retVal = {status:"OK", data:Buffer.from("")};
-        
-        if (!extraField){
-            retVal.status = "EF_not_found"
-        }
-        
-        const wrappedDEK = this.vault.entries.get(entryUUID).dek;
-        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
-        const {iv, encrypted, tag} = encrypt(extraField.data, dek)
-        extraField.data = Buffer.concat([encrypted, iv,tag]);
-        extraField.isProtected = true;
-
-        retVal.data = Buffer.from(extraField.data);
-        this.sync();
-        return retVal;
-    }
-
 
     private getExtraFieldByName(entryUUID:string, extraFieldName:string):ExtraField{
         const entry = this.vault.entries.get(entryUUID);
@@ -518,6 +496,7 @@ class VaultService extends EventEmitter{
         const passwordComponents = this.vault.fileContents.subarray(0, idx).toString();
         return Buffer.from(passwordComponents + "\n"+  serialisers.vault(this.vault));
     }
+    
     sync(){
         this.vault.vaultMetadata.lastEditDate = new Date();
         const content = this.serialiseVault();
@@ -551,6 +530,7 @@ class VaultService extends EventEmitter{
 
         }
     }
+
     private async updatePassword(uuid:string, newPass:string): Promise<IPCResponse<Entry>>{
         let entry = this.vault.entries.get(uuid);
         if (!entry){
@@ -565,9 +545,7 @@ class VaultService extends EventEmitter{
         try{
             const encryptedPass = encrypt(Buffer.from(newPass), dek);
             const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
-            entry.passHash = shaHash(newPass)
-            entry.password = encBuffConcated;
-            console.log(encBuffConcated);
+            this.updateEntry(uuid, 'password', encBuffConcated);
             this.sync();
             return {
                 status:"OK",
@@ -588,7 +566,7 @@ class VaultService extends EventEmitter{
 
     }
 
-    async updateEntry(uuid: string,fieldToUpdate:string, newValue:string):Promise<IPCResponse<Entry>>{
+    async updateEntry<K extends keyof Entry>(uuid: string,fieldToUpdate:K, newValue:Entry[K]):Promise<IPCResponse<Entry>>{
         let entry = this.vault.entries.get(uuid);
         let isFieldInEntry = false;
         for(let field in entry){
@@ -604,12 +582,7 @@ class VaultService extends EventEmitter{
                 response: undefined
             };
         }
-        if (fieldToUpdate === "password"){
-            return await this.updatePassword(uuid, newValue);
-        }else{
-            entry[fieldToUpdate] = newValue;
-        }
-        
+        entry[fieldToUpdate] = newValue;
         const now = new Date();
         entry.metadata.lastEditDate = now;
         this.vault.vaultMetadata.lastEditDate = now;
