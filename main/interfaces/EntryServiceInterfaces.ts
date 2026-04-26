@@ -1,0 +1,1 @@
+export type EntryUpdateCallback = ((uuid:string)=>void)

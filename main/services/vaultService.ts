@@ -11,19 +11,28 @@ import { randomBytes } from "crypto";
 import { SyncService } from "./SyncService";
 import {Entry, ExtraField, RendererSafeEntry, Vault} from "../interfaces/VaultServiceInterfaces";
 import { IPCResponse } from "../interfaces/IPCCHannelInterface";
+import { EntryService } from "./EntryService";
 
 
 class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
     vaultInitialised: boolean = false;
+
     syncService:SyncService | undefined = undefined;
-    searchResults: Array<string> = [];
-    searchedTitle:string = "";
-    searchedUsername:string = "";
-    searchedNotes:string = "";
+    entryService: EntryService;
+
     constructor(){
         super();
-        
+        this.entryService =  new EntryService();
+        this.entryService.setOnEntryUpdatedCallback((uuid: string) => {
+           if (this.vault.isUnlocked) {
+            const now = new Date();
+           this.vault.vaultMetadata.lastEditDate = now;
+           this.entryService.getEntry(uuid).metadata.lastEditDate = now; 
+           this.sync();
+       }
+
+       });
     }
 
     setInitialVaultState(filePath:string, fileContents:Buffer){
@@ -77,14 +86,15 @@ class VaultService extends EventEmitter{
         this.vault = parsers.vault(this.vault.fileContents);
 
         this.vault.kek = {passHash: hash, salt, kek}
+
+        this.entryService.entries = this.vault.entries;
+
         return {
             entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
         };
     }
-    getNumEntries(){
-        return this.vault.entries.size ?? -1;
-    }
+
 
     openVault(filePath:string){
         const results = openFile(filePath);
@@ -173,7 +183,7 @@ class VaultService extends EventEmitter{
                     entries:[entryUUID]
                 })     
         }
-        entry.group = groupName;
+        this.updateEntry(entryUUID, 'group', groupName);
         this.sync();
         return "OK"
     }
@@ -189,8 +199,8 @@ class VaultService extends EventEmitter{
         if(!group) return "GROUP_NOT_FOUND"
 
         group.entries = group.entries.filter(x=>x!==entryUUID);
-        entry.group = "";
-        this.sync();
+        this.updateEntry(entryUUID, 'group', '');
+        this.updateVault('entryGroups', [...this.vault.entryGroups, group])
         return "OK"
     }
 
@@ -204,8 +214,7 @@ class VaultService extends EventEmitter{
         group.entries.forEach((x)=>{
             this.vault.entries.get(x).group = "";
         })
-        this.vault.entryGroups = this.vault.entryGroups.filter(x=>x.groupName!== groupName);
-        this.sync();
+        this.updateVault('entryGroups', this.vault.entryGroups.filter(x=>x.groupName!== groupName))
     }
 
     getGroup(groupName:string){
@@ -216,250 +225,28 @@ class VaultService extends EventEmitter{
         return this.vault.entryGroups;
     }
 
-
-    async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}){
-        let dek = randomBytes(32);
-        let response = {
-            status : "NOT FULFILLED",
-            result: "Did not fulfill the task"
-        }
-        try{
-            const {title, username, password, notes, extraFields, group} = entry;
-            const encryptedPass = encrypt(password, dek);
-            const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
-            const  {iv, tag, encrypted} = encrypt(dek, this.vault.kek.kek);
-            const uuid = createUUID();
-            this.vault.entries.set(uuid,{
-                title,
-                username,
-                passHash: shaHash(password.toString()),
-                dek : {iv, tag, wrappedKey:encrypted},
-                password: encBuffConcated,
-                isFavourite: false,
-                notes,
-                extraFields: [],
-                group,
-                metadata:{
-                    uuid,
-                    createDate: new Date(),
-                    lastRotateDate: new Date(),
-                    lastEditDate: new Date(),
-                    version: '1.0.0'
-                }   
-                
-            })
-            if(group){
-                let gIdx = this.vault.entryGroups.findIndex(x=>x.groupName === group);
-                if(gIdx === -1){
-                    this.vault.entryGroups.push({groupName:group, entries:[uuid]});
-                }else{
-                    this.vault.entryGroups.at(gIdx).entries.push(uuid)
-                }
-            }
-            
-            this.addExtraFields(uuid, extraFields);
-            this.sync();
-            response =  {
-                status:"OK",
-                result: uuid};   
-        }
-        catch (error){
-            console.error('An error occured whilst adding entry: ', error);
-            response =  {
-                status:"Err",
-                result: error
-            }
-        }
-        finally{
-            dek.fill(0);
-            dek = undefined;
-            return response;
-        }
-    }
-
-    addExtraField(entryUUID:string, extraField:ExtraField){
-            const entry = this.vault.entries.get(entryUUID);
-            if (entry){
-                const wrappedDEK = entry.dek;
-                let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
-                try{
-                    let ef = entry.extraFields.find(x=>x.name === extraField.name);
-                    if (ef) return "ALREADY_EXISTS";
-                    extraField.data = Buffer.from(extraField.data)
-                    if (extraField.isProtected){
-                        // expect the extraField to be plaintext on first request and encrypt
-                        
-                        const encrypted = encrypt(extraField.data, dek);
-                        extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
-                    }
-                    entry.extraFields.push(extraField);
-                    this.sync();
-                    return "OK";
-                }finally{
-                    dek.fill(0);
-                    
-                }
-            }
-            return "ENTRY_NOT_FOUND"
-       
-    }
-
-    addExtraFields(entryUUID:string, extraFields:Array<ExtraField>){
-        let entry = this.vault.entries.get(entryUUID);
-        if (entry){
-            const wrappedDEK = entry.dek;
-            let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
-            try {
-                let retVal = "OK";
-                
-               
-                extraFields.forEach((extraField)=>{
-                    // only add new extrafield if we can't already find it
-                    if (entry.extraFields.findIndex(x=>x.name===extraField.name)  ===-1){
-                        extraField.data = Buffer.from(extraField.data)
-                        if (extraField.isProtected){
-                            // expect the extraField to be plaintext on first request and encrypt
-                            const encrypted = encrypt(extraField.data, dek);
-                            extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
-                        }
-                        entry.extraFields.push(extraField);
-                    }else{
-                        retVal= "EF_ALREADY_EXISTS";
-                    }
-                })
-                this.sync();
-                return retVal;    
-            } catch (error) {
-                return error;
-            }finally{
-                dek.fill(0);
-            }
-            
-        }
-        return "ENTRY_NOT_FOUND";
-    }
-
-    decryptExtraField(entryUUID:string, extraFieldName:string){
-        if (!this.vault.entries.has(entryUUID))return {status:"ENT_NOT_FOUND", data:""};
-
-        let extraField =this.getExtraFieldByName(entryUUID, extraFieldName);
-        if(!extraField){
-            return {status:"EF_NOT_FOUND", data:""};
-        }
-        const entry = this.vault.entries.get(entryUUID);
-        const wrappedDEK = entry.dek;
-        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
-        try{
-            const encrypted= extraField.data.subarray(0,extraField.data.length-24);
-            const iv= extraField.data.subarray(extraField.data.length-24,extraField.data.length-12);
-            const tag= extraField.data.subarray(extraField.data.length-12,extraField.data.length);
-            const response = decrypt(encrypted, dek, tag, iv);
-            return {status:"OK", data:response};
-        }catch(error:any){
-            return {status:"ERROR", data:error}
-        }
-        finally{
-            dek.fill(0);
-        }
-    }
-
-
-    private getExtraFieldByName(entryUUID:string, extraFieldName:string):ExtraField{
-        const entry = this.vault.entries.get(entryUUID);
-        let extraField = entry.extraFields.find(x=>x.name===extraFieldName);
-        return extraField;
-    }
-
-
-    extraFieldChangeIsProtected(entryUUID:string, extraFieldName:string, protectedness:boolean){
-        const entry = this.vault.entries.get(entryUUID);
-        let extraField= this.getExtraFieldByName(entryUUID, extraFieldName);
-        if(!extraField) return status;
-        try {
-            extraField.isProtected = protectedness;
-            // if the user wants to protect the extraField and it is not already protected
-            if(protectedness && !extraField.isProtected){
-                const wrappedDEK = entry.dek;
-                let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
-                try{
-                        // expect the extraField to be plaintext on first request and encrypt
-                        
-                    const encrypted = encrypt(extraField.data, dek);
-                    extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
-                }finally{
-                    dek.fill(0);
-                    this.sync();
-                }
-            }
-            // if the user wants to unprotect the extraField and it is protected
-            else if (!protectedness && extraField.isProtected){
-                extraField.isProtected = false;
-                const {status, data} = this.decryptExtraField(entryUUID, extraFieldName);
-                if(status === "OK"){
-                    extraField.data = data;
-                }
-                this.sync()
-                return status
-            }
-            else if (protectedness && extraField.isProtected){
-                return "ALREADY_PROTECTED"
-            }
-            else{
-                return "ALREADY_UNPROTECTED"
-            }
-        }catch (error) {
-            return error;
-        }
-
-    }
-
-    removeExtraField(entryUUID:string, extraFieldName:string){
-        let entry = this.vault.entries.get(entryUUID);
-        entry.extraFields = entry.extraFields.filter(x=>x.name !== extraFieldName);
-        this.sync();
-    }
-
+   
 
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
-        return Array.from(this.vault.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
+        return Array.from(this.entryService.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
-    getEntry(uuid:string){
-        return this.vault.entries.get(uuid);
-    }
 
     searchEntries(title:string, username:string, notes:string, page:number = 0){
-        
+        if (!title && !username && !notes) {
+            if (page === 0) {
+                console.warn("Please try not to call searchEntries without having any search params present, instead use getPaginatedEntries");
+            }
+            return {
+                entries: this.getPaginatedEntries(page),
+                numEntries: this.entryService.getNumEntries()
+            };
+        }
         const pageLen = preferenceStore.get('entriesPerPage');
-        // if no search filter, just return the first page of paginated entries;
-        if (!title && !username && !notes && page === 0) {
-            console.warn("Please try not to call searchEntries without having any search params present, instead use getPaginatedEntries");
-            return {entries: this.getPaginatedEntries(0), numEntries: this.vault.entries.size }
-        }
-        // when the frontend wants the same searched results but a different page from pagination
-        if (!title && !username && !notes && page >0){
-            
-            return {entries: this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x)), numEntries: this.vault.entries.size}
-        }
-        // if we got the same exact params as the last search, serve the requested page of results 
-        if(title === this.searchedTitle && username == this.searchedUsername && notes === this.searchedNotes){
-            return {entries: this.searchResults.slice(page*pageLen, page*pageLen + pageLen).map((x)=>this.vault.entries.get(x)), numEntries: this.searchResults.length}
-        }
-        // new search query
-        if (title) this.searchedTitle = title;
-        if (username) this.searchedUsername= username;     
-        if (notes) this.searchedNotes = notes;
-            
-        let filteredEntries = [];
-        this.vault.entries.forEach((entry, uuid)=>{
-            if(title && entry.title.toLowerCase().includes(title.toLowerCase())) filteredEntries.push(uuid)
-            if(username && entry.username.toLowerCase().includes(username.toLowerCase())) filteredEntries.push(uuid)
-            if(notes && entry.notes.toLowerCase().includes(notes.toLowerCase())) filteredEntries.push(uuid)
-        })
-        this.searchResults = filteredEntries;
-        
-        return {entries: this.searchResults.slice(page*pageLen,page*pageLen+ pageLen).map((x)=>this.vault.entries.get(x)), numEntries: filteredEntries.length}
+        const searchResults = this.entryService.searchEntries(title, username, notes);
+         const paginatedUUIDs = searchResults.entries.slice(page * pageLen, page * pageLen + pageLen);
+        return paginatedUUIDs.map((uuid:string)=>this.entryService.getEntry(uuid))        
     }
 
     async getEntriesWithSamePass():Promise<Array<string>>{
@@ -531,40 +318,7 @@ class VaultService extends EventEmitter{
         }
     }
 
-    private async updatePassword(uuid:string, newPass:string): Promise<IPCResponse<Entry>>{
-        let entry = this.vault.entries.get(uuid);
-        if (!entry){
-            return {
-                status:"CLIENT_ERROR",
-                message:'Entry does not exist with uuid: '+uuid,
-                response: undefined
-            }
-        }
-        const wrappedDEK = entry.dek;
-        let dek = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
-        try{
-            const encryptedPass = encrypt(Buffer.from(newPass), dek);
-            const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
-            this.updateEntry(uuid, 'password', encBuffConcated);
-            this.sync();
-            return {
-                status:"OK",
-                message:"Password updated",
-                response: entry
-            }
-        }catch(error){
-             return {
-                status:"INTERNAL_ERROR",
-                message:error,
-                response: undefined
-            }
-        }finally{
-            dek.fill(0);
-        }
-
-
-
-    }
+    
 
     async updateEntry<K extends keyof Entry>(uuid: string,fieldToUpdate:K, newValue:Entry[K]):Promise<IPCResponse<Entry>>{
         let entry = this.vault.entries.get(uuid);
@@ -593,35 +347,19 @@ class VaultService extends EventEmitter{
             response: entry
         };
     }
-    /**
-     * Use this function as an alternative to UpdateEntry when you don't know what has changed in an entry. Allows the caller to mutate the entry
-     * given a uuid and an Entry object. This function will return ENTRY_NOT_FOUND if the entry does not exist as to prevent this functions usage as a 
-     * addEntry alternative
-     * @param uuid 
-     * @param newState 
-     * @returns string
-     */
-    async mutateEntry(uuid:string, newState:RendererSafeEntry):Promise<IPCResponse<RendererSafeEntry>>{
-        let entry = this.vault.entries.get(uuid);
-        // explicitly dictate this this function is not to be used as an alternative to addEntry
-        if (!entry){
-            return {
-                status: "CLIENT_ERROR",
-                message:"Entry not found",
-                response: undefined
-            };
+
+    async updateVault<K extends keyof Vault>(fieldToUpdate:K, newValue:Vault[K]){
+        if (this.vault.isUnlocked){
+            this.vault[fieldToUpdate] = newValue;
+            this.vault.vaultMetadata.lastEditDate = new Date();
+            this.sync();
+
+        }else{
+            /*
+                set master password will write to the vault independently, and will not be using this method
+            */
+            throw new Error("Unlock vault to make changes to it")
         }
-        // ensure last edit date is correctly set
-        const now = new Date();
-        entry = {...newState, password: Buffer.from(newState.password), dek:{...entry.dek}, metadata:{...entry.metadata, lastEditDate: now}}
-        this.vault.entries.set(uuid, entry);
-        this.vault.vaultMetadata.lastEditDate = now;
-        this.sync();
-        return  {
-            status: "OK",
-            message:"entry updated",
-            response: entry
-        };
     }
 
     async removeEntry(uuid:string){

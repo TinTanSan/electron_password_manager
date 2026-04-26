@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
 import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
 
-ipcMain.handle('vault:getNumEntries', async()=>vaultService.getNumEntries())
+ipcMain.handle('vault:getNumEntries', async()=>vaultService.entryService.getNumEntries())
 
 ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
 
