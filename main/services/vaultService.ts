@@ -24,15 +24,19 @@ class VaultService extends EventEmitter{
     constructor(){
         super();
         this.entryService =  new EntryService();
-        this.entryService.setOnEntryUpdatedCallback((uuid: string) => {
-           if (this.vault.isUnlocked) {
-            const now = new Date();
-           this.vault.vaultMetadata.lastEditDate = now;
-           this.entryService.getEntry(uuid).metadata.lastEditDate = now; 
-           this.sync();
-       }
+        
+    }
 
-       });
+    private onEntryUpdate = (uuid: string) => {
+        if (this.vault && this.vault.isUnlocked) {
+            const now = new Date();
+            this.vault.vaultMetadata.lastEditDate = now;
+            this.entryService.getEntry(uuid).metadata.lastEditDate = now; 
+            this.sync();
+            console.log('sync called at', now.toString())
+        }else{
+            console.log('unable to call onEntryUpdate without a vault');
+        }
     }
 
     setInitialVaultState(filePath:string, fileContents:Buffer){
@@ -61,12 +65,11 @@ class VaultService extends EventEmitter{
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
-        const b64saltLength = (4*Math.ceil(preferenceStore.get('saltLength')/3));
+        const b64saltLength = (4 * Math.ceil( preferenceStore.get('saltLength') /3 ) );
         const hash = Buffer.from(this.vault.fileContents.subarray(0,idx-b64saltLength)).toString();
         
         const salt = Buffer.from(this.vault.fileContents.subarray(idx-b64saltLength,idx).toString(),'base64')
-        const results = await argon2.verify(hash, password,{
-        });    
+        const results = await argon2.verify(hash, password);    
         // incorrect password
         if (results === false){
             return {
@@ -86,9 +89,9 @@ class VaultService extends EventEmitter{
         this.vault = parsers.vault(this.vault.fileContents);
 
         this.vault.kek = {passHash: hash, salt, kek}
-
         this.entryService.entries = this.vault.entries;
-
+        this.entryService.setOnEntryUpdatedCallback(this.onEntryUpdate);
+        this.vault.isUnlocked = true;
         return {
             entriesToDisplay : this.getPaginatedEntries(0),
             status: "OK"
@@ -111,26 +114,18 @@ class VaultService extends EventEmitter{
     async closeVault(){
         console.log("vault closing")
         
-        this.lockVault().then((_)=>{
-            this.vault = undefined;
-            this.vaultInitialised = false;
-        })
-        
-        console.log("vault closed");
-    }
-
-    async lockVault(){
         try{
             if (this.vaultInitialised){
-                this.syncService.flushSyncBuffer().then((_)=>{
-                    console.log("sync complete")
-                    this.vault.kek = {
-                        kek: Buffer.from(""),
-                        passHash: "",
-                        salt: Buffer.from("")
-                    }
-                    this.syncService.stopSyncLoop();
-                })
+                await this.syncService.flushSyncBuffer()
+                console.log("sync complete")
+                this.vault.kek = {
+                    kek: Buffer.from(""),
+                    passHash: "",
+                    salt: Buffer.from("")
+                }
+                this.syncService.stopSyncLoop();
+                this.vault = undefined;
+                this.vaultInitialised = false;
             }else{
                 console.log("no vault to close")
             }
