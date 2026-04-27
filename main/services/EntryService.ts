@@ -240,10 +240,11 @@ export class EntryService extends EventEmitter{
                 const wrappedDEK = entry.dek;
                 let dek = decrypt(wrappedDEK.wrappedKey, kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
                 try{
-                        // expect the extraField to be plaintext on first request and encrypt
-                        
+                    // expect the extraField to be plaintext on first request and encrypt
                     const encrypted = encrypt(extraField.data, dek);
                     extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                }catch (error){
+                    return "Error while encrypting: "+error;
                 }finally{
                     dek.fill(0);
                     this.notifyUpdate(entryUUID);
@@ -251,20 +252,16 @@ export class EntryService extends EventEmitter{
             }
             // if the user wants to unprotect the extraField and it is protected
             else if (!protectedness && extraField.isProtected){
-                extraField.isProtected = false;
                 const {status, data} = this.decryptExtraField(entryUUID, extraFieldName, kek);
                 if(status === "OK"){
                     extraField.data = data;
+                    this.notifyUpdate(entryUUID);
+                    extraField.isProtected = false;
                 }
-                this.notifyUpdate(entryUUID);
                 return status
             }
-            else if (protectedness && extraField.isProtected){
-                return "ALREADY_PROTECTED"
-            }
-            else{
-                return "ALREADY_UNPROTECTED"
-            }
+
+            return (protectedness && extraField.isProtected) ? "ALREADY_PROTECTED" : "ALREADY_UNPROTECTED"
         }catch (error) {
             return error;
         }
@@ -314,7 +311,8 @@ export class EntryService extends EventEmitter{
             const encryptedPass = encrypt(Buffer.from(newPass), dek);
             const encBuffConcated = Buffer.concat([encryptedPass.iv, encryptedPass.tag, encryptedPass.encrypted]);
             this.updateEntry(uuid, 'password', encBuffConcated);
-            this.notifyUpdate(uuid);
+            this.updateEntry(uuid, 'passHash', shaHash(newPass));
+            // we don't notifyUpdate because updateEntry will do that anyways
             return entry;
         }catch (error){
             throw new Error(error);
