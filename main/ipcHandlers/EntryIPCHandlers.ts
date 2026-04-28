@@ -63,9 +63,9 @@ ipcMain.handle('entry:decryptExtrafield', async (_, uuid:string, name:string):Pr
 
 })
 
-ipcMain.handle('entry:encryptExtrafield', async (_, uuid:string, name:string):Promise<IPCResponse<Buffer>>=>{
+ipcMain.handle('entry:changeEFProtection', async (_, uuid:string, name:string, protectedness:boolean):Promise<IPCResponse<Buffer>>=>{
     try {    
-        const {data, status} = vaultService.entryService.extraFieldChangeIsProtected(uuid, name, true, vaultService.vault.kek);
+        const {data, status} = vaultService.entryService.extraFieldChangeIsProtected(uuid, name,protectedness, vaultService.vault.kek);
         if (status === "OK"){
             return {status:"OK", response:data};
         }else{
