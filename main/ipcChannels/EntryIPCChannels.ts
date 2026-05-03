@@ -1,4 +1,5 @@
-import { ExtraField, RendererSafeEntry } from "@main/interfaces/VaultServiceInterfaces";
+import { ExtraField } from "@main/interfaces/EntryServiceInterfaces";
+import { RendererSafeEntry } from "@main/interfaces/EntryServiceInterfaces";
 import { ipcRenderer } from "electron";
 
 export const entryIPCChannels = {

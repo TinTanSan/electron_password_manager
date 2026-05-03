@@ -1,7 +1,7 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
-import {EntryService} from "../services/EntryService";
-import { Entry, RendererSafeEntry } from "../interfaces/VaultServiceInterfaces";
+import { Entry } from "../interfaces/VaultServiceInterfaces";
+import { RendererSafeEntry } from "@main/interfaces/EntryServiceInterfaces";
 import { trustedIDS } from "@main/background";
 import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
 
@@ -42,6 +42,7 @@ ipcMain.handle('entry:addExtraField', async (_, uuid:string, extraField:{name:st
 
 ipcMain.handle('entry:decryptExtrafield', async (_, uuid:string, name:string):Promise<IPCResponse<Buffer>>=>{
     const response = entryService.decryptExtraField(uuid, name, vaultService.vault.kek);
+    console.log('handler res: ',response)
     if (response.status === "OK"){
         return {
             status:"OK",
@@ -147,12 +148,11 @@ ipcMain.handle('entry:removeEntry', async(_, uuid:string)=>vaultService.removeEn
 
 ipcMain.handle(
     'entry:getPassword', 
-    
     async (event ,uuid:string):Promise<IPCResponse<string>>=>{
         if (trustedIDS.has(event.frameId)){
             return {
                 status: "OK",
-                response: await vaultService.decryptPassword(uuid)
+                response: await entryService.decryptPassword(uuid, vaultService.vault.kek)
             }
         }
         return {

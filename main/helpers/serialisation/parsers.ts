@@ -1,5 +1,6 @@
 import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
-import { Entry, EntryGroup, MetaData as EntryMetaData, ExtraField, Vault } from "../../interfaces/VaultServiceInterfaces";
+import { Entry, Vault } from "../../interfaces/VaultServiceInterfaces";
+import { MetaData as EntryMetaData} from "@main/interfaces/EntryServiceInterfaces";
 import assert from "node:assert"; 
 
 
