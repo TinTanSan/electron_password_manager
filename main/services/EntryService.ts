@@ -1,8 +1,8 @@
-import { createUUID, decrypt, encrypt, GCM_SALT_LENGTH, IV_LENGTH, shaHash } from "@main/crypto/commons";
+import { createUUID, decrypt, encrypt, GCM_TAG_LENGTH, IV_LENGTH, shaHash } from "@main/crypto/commons";
 import { KEKParts } from "@main/crypto/keyFunctions";
 import { EntryUpdateCallback } from "@main/interfaces/EntryServiceInterfaces";
-import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
-import { Entry, ExtraField, RendererSafeEntry } from "@main/interfaces/VaultServiceInterfaces";
+import { Entry } from "@main/interfaces/VaultServiceInterfaces";
+import { RendererSafeEntry, ExtraField } from "@main/interfaces/EntryServiceInterfaces";
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 
@@ -172,8 +172,8 @@ export class EntryService extends EventEmitter{
                     if (extraField.isProtected){
                         // expect the extraField to be plaintext on first request and encrypt
                         
-                        const encrypted = encrypt(extraField.data, dek);
-                        extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                        const {iv, tag, encrypted} = encrypt(extraField.data, dek);
+                        extraField.data = Buffer.concat([iv, tag, encrypted])
                     }
                     entry.extraFields.push(extraField);
                     this.notifyUpdate(entryUUID);
@@ -232,7 +232,7 @@ export class EntryService extends EventEmitter{
         const wrappedDEK = entry.dek;
         let dek = decrypt(wrappedDEK.wrappedKey, kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
         try{
-            const aead_metadata_len = IV_LENGTH+GCM_SALT_LENGTH;
+            const aead_metadata_len = IV_LENGTH+GCM_TAG_LENGTH;
             const iv= extraField.data.subarray(0,IV_LENGTH);
             const tag= extraField.data.subarray(IV_LENGTH,aead_metadata_len);
             const encrypted= extraField.data.subarray(aead_metadata_len);
