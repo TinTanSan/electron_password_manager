@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { decrypt, encrypt, shaHash } from "../crypto/commons";
+import { ARGON_SALT_LENGTH, decrypt, encrypt, shaHash } from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {   makeNewKEK } from "../crypto/keyFunctions";
 import { openFile } from "../ipcHandlers/fileIPCHandlers";
@@ -33,7 +33,6 @@ class VaultService extends EventEmitter{
             this.vault.vaultMetadata.lastEditDate = now;
             this.entryService.getEntry(uuid).metadata.lastEditDate = now; 
             this.sync();
-            console.log('sync called at', now.toString())
         }else{
             console.log('unable to call onEntryUpdate without a vault');
         }
@@ -65,7 +64,7 @@ class VaultService extends EventEmitter{
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
-        const b64saltLength = (4 * Math.ceil( preferenceStore.get('saltLength') /3 ) );
+        const b64saltLength = (4 * Math.ceil( ARGON_SALT_LENGTH/3 ) );
         const hash = Buffer.from(this.vault.fileContents.subarray(0,idx-b64saltLength)).toString();
         
         const salt = Buffer.from(this.vault.fileContents.subarray(idx-b64saltLength,idx).toString(),'base64')
@@ -286,32 +285,7 @@ class VaultService extends EventEmitter{
         this.vault.fileContents = content
     }
     
-    async decryptPassword(uuid:string) {
-        const entry = this.vault.entries.get(uuid);
-        if(!entry){
-            return "";
-        }
-        try{
-            const dek = entry.dek;
-            // if the entry's password is empty then we do not attempt to decrypt
-            if (entry.password.length ===0 ){
-                return "";
-            }
-            // 12 byte iv, do not change the 12, we'll only ever use 12
-            const iv = entry.password.subarray(0,12);
-            // 16 byte tag
-            const tag = entry.password.subarray(12,28);
-            const encryptedPass = entry.password.subarray(28);
-            let unwrappedDEK = decrypt(dek.wrappedKey, this.vault.kek.kek, dek.tag, dek.iv);
-            const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
-            unwrappedDEK.fill(0);
-            unwrappedDEK = undefined;
-            
-            return password.toString();
-        }finally{
-
-        }
-    }
+    
 
     
 

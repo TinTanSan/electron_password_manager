@@ -1,4 +1,4 @@
-import { createUUID, decrypt, encrypt, shaHash } from "@main/crypto/commons";
+import { createUUID, decrypt, encrypt, GCM_SALT_LENGTH, IV_LENGTH, shaHash } from "@main/crypto/commons";
 import { KEKParts } from "@main/crypto/keyFunctions";
 import { EntryUpdateCallback } from "@main/interfaces/EntryServiceInterfaces";
 import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
@@ -134,7 +134,31 @@ export class EntryService extends EventEmitter{
         }
     }
 
-
+    async decryptPassword(uuid:string, kek:KEKParts) {
+        const entry = this.entries.get(uuid);
+        if(!entry){
+            return "";
+        }
+        const dek = entry.dek;
+        let unwrappedDEK = Buffer.from("");
+        try{
+            
+            // if the entry's password is empty then we do not attempt to decrypt
+            if (entry.password.length ===0 ){
+                return "";
+            }
+            // 12 byte iv, do not change the 12, we'll only ever use 12
+            const iv = entry.password.subarray(0,12);
+            // 16 byte tag
+            const tag = entry.password.subarray(12,28);
+            const encryptedPass = entry.password.subarray(28);
+            unwrappedDEK = decrypt(dek.wrappedKey, kek.kek, dek.tag, dek.iv);
+            const password = decrypt(encryptedPass, unwrappedDEK, tag,iv);
+            return password.toString();
+        }finally{
+            unwrappedDEK.fill(0)
+        }
+    }
     
     addExtraField(entryUUID:string, extraField:ExtraField, kek:KEKParts){
             const entry = this.entries.get(entryUUID);
@@ -208,9 +232,10 @@ export class EntryService extends EventEmitter{
         const wrappedDEK = entry.dek;
         let dek = decrypt(wrappedDEK.wrappedKey, kek.kek, wrappedDEK.tag, wrappedDEK.iv);    
         try{
-            const encrypted= extraField.data.subarray(0,extraField.data.length-24);
-            const iv= extraField.data.subarray(extraField.data.length-24,extraField.data.length-12);
-            const tag= extraField.data.subarray(extraField.data.length-12,extraField.data.length);
+            const aead_metadata_len = IV_LENGTH+GCM_SALT_LENGTH;
+            const iv= extraField.data.subarray(0,IV_LENGTH);
+            const tag= extraField.data.subarray(IV_LENGTH,aead_metadata_len);
+            const encrypted= extraField.data.subarray(aead_metadata_len);
             const response = decrypt(encrypted, dek, tag, iv);
             return {status:"OK", data:response};
         }catch(error:any){
@@ -224,17 +249,17 @@ export class EntryService extends EventEmitter{
 
     private getExtraFieldByName(entryUUID:string, extraFieldName:string):ExtraField{
         const entry = this.entries.get(entryUUID);
-        let extraField = entry.extraFields.find(x=>x.name===extraFieldName);
-        return extraField;
+        return entry.extraFields.find(x=>x.name===extraFieldName);;
     }
 
 
     extraFieldChangeIsProtected(entryUUID:string, extraFieldName:string, protectedness:boolean, kek:KEKParts){
         const entry = this.entries.get(entryUUID);
         let extraField= this.getExtraFieldByName(entryUUID, extraFieldName);
+        let status = "OK";
         if(!extraField) return status;
         try {
-            extraField.isProtected = protectedness;
+            
             // if the user wants to protect the extraField and it is not already protected
             if(protectedness && !extraField.isProtected){
                 const wrappedDEK = entry.dek;
@@ -242,9 +267,11 @@ export class EntryService extends EventEmitter{
                 try{
                     // expect the extraField to be plaintext on first request and encrypt
                     const encrypted = encrypt(extraField.data, dek);
-                    extraField.data = Buffer.concat([encrypted.encrypted, encrypted.iv, encrypted.tag])
+                    extraField.isProtected = protectedness;
+                    extraField.data = Buffer.concat([encrypted.iv, encrypted.tag,encrypted.encrypted]);
+                    return {status, data:extraField.data}
                 }catch (error){
-                    return "Error while encrypting: "+error;
+                    status= "Error while encrypting: "+error;
                 }finally{
                     dek.fill(0);
                     this.notifyUpdate(entryUUID);
@@ -255,13 +282,18 @@ export class EntryService extends EventEmitter{
                 const {status, data} = this.decryptExtraField(entryUUID, extraFieldName, kek);
                 if(status === "OK"){
                     extraField.data = data;
+                    extraField.isProtected = protectedness;
                     this.notifyUpdate(entryUUID);
                     extraField.isProtected = false;
                 }
-                return status
+                console.log('ok: ',status, data);
+                return {status, data}
             }
-
-            return (protectedness && extraField.isProtected) ? "ALREADY_PROTECTED" : "ALREADY_UNPROTECTED"
+            
+            return {
+                status: (protectedness && extraField.isProtected) ? "ALREADY_PROTECTED" : "ALREADY_UNPROTECTED" , 
+                data:undefined
+            }
         }catch (error) {
             return error;
         }
@@ -270,8 +302,16 @@ export class EntryService extends EventEmitter{
 
     removeExtraField(entryUUID:string, extraFieldName:string){
         let entry = this.entries.get(entryUUID);
-        entry.extraFields = entry.extraFields.filter(x=>x.name !== extraFieldName);
+        if (!entry){
+            return "ENT_NOT_FOUND"
+        }
+        const idx = entry.extraFields.findIndex(x=>x.name===extraFieldName);
+        if (idx === -1){
+            return "EF_NOT_FOUND";
+        }
+        entry.extraFields.splice(idx,1)
         this.notifyUpdate(entryUUID);
+        return "OK";
     }
 
 
