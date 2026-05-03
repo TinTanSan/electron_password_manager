@@ -85,9 +85,34 @@ ipcMain.handle('entry:changeEFProtection', async (_, uuid:string, name:string, p
         
 })
 
-ipcMain.handle('entry:removeExtraField', async (_, uuid, name)=>vaultService.entryService.removeExtraField(uuid,name))
+ipcMain.handle('entry:removeExtraField', async (_, uuid, name):Promise<IPCResponse<string>>=>{
+    const res = vaultService.entryService.removeExtraField(uuid,name);
+    if (res === "OK"){
+        return {
+            status:"OK",
+            response:"OK"
+        }
+    }else if(res === "EF_NOT_FOUND"){
+        return{
+            status:"CLIENT_ERROR",
+            message:"extra field not found",
+            response:""
+        }
+    }else if (res === "ENT_NOT_FOUND"){
+        return{
+            status:"CLIENT_ERROR",
+            message:"entry not found",
+            response:""
+        }
+    }
+    return {
+        status:"INTERNAL_ERROR",
+        message:"internal error, something went wrong",
+        response:"internal error"
+    }
+})
 
-ipcMain.handle('entry:decryptPass', async(_,uuid)=>vaultService.decryptPassword(uuid))
+ipcMain.handle('entry:decryptPass', async(_,uuid)=>entryService.decryptPassword(uuid, vaultService.vault.kek))
 
 ipcMain.handle('entry:updateEntry', async<K extends keyof Entry>(_: Electron.IpcMainInvokeEvent, uuid:string,fieldToUpdate:K, newValue:Entry[K]):Promise<IPCResponse<boolean>>=>{
     if (vaultService.entryService.updateEntry(uuid, fieldToUpdate, newValue)){
