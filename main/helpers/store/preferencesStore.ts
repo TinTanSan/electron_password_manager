@@ -11,7 +11,6 @@ export interface Preferences{
     fontSpacing: number;
     loadPreviousVault: boolean; 
     // password hash params
-    saltLength: number; // bytes
     timeCost: number,
     memoryCost: number,
     parallelism: number,
@@ -27,7 +26,6 @@ export const preferenceStore = new Store<Preferences>({defaults:{
     maxGeneratedPassLength: 50,
     clearClipboardTime: 10,
     fontSpacing: 1,
-    saltLength: 16,
     loadPreviousVault: true,
     timeCost: 3,
     memoryCost:65536, 
