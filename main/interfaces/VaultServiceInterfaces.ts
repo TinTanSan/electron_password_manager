@@ -1,17 +1,6 @@
 import { KEKParts } from "../crypto/keyFunctions";
+import { MetaData, ExtraField } from "./EntryServiceInterfaces";
 
-export interface MetaData{
-    createDate:Date,
-    lastEditDate:Date,
-    lastRotateDate:Date,
-    uuid: string;
-    version: string; 
-} 
-export interface ExtraField{
-    isProtected: boolean,
-    name: string,
-    data: Buffer
-}
 export interface DataEncryptionKey{
     wrappedKey: Buffer;
     iv: Buffer;
@@ -30,18 +19,6 @@ export interface Entry {
         isFavourite: boolean;
         extraFields: Array<ExtraField>;
         group: string;
-}
-
-export interface RendererSafeEntry{
-    metadata : MetaData;
-    title    : string;
-    username : string;
-    password : Buffer;
-    passHash : Buffer;
-    notes    : string; //notes field is optional for user to enter, but otherwise it will be an empty string 
-    isFavourite: boolean;
-    extraFields: Array<ExtraField>;
-    group: string;
 }
 
 export type vaultMetaData = {
