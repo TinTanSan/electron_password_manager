@@ -30,5 +30,5 @@ export function createUUID(){
     return crypto.randomUUID();
 }
 export const ARGON_SALT_LENGTH = 16; //bytes
-export const GCM_SALT_LENGTH = 12; //bytes
-export const IV_LENGTH = 16; //bytes
+export const GCM_TAG_LENGTH = 16; //bytes
+export const IV_LENGTH = 12; //bytes
