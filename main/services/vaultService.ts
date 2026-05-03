@@ -1,15 +1,13 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { ARGON_SALT_LENGTH, decrypt, encrypt, shaHash } from "../crypto/commons";
+import { ARGON_SALT_LENGTH} from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {   makeNewKEK } from "../crypto/keyFunctions";
 import { openFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
-import { createUUID } from "../crypto/commons";
-import { randomBytes } from "crypto";
 import { SyncService } from "./SyncService";
-import {Entry, ExtraField, RendererSafeEntry, Vault} from "../interfaces/VaultServiceInterfaces";
+import {Entry, Vault} from "../interfaces/VaultServiceInterfaces";
 import { IPCResponse } from "../interfaces/IPCCHannelInterface";
 import { EntryService } from "./EntryService";
 
@@ -284,11 +282,6 @@ class VaultService extends EventEmitter{
         this.syncService.updateBuffer(content);
         this.vault.fileContents = content
     }
-    
-    
-
-    
-
     async updateEntry<K extends keyof Entry>(uuid: string,fieldToUpdate:K, newValue:Entry[K]):Promise<IPCResponse<Entry>>{
         let entry = this.vault.entries.get(uuid);
         let isFieldInEntry = false;
