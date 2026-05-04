@@ -11,8 +11,12 @@ import ExtraFieldsTab from './ExtraFieldsTab';
 import { PreferenceContext } from '@contexts/preferencesContext';
 import RandomPassModal from './RandomPassModal';
 
+const defaultPassSettings = {
+    length:8,allowCapitals:true, allowNumbers:true, allowSpecChars:true, excludedChars:""
+}
+type RandomPassGeneratorSettings = typeof defaultPassSettings;
 
-export const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
+const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
     /*
 
     */
@@ -50,10 +54,7 @@ export const generateRandomPass = (settings:RandomPassGeneratorSettings):string 
 
 }
 
-// const scoreToColor = {0:'bg-error',1:'bg-error', 2:'bg-warning', 4:'bg-success', 3:'bg-info'}
-// const scoreToText = {0:'text-error',1:'text-error', 2:'text-warning', 4:'text-success', 3:'text-info'}
-// const scoreWidth = ['w-2','w-1/4', 'w-1/2', 'w-3/4', 'w-full'];
-const scoreStyling = {
+const passScoreStyle = {
     0: 'bg-error text-error w-2',
     1: 'bg-error text-error w-1/4',
     2: 'bg-warning text-warning w-1/2',
@@ -73,14 +74,6 @@ function handleGetFeedback( entrypass:string, passwordScore:{score:number, feedb
             return "Could be better"
         }
     }
-}
-
-export type RandomPassGeneratorSettings={
-    length:number,
-    allowCapitals:boolean, 
-    allowNumbers:boolean, 
-    allowSpecChars:boolean,
-    excludedChars: string,
 }
 
 type props ={
@@ -482,7 +475,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                         </div>
                                         <div className='flex flex-col p-1 w-full'>
                                             <div className='flex w-full bg-base-300 rounded-full overflow-hidden h-2'>
-                                                <div className={`flex ${scoreStyling[passwordScore.score]} h-full rounded-full transition-all duration-300`} />
+                                                <div className={`flex ${passScoreStyle[passwordScore.score]} h-full rounded-full transition-all duration-300`} />
                                             </div>
                                             <div>{handleGetFeedback(entryPass, passwordScore)}</div>
                                         </div>
