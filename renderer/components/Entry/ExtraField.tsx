@@ -8,16 +8,18 @@ import { IPCResponse } from '@utils/commons';
 type props = {
     extraField: ExtraField,
     entry:Entry,
+    onChangeProtectedNess: (name:string, protectedness:boolean)=>void,
     onDelete: (name:string)=>void 
 }
 
-export default function ExtraFieldComponent({extraField, entry, onDelete}:props) {
-  const {vault, setVault} = useContext(VaultContext);
-  const {banners, setBanners} = useContext(BannerContext);
+export default function ExtraFieldComponent({extraField, entry, onDelete, onChangeProtectedNess}:props) {
+  const {setVault} = useContext(VaultContext);
+  const {setBanners} = useContext(BannerContext);
   const [data, setData] = useState<Buffer>(Buffer.from(extraField.data));
   const [showData, setShowData] = useState((!extraField.isProtected)); //by default we set show data to be true if the extrafield is not protected
   const [ef, setEf] = useState<ExtraField>({...extraField, data:Buffer.from(extraField.data)});
   const [encryptedData, setEncryptedData] = useState<undefined | Buffer>(ef.isProtected?ef.data : undefined);
+  
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
     setEf(prev=>({
         ...prev,
@@ -49,12 +51,12 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
   // we assume that just clicking on the Expose/Protect button doesn't automatically update the field in the vault, the user must
   // confirm the action with the save button at the bottom.
   const handleChangeProtection = ()=>{
-    throw new Error("Implement via IPC channels")
-    
+    onChangeProtectedNess(extraField.name, !extraField.isProtected);
   }
 
   useEffect(()=>{
     setShowData(false);
+    setEf({...extraField, data:Buffer.from(extraField.data)});
   },[extraField])
 
   useEffect(()=>{
@@ -62,7 +64,7 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
       setData(Buffer.from(extraField.data));
       return;
     }
-    if (extraField.isProtected && showData && !data){
+    if (extraField.isProtected && showData){
         if (ef.isProtected){
           window.entryIPC.decryptExtraField(entry.metadata.uuid, extraField.name).then((response:IPCResponse<Buffer>)=>{
             if (response.status === "OK"){
@@ -75,9 +77,8 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
             }
           })
         }
-    }else if (!showData){
+    }else if (extraField.isProtected && !showData){
       setData(prev=>prev.fill(0));
-      setData(undefined)
     }
   },[showData])
 
@@ -88,23 +89,23 @@ export default function ExtraFieldComponent({extraField, entry, onDelete}:props)
 
   return (
     <div className='flex flex-col w-full h-80 shrink-0 border-2 text-base-content rounded-lg border-base-300 p-2 gap-2 bg-base-100'>
-      <div className='flex flex-col w-full h-full'>
+      <div className='flex flex-col w-full h-full gap-2'>
         <div className='flex flex-col w-full gap-1'>
           <div>Name</div>
           <input id='name' onChange={handleChange} className='flex border-2 rounded-md items-center px-1 h-8 border-base-300' value={ef.name}/>
         </div>
         <div className='flex flex-col w-full h-full gap-1'>
-          <div>Data</div>
-          <textarea readOnly={!showData} id='data' onChange={handleChange} className='flex border-2 border-base-300 outline-none rounded-lg h-full resize-none px-1' value={(!ef.isProtected || showData) ? data.toString(): "Click Reveal to show "} />
-          <div className='flex w-full h-8 gap-2'>
-          {ef.isProtected && <button className='flex border-2 border-neutral rounded-lg h-8 items-center justify-center w-1/2' onClick={()=>{setShowData(!showData)}}>Reveal</button>}
-          <button onClick={handleChangeProtection} className='flex border-2 border-warning text-warning-content w-1/2 items-center justify-center rounded-lg hover:bg-warning h-8'>{ef.isProtected? "Expose":"Protect"}</button>
+          <div className='flex flex-col w-full h-full border-2 border-base-300 rounded-lg'>
+              <textarea className='flex resize-none outline-none w-full h-full p-0.5' readOnly={!showData} id='data' onChange={handleChange} value={(!ef.isProtected || showData) ?data.toString()  : "Click reveal to show"} />
+              <div className='flex bg-base-200 h-10 shrink-0 items-center px-1 justify-between'>
+                {(ef.isProtected)&&  <button onClick={()=>{setShowData(prev=>!prev)}} className='flex w-fit px-5 bg-base-300 hover:bg-base-darken h-8 rounded-lg items-center justify-center '> {showData ? "hide":"reveal"}</button>}
+                <button onClick={handleChangeProtection} className='flex rounded-sm  w-fit px-2 cursor-pointer bg-base-300 hover:bg-base-darken ease-in-out duration-300 transition-all h-8 items-center justify-center'>{ef.isProtected ?"Decrypt" :"Protect"}</button>
+              </div>
           </div>
         </div>
       </div>
       <div className='flex flex-row w-full h-10 gap-2 duration-300 transition-all'>
         <button onClick={()=>{handleDelete()}} className='flex w-full items-center cursor-pointer justify-center rounded-lg h-8 hover:bg-error hover:text-error-content text-error border-error border-2'>Delete</button>
-        {/* {!hasChanged && <button className='flex justify-center items-center w-full border-2 rounded-lg cursor-pointer' onClick={handleConfirm}>Save Edits</button>} */}
       </div>
     </div>
 
