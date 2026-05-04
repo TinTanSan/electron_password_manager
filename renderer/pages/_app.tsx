@@ -24,7 +24,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     activityTimeOut.current = setTimeout(() => {
       setVault({...defaultVaultState})
       navigate.push('/loadFile')
-      console.log('vault locked due to timeout')
     }, 1000*preference.vaultLockTimeOut);
   }
   // REMEMBER to uncomment the resetTimeout, it is currently commented due to inconvenience of vault locking whilst developing
@@ -59,7 +58,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (vault && vault.filePath){
         setVault(defaultVaultState);
         navigate.push("/loadFile");
-        console.log(vault);
         return;
       }
       if (!vault){
@@ -74,7 +72,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(()=>{
     window.preferenceIPC.getAllPreferences().then((response)=>{
-      console.log('preferences set', response.response)
       setPreference(response.response);
     })
   },[])

@@ -32,7 +32,7 @@ export default function HomePage() {
     if(!vault || !vault.isUnlocked || !vault.filePath){
       navigate.push('/loadFile');
     }
-    console.log(entriesWithSamePass);
+
     window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
     document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length - 4) + " vault"
   },[])
