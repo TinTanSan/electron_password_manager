@@ -5,6 +5,7 @@ import { BannerContext } from '@contexts/bannerContext'
 import { addBanner } from '@interfaces/Banner'
 import ToggleSwitch from '@components/toggleSwitch'
 import Image from 'next/image'
+import { IPCResponse } from '@utils/commons'
 
 type props = {
     entry:Entry,
@@ -14,15 +15,22 @@ type props = {
 
 export default function ExtraFieldsTab({entry, setEntry}:props) {
     const {setBanners} = useContext(BannerContext);
-    
     const [newExtraField, setNewExtraField] = useState<ExtraField>({name:"", data:Buffer.from(""), isProtected:false});
     const [showNewExtraFieldForm, setShowNewExtraFieldForm] = useState(false);
 
     const handleDeleteExtraField = (name:string)=>{
-        window.entryIPC.removeExtraField(entry.metadata.uuid, name).then((response)=>{
-            setEntry(response);
+        window.entryIPC.removeExtraField(entry.metadata.uuid, name).then((response:IPCResponse<string>)=>{
+            if (response.status === "OK"){
+                setEntry(prev=>({...prev,extraFields:prev.extraFields.filter(x=>x.name !== name)}));
+            }else if (response.status === "CLIENT_ERROR"){
+                addBanner(setBanners, response.message, 'error')
+            }else{
+                addBanner(setBanners, 'internal error', 'error');
+                console.error(response);
+            }
         })
     }
+    
     const handleAddExtraField = (e:FormEvent)=>{
         e.preventDefault();
         if (newExtraField.name.length === 0){
@@ -47,6 +55,23 @@ export default function ExtraFieldsTab({entry, setEntry}:props) {
 
     }
 
+    const handleExtraFieldChangeProtection = (name:string, protectedness:boolean)=>{
+        window.entryIPC.changeEFProtection(entry.metadata.uuid, name, protectedness).then((response:IPCResponse<Buffer>)=>{
+            if (response.status === "OK"){
+                const res = Buffer.from(response.response);
+                setEntry(prev=>({...prev, 
+                    extraFields:[
+                    ...prev.extraFields.filter(x=>x.name !== name), 
+                    {name, data:res, isProtected:protectedness}
+                ]}))
+            }else if (response.status === "CLIENT_ERROR"){
+                addBanner(setBanners, response.message, 'error');
+            }else{
+                addBanner(setBanners, 'internal error', 'error');
+                console.error(response);
+            }
+        })
+    }
     
     const handleChange =(e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === "data"){
@@ -63,7 +88,7 @@ export default function ExtraFieldsTab({entry, setEntry}:props) {
                 <input type="text" placeholder='search for an extra field' className='flex w-full h-8 px-1 rounded-lg border-2 border-base-300 focus:border-primary outline-none' />
             </div>
             <div className='flex text-sm flex-col p-1 rounded-lg w-full h-full overflow-y-auto gap-2 border bg-base-200 border-base-300'>
-                {entry.extraFields.map(ef=><ExtraFieldComponent key={ef.name} extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
+                {entry.extraFields.map(ef=><ExtraFieldComponent key={ef.name} onChangeProtectedNess={handleExtraFieldChangeProtection} extraField={ef} entry={entry} onDelete={handleDeleteExtraField} />)}
             </div>
             {/* add extrafield form */}
             <div className='flex flex-col w-full h-fit justify-center items-center border-2 p-1 border-base-300 rounded-lg text-base-content'>
