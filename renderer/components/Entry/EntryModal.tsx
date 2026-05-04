@@ -1,4 +1,4 @@
-import React, { FormEvent, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useMemo, useState } from 'react'
 import { VaultContext } from '@contexts/vaultContext';
 import { Entry, ExtraField } from '@interfaces/Entry';
 import { BannerContext } from '@contexts/bannerContext';
@@ -6,53 +6,11 @@ import { addBanner } from '@interfaces/Banner';
 import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLetters } from '@utils/commons';
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
-import Slider from '../Slider';
 import ExtraFieldsTab from './ExtraFieldsTab';
 import { PreferenceContext } from '@contexts/preferencesContext';
 import RandomPassModal from './RandomPassModal';
 
-const defaultPassSettings = {
-    length:8,allowCapitals:true, allowNumbers:true, allowSpecChars:true, excludedChars:""
-}
-type RandomPassGeneratorSettings = typeof defaultPassSettings;
 
-const generateRandomPass = (settings:RandomPassGeneratorSettings):string =>{
-    /*
-
-    */
-    let upperCaseLettersToUse = settings.allowCapitals?Math.ceil(Math.random()*settings.length/4) : 0;
-    let digitsToUse = settings.allowNumbers?Math.ceil(Math.random()*settings.length/4) : 0;
-    let specCharsToUse = settings.allowSpecChars?Math.ceil(Math.random()*settings.length/4) : 0;
-    let normalCharsToUse = settings.length - Math.floor(upperCaseLettersToUse)- Math.floor(digitsToUse) - Math.floor(specCharsToUse)
-    let ret = "";
-    const excludC = settings.excludedChars ? settings.excludedChars.split(""): [];
-    const allowedLowercaseLetters = excludC.length > 0? lowerCaseLetters.filter(x=>!excludC.includes(x)) : lowerCaseLetters;
-    const allowedUpperCaseLetters = excludC.length > 0? upperCaseLetters.filter(x=>!excludC.includes(x)): upperCaseLetters;
-    const allowedNumbers = excludC.length > 0? digits.filter(x=>!excludC.includes(x)): digits;
-    const allowedSpecChars = excludC.length > 0? asciiSafeSpecialChars.filter(x=>!excludC.includes(x)): asciiSafeSpecialChars;
-    while (ret.length < settings.length){
-        // decide what to use:
-        let charType = Math.floor(Math.random()*4)
-        if (charType == 0 && normalCharsToUse > 0){
-            ret += allowedLowercaseLetters[Math.floor(Math.random()*allowedLowercaseLetters.length)];
-            normalCharsToUse -=1;
-        }
-        if (charType == 1 && upperCaseLettersToUse > 0){
-            ret += allowedUpperCaseLetters[Math.floor(Math.random()*allowedUpperCaseLetters.length)];
-            upperCaseLettersToUse -=1
-        }
-        if (charType == 2 && digitsToUse > 0){
-            ret += allowedNumbers[Math.floor(Math.random()*allowedNumbers.length)];
-            digitsToUse -=1
-        }
-        if (charType == 3 && specCharsToUse > 0){
-            ret += allowedSpecChars[Math.floor(Math.random()*allowedSpecChars.length)];
-            specCharsToUse-=1
-        }
-    }
-    return ret;
-
-}
 
 const passScoreStyle = {
     0: 'bg-error text-error w-2',
@@ -105,15 +63,8 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const [entryPass, setEntryPass] = useState("");
     const [passwordScore, setpasswordScore] = useState({score:0, feedback:""});    
     // for random password
-    const [randomSettings, setRandomSettings] = useState<RandomPassGeneratorSettings>({length:8,allowCapitals:true, allowNumbers:true, allowSpecChars:true, excludedChars:""});
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
-    const [showRandomPass, setShowRandomPass] = useState(false);
-    const [randomPass, setRandomPass] = useState("");
-
-    const [extraFeild, setExtraFeild] = useState<ExtraField>({name:"", data:Buffer.from(''), isProtected:false});
-    const [extraFieldSearch, setEFSearch] = useState("");    
-    const [collapseNewEf, setCollapseNewEf] = useState(true);
-
+    // groups
     const [groups, setGroups] = useState([]);
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
     
@@ -191,53 +142,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         
     }
 
-    const handleAddExtraField = ()=>{
-        if (extraFeild.name){
-
-
-
-            throw new Error("Implement via IPC calls");
-            // entry.addExtraField(vault.kek,extraFeild).then((e:Entry)=>{
-            //     if (!e){
-            //         addBanner(bannerContext, 'Could not add Extra field, another one with that name already exists', 'error')
-            //     }else{
-            //         setEntry(e);
-            //         setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
-            //         setVault(prev=>{
-            //             let newEntries = vault.entries.map(x => x.metadata.uuid === uuid ? e : x);
-            //             return prev.mutate('entries', newEntries);
-            //         })
-            //     }
-                
-            // })
-        }else{
-            addBanner(setBanners, 'Banner not added, no name provided','info')
-        }
-        
-    }
-
-    const handleDeleteExtraField = (name:string)=>{
-        throw new Error("Implement via IPC calls")
-        // setEntry(prev=>{
-            
-        //     // const newState = prev.removeExtraField(name);
-        //     // setVault(prev=>prev.mutate('entries',prev.entries.map((x)=>x.metadata.uuid !== uuid? x : newState)))
-        //     // return newState;
-        // })
-        
-        
-    }
-
-    const handleClearFields = ()=>{
-        setExtraFeild({name:"", data:Buffer.from(''), isProtected:false})
-    }
-
-    const handleChangeExtraField = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
-        e.target.id !== 'data'?
-            setExtraFeild(prev=>({...prev, [e.target.id]:e.target.value}))
-        :
-            setExtraFeild(prev=>({...prev, [e.target.id]:Buffer.from(e.target.value)}))
-    }
+    
     
     const handleMakeFavourite = ()=>{
         window.entryIPC.updateEntryField(uuid, 'isFavourite', !entry.isFavourite).then((response)=>{
@@ -256,26 +161,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
             addBanner(setBanners, "unable to favourite entry, check logs if you're a dev", 'error');
             console.error(error)
         })
-    }
-    const handleRandomPassSettingChange =(settingtoChange:string, val?:string)=>{
-        if (settingtoChange === "length"){
-            let length = parseInt(val);
-            if (!Number.isNaN(length)){
-                if (length <= 0){
-                    length = 8;
-                }
-                if (length >preference.maxGeneratedPassLength){
-                    length = preference.maxGeneratedPassLength;
-                }    
-            }
-            setRandomSettings((prev)=>({...prev, length}))
-        }else if (settingtoChange === "allowCapitals") {
-            setRandomSettings((prev)=>({...prev, allowCapitals:!prev.allowCapitals}))
-        }else if (settingtoChange === "allowNumbers") {
-            setRandomSettings((prev)=>({...prev, allowNumbers:!prev.allowNumbers}))
-        }else if (settingtoChange === "allowSpecChars") {
-            setRandomSettings((prev)=>({...prev, allowSpecChars:!prev.allowSpecChars}))
-        }
     }
 
     const handleDeleteEntry = ()=>{
@@ -390,11 +275,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         setpasswordScore({score:pscore.score, feedback:pscore.feedback.warning});
     },[entryPass]);
 
-    useEffect(()=>{
-        if (!Number.isNaN(randomSettings.length) && showRandomPassModal){
-            setRandomPass(generateRandomPass(randomSettings))
-        }
-    },[randomSettings])
 
     useEffect(()=>{
         window.entryIPC.decryptPass(entry.metadata.uuid).then((response)=>{
