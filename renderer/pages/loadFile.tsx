@@ -147,7 +147,7 @@ export default function LoadFile() {
                         setunlocked(false);
                         setVault(prev=>({...prev, isUnlocked:true,entries: response.entriesToDisplay}))
                         navigate.push('/home');    
-                    }, 2500);
+                    }, 1500);
                     
                 }else{
                     addBanner(setBanners, 'incorrect password','error');
