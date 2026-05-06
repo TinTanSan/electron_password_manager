@@ -1,5 +1,4 @@
 import React from 'react';
-import {BannerCTXType} from '../contexts/bannerContext';
 
 
 export interface BannerDetails{
