@@ -1,5 +1,4 @@
 import Sidebar from '@components/Sidebar';
-import Slider from '@components/Slider';
 import ToggleSwitch from '@components/toggleSwitch';
 import { BannerContext } from '@contexts/bannerContext';
 import { PreferenceContext, preferenceInputMapper, PreferenceType } from '@contexts/preferencesContext';
@@ -9,6 +8,10 @@ import { cmpObj, IPCResponse } from '@utils/commons';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useRef, useState } from 'react'
+
+const argonMemCostExplanation = "Determines how much RAM is required to unlock your vault";
+const argonTmeCost = "Sets the number of mathematical iterations the hashing process performs";
+const argonParallelismCost = "Specifies how many processor cores the app can use simultaneously to perform the calculation";
 
 
 export default function Settings() {
