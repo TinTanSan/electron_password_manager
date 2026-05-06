@@ -13,6 +13,6 @@ export const preferenceStore = new Store({defaults:{
     timeCost: 3,
     memoryCost:65536, 
     parallelism:4, 
-    hashLength:32,
+    bannerTimeout: 3000,
 }})
 export type Preferences = typeof preferenceStore;
