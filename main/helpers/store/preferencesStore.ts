@@ -1,6 +1,6 @@
 import Store from 'electron-store';
 
-export const preferenceStore = new Store({defaults:{
+const defaults = {
     fontSize: 16,
     vaultLockTimeOut: 30,
     keyRotationPeriod: 90,
@@ -14,5 +14,8 @@ export const preferenceStore = new Store({defaults:{
     memoryCost:65536, 
     parallelism:4, 
     bannerTimeout: 3000,
-}})
-export type Preferences = typeof preferenceStore;
+}
+
+
+export const preferenceStore = new Store({defaults})
+export type Preferences = typeof defaults;
