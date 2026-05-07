@@ -59,17 +59,17 @@ export const securityPreferenceDefaults = {
 export type SecurityPreferenceType = typeof securityPreferenceDefaults;
 
 export const securityPreferencePresets:Record<string, SecurityPreferenceType> ={
-    'Standard':{
+    'standard':{
         argonTimeCost: 3,
         argonMemCost: 65536,
         argonParallelism: 4,
     },
-    "High":{
+    "high":{
         argonTimeCost: 8,
         argonMemCost: 262144,
         argonParallelism: 8,
     },
-    "Paranoid":{
+    "paranoid":{
         argonTimeCost: 16,
         argonMemCost: 524288,
         argonParallelism: 8,
