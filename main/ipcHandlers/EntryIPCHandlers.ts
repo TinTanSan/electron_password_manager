@@ -1,9 +1,9 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
 import { Entry } from "../interfaces/VaultServiceInterfaces";
-import { RendererSafeEntry } from "@main/interfaces/EntryServiceInterfaces";
-import { trustedIDS } from "@main/background";
-import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
+import { RendererSafeEntry } from "#main/interfaces/EntryServiceInterfaces";
+import { trustedIDS } from "#main/background";
+import { IPCResponse } from "#main/interfaces/IPCCHannelInterface";
 
 
 const entryService = vaultService.entryService;

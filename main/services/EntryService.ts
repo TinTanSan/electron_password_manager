@@ -1,8 +1,8 @@
-import { createUUID, decrypt, encrypt, GCM_TAG_LENGTH, IV_LENGTH, shaHash } from "@main/crypto/commons";
-import { KEKParts } from "@main/crypto/keyFunctions";
-import { EntryUpdateCallback } from "@main/interfaces/EntryServiceInterfaces";
-import { Entry } from "@main/interfaces/VaultServiceInterfaces";
-import { RendererSafeEntry, ExtraField } from "@main/interfaces/EntryServiceInterfaces";
+import { createUUID, decrypt, encrypt, GCM_TAG_LENGTH, IV_LENGTH, shaHash } from "#main/crypto/commons";
+import { KEKParts } from "#main/crypto/keyFunctions";
+import { EntryUpdateCallback } from "#main/interfaces/EntryServiceInterfaces";
+import { Entry } from "#main/interfaces/VaultServiceInterfaces";
+import { RendererSafeEntry, ExtraField } from "#main/interfaces/EntryServiceInterfaces";
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 

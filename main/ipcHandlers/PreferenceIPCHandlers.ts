@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { IPCResponse } from "../interfaces/IPCCHannelInterface";
-import { Preferences, preferenceStore } from "@main/helpers/store/preferencesStore";
+import { Preferences, preferenceStore } from "#main/helpers/store/preferencesStore";
 
 ipcMain.handle('preference:getAll', (_):IPCResponse<Preferences>=>{
     return {

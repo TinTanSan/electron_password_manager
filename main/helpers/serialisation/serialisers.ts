@@ -1,5 +1,5 @@
 import { DataEncryptionKey, Entry, EntryGroup,Vault, vaultMetaData } from "../../interfaces/VaultServiceInterfaces";
-import { MetaData as EntryMetaData, ExtraField } from "@main/interfaces/EntryServiceInterfaces";
+import { MetaData as EntryMetaData, ExtraField } from "#main/interfaces/EntryServiceInterfaces";
 import { dekSplit, entryConstituents, entryGroupSplit, entryGroupsSplit, entryMDVersionConstituents, entrySplit, extraFieldsSplit, vaultConstituents, vaultMDVersionConstituents } from "./rules";
 
 export const serialisers = {

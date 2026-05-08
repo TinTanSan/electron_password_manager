@@ -13,10 +13,9 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths":{
-      "@main/*" : ["main/*"] ,
-      "@renderer/*": ["renderer/*"],
+      "#main/*" : ["main/*"]
     },
     "jsx": "preserve"
   },

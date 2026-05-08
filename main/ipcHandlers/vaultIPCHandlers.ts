@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { vaultService } from "../services/vaultService";
-import { IPCResponse } from "@main/interfaces/IPCCHannelInterface";
+import { IPCResponse } from "#main/interfaces/IPCCHannelInterface";
 
 ipcMain.handle('vault:getNumEntries', async()=>vaultService.entryService.getNumEntries())
 
