@@ -30,6 +30,10 @@ export default function NewEntryForm({setShowForm}:props) {
         }
     }
 
+    const handleChangeProtectedness = (_:string, protectedness:boolean)=>{
+        setExtraField(prev=>({...prev, isProtected:protectedness}));
+    }
+
 
     const [showPass, setShowPass] = useState(false);
     const [showRandomPassModal, setShowRandomPassModal] = useState(false);
@@ -193,7 +197,7 @@ export default function NewEntryForm({setShowForm}:props) {
                     </div>
                         <div className='flex flex-col w-full h-full gap-2 border-2 border-base-300 rounded-lg overflow-y-auto'>
                             {entry.extraFields.map((ef, i)=>
-                                <ExtraFieldComponent extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
+                                <ExtraFieldComponent onChangeProtectedNess={handleChangeProtectedness} extraField={ef} entry={entry} key={i} onDelete={handleRemoveExtraField}/>
                             )}
                             {entry.extraFields.length === 0 && <p className='text-normal opacity-50 w-full h-full justify-center items-center flex'>Extrafields you add will show up here</p>}
                         </div>
