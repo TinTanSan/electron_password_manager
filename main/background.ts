@@ -1,10 +1,3 @@
-import tscConfig from '../tsconfig.json';
-import * as tsconfigPaths from 'tsconfig-paths';
-
-tsconfigPaths.register({
-  baseUrl: tscConfig.compilerOptions.baseUrl,
-  paths: tscConfig.compilerOptions.paths
-});
 import path from 'path'
 import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
