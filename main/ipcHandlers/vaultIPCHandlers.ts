@@ -25,7 +25,6 @@ ipcMain.handle('vault:open', (_,filePath):IPCResponse<string>=>{
 
 ipcMain.handle('vault:unlock',(_, password)=>vaultService.unlockVault(password))
 
-ipcMain.on('vault:lock', ()=>vaultService.lockVault())
 
 ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
