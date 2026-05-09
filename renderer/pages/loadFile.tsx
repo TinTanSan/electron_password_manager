@@ -7,6 +7,7 @@ import FancyInput from '@components/fancyInput'
 import { isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
 import { PreferenceContext } from '@contexts/preferencesContext';
+import Link from 'next/link';
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
     const navigate = useRouter()
@@ -238,69 +239,71 @@ export default function LoadFile() {
         })
     }
 
-
-    
-
   return (
     (vault === undefined || !vault.filePath) ? 
     <div className='flex flex-col h-screen w-screen items-center bg-base-200 gap-20 text-base-content p-5'>
-            <div className='flex flex-col w-full h-2/3 gap-2 justify-start overflow-y-auto  bg-base-100 rounded-lg border-2 border-base-300'>
-                <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
-                <div className='flex flex-col w-full h-fit gap-2 p-2 items-center'>
-                    {
-                        recent.map((recentFile,i)=>(
-                            <div  key={i} className='flex justify-between z-0  p-1 h-10 gap-2 w-full'>
-                                <div onClick={()=>{handleRemoveRecent(recentFile)}} className='flex w-fit min-w-8 h-full items-center justify-center group cursor-pointer'>
-                                    <p className='group-hover:items-center group-hover:text-nowrap duration-300 w-0 h-full group-hover:w-44 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Remove from List</p>
-                                    <Image src={"/images/remove.svg"} alt='remove' width={0} height={0} className='flex w-8 h-8 border-2 border-info rounded-full'/>
-                                </div>
-                                <div onClick={()=>{handleOpenFile(recentFile)}} className='flex bg-base-200 border-base-300 border-2 px-1 items-center text-ellipsis rounded-md hover:bg-base-300 w-full h-full cursor-pointer'>
-                                    {recentFile.replace("/","")}
-                                </div>                                
-                                <div onClick={()=>{setShowDeleteConfirmationPopup(true); setVaultToDelete(recentFile)}} className='flex w-fit h-fit items-center group'>
-                                    <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-fit group-hover:px-2 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
-                                    <Image  src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border  hover:brightness-20' width={0} height={0}/>
-                                </div>
 
+        <div className='flex flex-col w-full h-2/3 gap-2 justify-start overflow-y-auto  bg-base-100 rounded-lg border-2 border-base-300'>
+            <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
+            <div className='flex flex-col w-full h-fit gap-2 p-2 items-center'>
+                {
+                    recent.map((recentFile,i)=>(
+                        <div  key={i} className='flex justify-between z-0  p-1 h-10 gap-2 w-full'>
+                            <div onClick={()=>{handleRemoveRecent(recentFile)}} className='flex w-fit min-w-8 h-full items-center justify-center group cursor-pointer'>
+                                <p className='group-hover:items-center group-hover:text-nowrap duration-300 w-0 h-full group-hover:w-44 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Remove from List</p>
+                                <Image src={"/images/remove.svg"} alt='remove' width={0} height={0} className='flex w-8 h-8 border-2 border-info rounded-full'/>
                             </div>
-                        ))
-                    }
-                    {
-                     showDeleteConfirmationPopup && 
-                        <div className='flex flex-col z-10 border-2 rounded-lg border-base-300 bg-base-100 shadow-lg w-1/3 h-1/5 gap-2 absolute top-1/3'>
-                            <p className='flex h-1/4 w-full justify-center p-1 text-lg'>Delete Vault?</p>
-                            <div className='flex w-full h-3/4 gap-2 flex-col bg-base-300 p-2 rounded-b-md'>
-                            <p className='flex w-full h-full'>
-                                Deleting the vault means you will lose all the passwords you kept inside of it.
-                            </p>
-                            <div className='flex w-full h-full gap-5 justify-between'>
-                                <button onClick={()=>{setShowDeleteConfirmationPopup(false); setVaultToDelete("")}} className='flex border-2 px-2 bg-base-100 hover:bg-base-200 hover:text-info-content text-base-content w-full items-center justify-center rounded-lg  border-neutral'>Cancel</button>
-                                <button onClick={handleDeleteVault} className='flex border-2 px-2 hover:bg-error hover:text-error-content bg-base-100 text-error w-full items-center justify-center rounded-lg  border-error'>Confirm</button>
+                            <div onClick={()=>{handleOpenFile(recentFile)}} className='flex bg-base-200 border-base-300 border-2 px-1 items-center text-ellipsis rounded-md hover:bg-base-300 w-full h-full cursor-pointer'>
+                                {recentFile.replace("/","")}
+                            </div>                                
+                            <div onClick={()=>{setShowDeleteConfirmationPopup(true); setVaultToDelete(recentFile)}} className='flex w-fit h-fit items-center group'>
+                                <p className='group-hover:items-center duration-300 w-0 h-full group-hover:w-fit group-hover:px-2 overflow-hidden group-hover:text-error-content font-medium justify-center items-center transition-all'>Delete</p>
+                                <Image  src={'/images/delete_red.svg'} alt='delete' className='peer flex w-8 h-full z-10 hover:border  hover:brightness-20' width={0} height={0}/>
                             </div>
-                            </div>
+
                         </div>
-                    }
-                </div>
-                
-            </div>
-            
-            <div className="grid grid-flow-row-dense gap-5 row-span-1 justify-center">
-                <div className='grid grid-flow-row-dense row-span-1 justify-center text-wrap shrink flex-wrap'>
-                    To load an existing vault click Load vault, otherwise create a new vault using the create vault button.
-                </div>
-                <div className='grid grid-flow-row-dense lg:grid-flow-col-dense  gap-5 row-span-1 justify-center'>
-                    <button onClick={()=>{handleOpenFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
-                        load Vault
-                    </button>
-                    <button onClick={()=>{handleCreateFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
-                        Create Vault
-                    </button>
-                </div>
+                    ))
+                }
+                {
+                    showDeleteConfirmationPopup && 
+                    <div className='flex flex-col z-10 border-2 rounded-lg border-base-300 bg-base-100 shadow-lg w-1/3 h-1/5 gap-2 absolute top-1/3'>
+                        <p className='flex h-1/4 w-full justify-center p-1 text-lg'>Delete Vault?</p>
+                        <div className='flex w-full h-3/4 gap-2 flex-col bg-base-300 p-2 rounded-b-md'>
+                        <p className='flex w-full h-full'>
+                            Deleting the vault means you will lose all the passwords you kept inside of it.
+                        </p>
+                        <div className='flex w-full h-full gap-5 justify-between'>
+                            <button onClick={()=>{setShowDeleteConfirmationPopup(false); setVaultToDelete("")}} className='flex border-2 px-2 bg-base-100 hover:bg-base-200 hover:text-info-content text-base-content w-full items-center justify-center rounded-lg  border-neutral'>Cancel</button>
+                            <button onClick={handleDeleteVault} className='flex border-2 px-2 hover:bg-error hover:text-error-content bg-base-100 text-error w-full items-center justify-center rounded-lg  border-error'>Confirm</button>
+                        </div>
+                        </div>
+                    </div>
+                }
             </div>
             
         </div>
+        
+        <div className="grid grid-flow-row-dense gap-5 row-span-1 justify-center">
+            <div className='grid grid-flow-row-dense row-span-1 justify-center text-wrap shrink flex-wrap'>
+                To load an existing vault click Load vault, otherwise create a new vault using the create vault button.
+            </div>
+            <div className='grid grid-flow-row-dense lg:grid-flow-col-dense  gap-5 row-span-1 justify-center'>
+                <button onClick={()=>{handleOpenFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
+                    load Vault
+                </button>
+                <button onClick={()=>{handleCreateFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
+                    Create Vault
+                </button>
+            </div>
+        </div>
+        
+    </div>
     :
     <div className='flex justify-center items-center w-screen h-screen bg-base-200'>
+        <Link href={'/settings'} className='group cursor-pointer flex absolute top-5 left-2 h-10 border-2 rounded-full w-fit shrink-0 items-center '>
+            <Image className='flex w-full h-full'  src={'/images/settings.svg'} alt='settings' width={0} height={0} />
+            <span className='group-hover:w-fit group-hover:visible group-hover:px-1 group-hover:flex w-0 collapse text-nowrap'>Settings</span>
+        </Link>
        <div className={` flex flex-col bg-base-100 text-base-content w-2/5 max-w-187.5 max-h-200 h-2/3 rounded-xl p-5 shadow-lg border-base-300 border-2 gap-4 items-center animate-modal-open `}>
             <div className='flex justify-center w-full text-title font-bold'>{requiresInitialisation?"Set up Vault":"Unlock Vault"}</div>
             <div className='flex w-full h-fit justify-center flex-col items-center'>
