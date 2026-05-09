@@ -4,22 +4,22 @@ import { defaultVaultState, VaultContext } from '../contexts/vaultContext';
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 export default function Sidebar() {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
-    const {banners, setBanners} = useContext(BannerContext);
+    const {setBanners} = useContext(BannerContext);
     const {vault, setVault} = useContext(VaultContext);
-    const handleLock = ()=>{
-        window.clipBoardIPC.clearClipboard();
-        window.vaultIPC.lockVault();
-        setVault(prev=>({...prev, isUnlocked:false}))
-        setBanners([]);
-        addBanner(setBanners, 'Vault locked', 'info');
-    }
+    const router = useRouter();
+
     const handleClose = ()=>{
         setBanners([])
-        window.vaultIPC.closeVault();
-        addBanner(setBanners, "Vault Closed successfully", 'info')
-        setVault({...defaultVaultState});
+        if (!vault || !vault.filePath){
+            router.push('/loadFile')
+        }else{
+            window.vaultIPC.closeVault();
+            addBanner(setBanners, "Vault Closed successfully", 'info')
+            setVault({...defaultVaultState});    
+        }
     }
     return (
         <div className={`flex flex-col relative justify-center shadow-[0.5rem_0_1.25rem_rgba(0,0,0,0.1)] ${hamburgerOpen?'xs:w-1/2 sm:w-1/4 items-end':'w-14 items-center'} h-full transition-all duration-400 bg-base-100 p-2`}>
@@ -33,7 +33,7 @@ export default function Sidebar() {
                         <div className='flex flex-col gap-2 w-full h-fit text-lg '>
                             <h1 className='flex w-full text-subheading'>Entries</h1>  
                             <div className='flex flex-col gap-2 w-full h-fit pl-5 text-normal'>
-                                <Link href={"/home"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</Link> 
+                                <Link  href={"/home"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>All Entries</Link> 
                                 <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Starred</h3>
                                 <Link href={"/groups"} className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Groups</Link>
                                 <h3 className='flex w-fit text-nowrap overflow-ellipsis overflow-hidden max-w-full'>Expiring Passwords</h3>
@@ -83,7 +83,7 @@ export default function Sidebar() {
                         <Image onClick={()=>{}} src={"/images/lock.svg"} alt='lock' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                     </div> */}
                     <div onClick={handleClose}  className='flex w-fit h-fit p-0.5 border-3 border-error rounded-lg group hover:bg-error'>
-                        <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>close & exit vault</span>
+                        <span className='group-hover:visible invisible absolute left-11 bg-white border-[0.5px] border-neutral text-warning-content rounded-sm px-2 w-fit text-nowrap'>{vault.isUnlocked?"close & exit vault":"Back to home"}</span>
                         <Image  src={"/images/exit.svg"} alt='exit' width={0} height={0} className='flex w-8 h-8 group-hover:saturate-[5] group-hover:brightness-15' />
                     </div>
                 </div>
