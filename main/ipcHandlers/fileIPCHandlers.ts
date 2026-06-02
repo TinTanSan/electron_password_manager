@@ -33,15 +33,14 @@ const handleAddRecent = (filePath:string)=>{
 export const openFile  = (filePath)=>{
    if (fs.existsSync(filePath)){
     handleAddRecent(filePath);
-    return {fileContents:Buffer.from(fs.readFileSync(filePath)), filePath: filePath, status:"OK"};
+    return {fileContents:Buffer.from(fs.readFileSync(filePath)), status:"OK"};
   }else{
-    return {fileContents:undefined, filePath:filePath, status:"NOTFOUND"};
+    return {fileContents:undefined, status:"NOTFOUND"};
   }
 
 }
 
-export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
-  const {filePath, toWrite} = args;
+export const writeToFile = (filePath:string, toWrite: Buffer | string)=>{
     if (fs.existsSync(filePath)){
       fs.writeFileSync(filePath, toWrite);
       return "OK";
@@ -50,8 +49,7 @@ export const writeToFile = (args:{filePath:string, toWrite: Buffer | string})=>{
     }
 }
 
-export const writeToFileAsync = async (args:{filePath:string, toWrite: Buffer | string})=>{
-  const {filePath, toWrite} = args;
+export const writeToFileAsync = async (filePath:string, toWrite: Buffer | string)=>{
     if (fs.existsSync(filePath)){
       fs.writeFile(filePath, toWrite, (err)=>{
         console.error(err);
@@ -92,7 +90,6 @@ ipcMain.handle('fileDialog:create', async():Promise<IPCResponse<string>>=>{
 ipcMain.handle('fileDialog:open', async():Promise<IPCResponse<{fileContents:string, filePath:string}>>=>{
   const fileDialog = await dialog.showOpenDialog({properties:['openFile']});
   const fileOpened = ( fileDialog).filePaths[0];
-  console.log(fileDialog, fileOpened);
   if (!fileDialog.canceled){    
     if (!fileOpened.endsWith(".vlt")){
 
