@@ -3,9 +3,7 @@ import { app, clipboard, ipcMain } from 'electron'
 import serve from 'electron-serve'
 import { createWindow} from './helpers'
 import {vaultService } from './services/vaultService';
-import { setupMenus } from './helpers/setupMenus';
 const isProd = process.env.NODE_ENV === 'production'
-
 if (isProd) {
   serve({ directory: 'app' })
 } else {
