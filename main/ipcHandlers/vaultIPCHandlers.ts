@@ -28,7 +28,14 @@ ipcMain.handle('vault:unlock',(_, password)=>vaultService.unlockVault(password))
 
 ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
-ipcMain.handle('vault:setPass', async (_,password)=>vaultService.setMasterPassword(password))
+ipcMain.handle('vault:setPass', async (_,password):Promise<IPCResponse<boolean>>=>{
+    const res = await vaultService.setMasterPassword(password);
+    return {
+        status:res === "OK"? "OK":"INTERNAL_ERROR",
+        message: (res!=="OK") && "Unable to set master password, vault file not found",
+        response:res === "OK"
+    }
+})
 
 ipcMain.handle('vault:getEntriesWithSamePass', async(_):Promise<IPCResponse<Array<string>>>=>{
     
