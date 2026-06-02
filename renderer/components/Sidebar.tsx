@@ -27,7 +27,7 @@ export default function Sidebar() {
                 <Image onClick={()=>{setHamburgerOpen(prev=>!prev)}} src={hamburgerOpen?"/images/close_black.svg":'/images/menu.svg'} alt='menu' width={0} height={0} className={`flex ${hamburgerOpen?'w-6':'w-8'} h-auto shrink-0 `} />
             </div>
 
-            <div className='flex flex-col  w-full h-full [&_a]:hover:text-primary [&_a]:cursor-pointer'>{hamburgerOpen? 
+            <div className='flex flex-col  w-full h-full [&_a]:hover:text-primary [&_a]:focus:text-primary [&_a]:focus:outline-none [&_a]:cursor-pointer'>{hamburgerOpen? 
                 <div className='flex flex-col gap-5 w-full h-full   '>
                     <div className='flex flex-col gap-5 w-full h-1/4 shrink-0 text-base-content'>
                         <div className='flex flex-col gap-2 w-full h-fit text-lg '>
