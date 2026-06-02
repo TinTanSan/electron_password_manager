@@ -1,8 +1,8 @@
 import EventEmitter from "events";
 import * as argon2 from 'argon2';
-import { ARGON_SALT_LENGTH} from "../crypto/commons";
+import { ARGON_SALT_LENGTH, decrypt, encrypt} from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
-import {   makeNewKEK } from "../crypto/keyFunctions";
+import {   KEKParts, makeNewKEK } from "../crypto/keyFunctions";
 import { openFile } from "../ipcHandlers/fileIPCHandlers";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
@@ -49,8 +49,12 @@ class VaultService extends EventEmitter{
                 version: '1.0.0'
             },
             entryGroups : []
-        }   
-        this.syncService = new SyncService(filePath);
+        }
+        if (this.syncService === undefined){
+            this.syncService = new SyncService(this.vault.filePath);
+        }else{
+            this.syncService.filePath = this.vault.filePath;
+        }
         this.vaultInitialised = true;
     }
 
@@ -58,15 +62,16 @@ class VaultService extends EventEmitter{
         if (this.vault.fileContents.length === 0){
             throw new Error("Cannot unlock vault without any contents in the vault, are you sure you initialised it correctly?");
         }
-        const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 10) //124 is the vertical pipe symbol `|`
+        const idx = this.vault.fileContents.findIndex((charcode)=>charcode === 10) //10 is the newline character
         if (idx === -1){
             throw new Error("CRITICAL ERROR could not find end of argon hash string, unable to verify password");
         }
+        const masterKeyBuffer = this.vault.fileContents.subarray(0,idx);
         const b64saltLength = (4 * Math.ceil( ARGON_SALT_LENGTH/3 ) );
-        const hash = Buffer.from(this.vault.fileContents.subarray(0,idx-b64saltLength)).toString();
+        const argonHash = masterKeyBuffer.subarray(0, masterKeyBuffer.length-b64saltLength).toString();
         
-        const salt = Buffer.from(this.vault.fileContents.subarray(idx-b64saltLength,idx).toString(),'base64')
-        const results = await argon2.verify(hash, password);    
+        const salt = Buffer.from(masterKeyBuffer.subarray(-b64saltLength).toString(), 'base64')
+        const results = await argon2.verify(argonHash, password);
         // incorrect password
         if (results === false){
             return {
@@ -85,7 +90,7 @@ class VaultService extends EventEmitter{
         
         this.vault = parsers.vault(this.vault.fileContents);
 
-        this.vault.kek = {passHash: hash, salt, kek}
+        this.vault.kek = {passHash: argonHash, salt, kek}
         this.entryService.entries = this.vault.entries;
         this.entryService.setOnEntryUpdatedCallback(this.onEntryUpdate);
         this.vault.isUnlocked = true;
@@ -97,10 +102,14 @@ class VaultService extends EventEmitter{
 
 
     openVault(filePath:string){
-        const results = openFile(filePath);
-        if (results.status === "OK"){
-            this.setInitialVaultState(filePath, results.fileContents);
-            this.vaultInitialised = results.fileContents.length > 0;
+        // prevent user from opening a vault when a vault is already open
+        if (this.vault !== undefined && this.vault.isUnlocked){
+            return "VAULT_ALREADY_OPEN"
+        }
+
+        const {status, fileContents} = openFile(filePath);
+        if (status === "OK"){
+            this.setInitialVaultState(filePath, fileContents);
             return "OK";
         }else{
             console.error("could not find vault")
@@ -108,13 +117,10 @@ class VaultService extends EventEmitter{
         }
     }
 
-    async closeVault(){
+    closeVault(){
         console.log("vault closing")
-        
         try{
             if (this.vaultInitialised){
-                await this.syncService.flushSyncBuffer()
-                console.log("sync complete")
                 this.vault.kek = {
                     kek: Buffer.from(""),
                     passHash: "",
@@ -122,23 +128,44 @@ class VaultService extends EventEmitter{
                 }
                 this.syncService.stopSyncLoop();
                 this.vault = undefined;
+                this.syncService.filePath = ""
                 this.vaultInitialised = false;
+                console.log('vault closed')
             }else{
                 console.log("no vault to close")
             }
         }catch(error){
-            console.log("error occured whilst flushing sync buffer when locking the vault");
+            console.log("error occured whilst flushing sync buffer when locking the vault", error);
         }
     }
-    
+    private replaceDEKs(newKEK:KEKParts){
+        this.vault.entries.keys().forEach((uuid)=>{
+            const wrappedDEK = this.entryService.getEntry(uuid).dek;
+            const decryptedDEK = decrypt(wrappedDEK.wrappedKey, this.vault.kek.kek, wrappedDEK.tag, wrappedDEK.iv);
+            try{
+                const {encrypted, iv, tag} = encrypt(decryptedDEK, newKEK.kek);
+                // we want to update all the entries DEKs AND we don't want it to show up on the sync buffer yet.
+                this.vault.entries.get(uuid).dek = {wrappedKey:encrypted, iv, tag}
+            }finally{
+                decryptedDEK.fill(0);
+            }
+        })
+    }
+
     async setMasterPassword(password:string){
         const KEKParts = await makeNewKEK(password);
-        this.vault.kek = KEKParts;
+        
         // we add the serialisers.vault call to allow future updates to password without overwriting the other content
-        const toWrite = Buffer.from( KEKParts. passHash+KEKParts.salt.toString('base64')+"\n"+serialisers.vault(this.vault))
+        let toWrite = Buffer.from("");
+        if (vaultService.vault.fileContents.length !== 0){
+            // decrypt and re-encrypt with new KEK
+            this.replaceDEKs(KEKParts);
+        }
+        toWrite = Buffer.from(KEKParts.passHash +KEKParts.salt.toString('base64')+"\n"+serialisers.vault(this.vault))
+        this.vault.kek = KEKParts;
         this.vault.fileContents = toWrite;
-        const response = await this.syncService.forceUpdate(toWrite);
-        return response === "OK";
+        const response = this.syncService.forceUpdateSync(toWrite);
+        return response;
     }
 
 
