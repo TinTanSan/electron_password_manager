@@ -19,6 +19,7 @@ export default function LoadFile() {
     const [showDeleteConfirmationPopup, setShowDeleteConfirmationPopup] = useState(false);
     const [vaultToDelete, setVaultToDelete] = useState("");
     const [unlocked, setunlocked] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const {preference} = useContext(PreferenceContext);
 
 
@@ -101,6 +102,7 @@ export default function LoadFile() {
 
     const handleEnter = (e:FormEvent)=>{
           e.preventDefault();
+          setIsLoading(true);
           if (requiresInitialisation){
             // create new master password, i.e. new vault or vault key rotations
             if (password === ""){
@@ -127,6 +129,8 @@ export default function LoadFile() {
                 }
             }).catch((error)=>{
                 addBanner(setBanners, 'unable to write hash to file '+error, 'error');
+            }).finally(()=>{
+                setIsLoading(false);
             })
           }else{
             // simple unlock
@@ -156,6 +160,8 @@ export default function LoadFile() {
             }).catch((error)=>{
                 console.error(error)
                 addBanner(setBanners, 'unable to verify password: '+error,'error')
+            }).finally(()=>{
+                setIsLoading(false);
             })
           }
     }
@@ -172,7 +178,6 @@ export default function LoadFile() {
                 addBanner(setBanners, 'unable to get recents list', 'error');
                 setRecent([]);
             }
-            
         })
     },[])
 
@@ -348,7 +353,7 @@ export default function LoadFile() {
                 </div>
                 <div className='flex w-full h-1/2 gap-5 justify-center items-end text-normal'>
                     <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                    <button onClick={handleEnter} type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
+                    <button disabled={isLoading} onClick={handleEnter} type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
