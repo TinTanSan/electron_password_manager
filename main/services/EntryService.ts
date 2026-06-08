@@ -71,7 +71,7 @@ export class EntryService extends EventEmitter{
         return this.entries.get(uuid)
     }
 
-    async addEntry(entry:{title:string, username:string, password:Buffer, notes:string, extraFields:Array<ExtraField> , group:string}, kek:KEKParts){
+    async addEntry(entry:{title:string, username:string, password:Buffer, notes?:string, extraFields?:Array<ExtraField> , group?:string}, kek:KEKParts){
         let dek = randomBytes(32);
         let response = {
             status : "NOT FULFILLED",
@@ -90,9 +90,9 @@ export class EntryService extends EventEmitter{
                 dek : {iv, tag, wrappedKey:encrypted},
                 password: encBuffConcated,
                 isFavourite: false,
-                notes,
-                extraFields: [],
-                group,
+                notes: notes??"",
+                extraFields: extraFields?? [],
+                group:group ?? "",
                 metadata:{
                     uuid,
                     createDate: new Date(),
@@ -113,7 +113,6 @@ export class EntryService extends EventEmitter{
             // }
             
             this.addExtraFields(uuid, extraFields, kek);
-            // calling update vault actually adds complexity here as we would need to create a new map
             this.notifyUpdate(uuid);
             response =  {
                 status:"OK",
