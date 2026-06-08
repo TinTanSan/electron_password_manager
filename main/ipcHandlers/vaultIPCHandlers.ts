@@ -6,18 +6,17 @@ ipcMain.handle('vault:getNumEntries', async()=>vaultService.entryService.getNumE
 
 ipcMain.handle('vault:getPaginatedEntries', (_,page:number)=>vaultService.getPaginatedEntries(page));
 
-ipcMain.handle('vault:open', (_,filePath):IPCResponse<string>=>{
+ipcMain.handle('vault:open', (_,filePath:string):IPCResponse<string>=>{
     try{
-        if (typeof filePath === 'string'){
-            vaultService.openVault(filePath);
-        }else{
-            if (filePath.filePath){
-                vaultService.openVault(filePath.filePath);
-            }else{
-                vaultService.openVault(filePath[0]);
+        const response = vaultService.openVault(filePath);
+        if (response !== "OK"){
+            return {
+                status:"CLIENT_ERROR",
+                response,
+                message:response ==="VAULT_NOT_FOUND" ? "Client error, vault not found. " : "Client error, vault is already open" 
             }
         }
-        return {status: "OK", response:vaultService.vaultInitialised? "PASS_SET":"SET_PASS"};
+        return {status: "OK", response:vaultService.vault.fileContents.length >0? "PASS_SET":"SET_PASS"};
     }catch(e:any){
         return {status: "INTERNAL_ERROR",message:e, response:""}
     }
@@ -29,11 +28,10 @@ ipcMain.handle('vault:unlock',(_, password)=>vaultService.unlockVault(password))
 ipcMain.on('vault:close', ()=>vaultService.closeVault())
 
 ipcMain.handle('vault:setPass', async (_,password):Promise<IPCResponse<boolean>>=>{
-    const res = await vaultService.setMasterPassword(password);
+    await vaultService.setMasterPassword(password);
     return {
-        status:res === "OK"? "OK":"INTERNAL_ERROR",
-        message: (res!=="OK") && "Unable to set master password, vault file not found",
-        response:res === "OK"
+        status:"OK",
+        response:true
     }
 })
 
