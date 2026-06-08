@@ -30,7 +30,7 @@ const handleAddRecent = (filePath:string)=>{
 
 
 
-export const openFile  = (filePath)=>{
+export const openFile  = (filePath:string)=>{
    if (fs.existsSync(filePath)){
     handleAddRecent(filePath);
     return {fileContents:Buffer.from(fs.readFileSync(filePath)), status:"OK"};
