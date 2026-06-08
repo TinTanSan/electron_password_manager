@@ -58,12 +58,9 @@ export class SyncService{
     }
     stopSyncLoop(toWrite?:Buffer){
         if (this.writeTimeout){
-            console.log('timeout cleared')
             clearTimeout(this.writeTimeout);
             this.writeTimeout = undefined;
-        }else{
-            console.log('no timeout')
         }
-        if (toWrite || this.writeBuffer.length > 0) writeFileSync(this.filePath, toWrite??this.writeBuffer);
+        if (toWrite !== undefined || this.writeBuffer.length > 0) writeFileSync(this.filePath, toWrite??this.writeBuffer);
     }
 }
