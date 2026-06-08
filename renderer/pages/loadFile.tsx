@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { BannerContext } from '@contexts/bannerContext'
 import { addBanner } from "@interfaces/Banner";
 import FancyInput from '@components/fancyInput'
-import { isStrongPassword } from '@utils/commons'
+import { IPCResponse, isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
 import { PreferenceContext } from '@contexts/preferencesContext';
 import Link from 'next/link';
@@ -83,6 +83,7 @@ export default function LoadFile() {
             })
         }else{
             window.vaultIPC.openVault(filePath).then((response)=>{
+                console.log(response)
                 if (response.status === 'INTERNAL_ERROR'){
                     addBanner(setBanners, '"Internal error, unable to open the vault', 'error');
                     console.error(response)
@@ -100,7 +101,7 @@ export default function LoadFile() {
         
     }
 
-    const handleEnter = (e:FormEvent)=>{
+    const handleUnlock = (e:FormEvent)=>{
           e.preventDefault();
           setIsLoading(true);
           if (requiresInitialisation){
@@ -119,8 +120,9 @@ export default function LoadFile() {
               addBanner(setBanners,passMessage, 'warning' )
               return;
             }
-            window.vaultIPC.setMasterPassword(password).then((response)=>{
-                if (response === true){
+            window.vaultIPC.setMasterPassword(password).then((response:IPCResponse<boolean>)=>{
+                console.log(response)
+                if (response.response === true){
                     setunlocked(true);
                     setVault(prev=>({...prev, isUnlocked:true}))
                     navigate.push('/home');
@@ -172,7 +174,7 @@ export default function LoadFile() {
         window.fileIPC.getRecents().then((ipcResponse)=>{
             if (ipcResponse.status === "OK"){
                 setRecent(ipcResponse.response);
-                handleOpenFile(ipcResponse.response[0]);
+                // handleOpenFile(ipcResponse.response[0]);
                 document.title = 'Open a Vault'
             }else{
                 addBanner(setBanners, 'unable to get recents list', 'error');
@@ -206,6 +208,7 @@ export default function LoadFile() {
 
     const handleCancelOpenVault = ()=>{
         setVault({...defaultVaultState});
+        window.vaultIPC.closeVault()
         setPassword("");
         setConfirmPassword("");
         addBanner(setBanners, "Vault Closed successfully", 'info');
@@ -317,7 +320,7 @@ export default function LoadFile() {
                 </div>
                 <p className='flex text-subnotes'>{vault.filePath}</p>
             </div>
-            <form onSubmit={handleEnter} className='flex flex-col h-full w-full justify-start items-center text-normal py-5'>
+            <form onSubmit={handleUnlock} className='flex flex-col h-full w-full justify-start items-center text-normal py-5'>
                 {requiresInitialisation && 
                     <div className='flex flex-nowrap text-sm w-full h-fit items-center justify-center gap-2'>
                         <div className='flex w-4 h-4 rounded-full border justify-center items-center cursor-default'>i</div>
@@ -353,7 +356,7 @@ export default function LoadFile() {
                 </div>
                 <div className='flex w-full h-1/2 gap-5 justify-center items-end text-normal'>
                     <button type='button' onClick={handleCancelOpenVault} className='flex bg-secondary text-secondary-content w-28 justify-center items-center h-10 rounded-lg hover:bg-secondary-darken'>Cancel</button>
-                    <button disabled={isLoading} onClick={handleEnter} type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
+                    <button disabled={isLoading} onClick={handleUnlock} type='submit' className='flex bg-primary text-primary-content min-w-28 px-5 justify-center items-center h-10 rounded-lg hover:bg-primary-darken'>{requiresInitialisation? "Create Vault": "Unlock"}</button>
                 </div>
             </form> 
         </div>
