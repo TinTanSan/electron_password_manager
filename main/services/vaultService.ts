@@ -28,7 +28,6 @@ class VaultService extends EventEmitter{
     private onEntryUpdate = (uuid: string) => {
         if (this.vault && this.vault.isUnlocked) {
             const now = new Date();
-            this.vault.vaultMetadata.lastEditDate = now;
             this.entryService.getEntry(uuid).metadata.lastEditDate = now; 
             this.sync();
         }else{
@@ -50,11 +49,7 @@ class VaultService extends EventEmitter{
             },
             entryGroups : []
         }
-        if (this.syncService === undefined){
-            this.syncService = new SyncService(this.vault.filePath);
-        }else{
-            this.syncService.filePath = this.vault.filePath;
-        }
+        this.syncService = new SyncService(this.vault.filePath);
         this.vaultInitialised = true;
     }
 
@@ -87,9 +82,7 @@ class VaultService extends EventEmitter{
             salt,
             raw:true
         })
-        
         this.vault = parsers.vault(this.vault.fileContents);
-
         this.vault.kek = {passHash: argonHash, salt, kek}
         this.entryService.entries = this.vault.entries;
         this.entryService.setOnEntryUpdatedCallback(this.onEntryUpdate);
@@ -120,20 +113,21 @@ class VaultService extends EventEmitter{
     closeVault(){
         console.log("vault closing")
         try{
-            if (this.vaultInitialised){
+            if (this.vaultInitialised && this.vault.isUnlocked){
+                const content = this.serialiseVault();
                 this.vault.kek = {
-                    kek: Buffer.from(""),
+                    kek: this.vault.kek.kek.fill(0),
                     passHash: "",
-                    salt: Buffer.from("")
+                    salt: this.vault.kek.salt.fill(0)
                 }
-                this.syncService.stopSyncLoop();
-                this.vault = undefined;
-                this.syncService.filePath = ""
-                this.vaultInitialised = false;
-                console.log('vault closed')
+                this.vault.isUnlocked = false;
+                this.syncService.stopSyncLoop(content);
             }else{
-                console.log("no vault to close")
+                this.syncService.stopSyncLoop();
             }
+
+            this.vault = undefined;
+            
         }catch(error){
             console.log("error occured whilst flushing sync buffer when locking the vault", error);
         }
@@ -157,15 +151,16 @@ class VaultService extends EventEmitter{
         
         // we add the serialisers.vault call to allow future updates to password without overwriting the other content
         let toWrite = Buffer.from("");
-        if (vaultService.vault.fileContents.length !== 0){
+        const isFirstMasterPass = this.vault.fileContents.length === 0;
+        if (this.vault.fileContents.length !== 0){
             // decrypt and re-encrypt with new KEK
             this.replaceDEKs(KEKParts);
         }
+        if (isFirstMasterPass) this.vault.isUnlocked = true;
         toWrite = Buffer.from(KEKParts.passHash +KEKParts.salt.toString('base64')+"\n"+serialisers.vault(this.vault))
         this.vault.kek = KEKParts;
         this.vault.fileContents = toWrite;
-        const response = this.syncService.forceUpdateSync(toWrite);
-        return response;
+        this.syncService.updateBuffer(toWrite, true);
     }
 
 
