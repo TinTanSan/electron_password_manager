@@ -1,8 +1,9 @@
 import Sidebar from '@components/Sidebar';
+import zxcvbn from 'zxcvbn';
 import ToggleSwitch from '@components/toggleSwitch';
 import { BannerContext } from '@contexts/bannerContext';
 import { PreferenceContext, preferenceInputMapper, PreferenceType } from '@contexts/preferencesContext';
-import { VaultContext } from '@contexts/vaultContext'
+import { defaultVaultState, VaultContext } from '@contexts/vaultContext'
 import { addBanner } from '@interfaces/Banner';
 import { cmpObj, IPCResponse } from '@utils/commons';
 import Image from 'next/image';
@@ -17,11 +18,20 @@ const argonParallelismCost = "Specifies how many processor cores the app can use
 export default function Settings() {
     const {preference, setPreference} = useContext(PreferenceContext);
     const {vault, setVault} = useContext(VaultContext);
-    const {setBanners} = useContext(BannerContext)
+    const {setBanners} = useContext(BannerContext);
     const router = useRouter();
     
     const initialPreference = useRef(preference);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(cmpObj(initialPreference.current, preference));
+    
+    // danger zone modal states
+    const [newPassModal, setnewPassModal] = useState(false);
+    const [newPass, setNewPass] = useState("");
+    const [confirmNewPass, setConfirmNewPass] = useState("");
+    
+    const [deleteVaultModal, setdeleteVaultModal] = useState(false);
+    const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+
     // handle all numerical preference changes except for a couple of items such as font size and font spacing
     // which will have 3-5 predefined values they could be
     const handlePreferenceChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
@@ -68,6 +78,34 @@ export default function Settings() {
         })
         
     }
+    const handleUpdateMasterPassword = ()=>{
+        const strongPass = !preference.requireStrongMasterPassword || zxcvbn(newPass).score >= 3;
+        console.log(newPass, zxcvbn(newPass))
+        if(!strongPass){
+            addBanner(setBanners, "Cannot set master password as it is not strong enough", 'error');
+            return;
+        }
+        const areEq = newPass == confirmNewPass;
+        if (!areEq){
+            addBanner(setBanners, "Passwords do not match", 'error');
+            return;
+        }
+        window.vaultIPC.setMasterPassword(newPass).then((response:IPCResponse<boolean>)=>{
+            if (response.response){
+                console.log('ok')
+            }else{
+                addBanner(setBanners, response.message, 'error')
+            }
+        })
+    }
+
+    const handleDeleteVault = ()=>{
+        window.fileIPC.deleteFile(vault.filePath).then(()=>{
+            addBanner(setBanners, 'vault deleted', 'success');
+            setVault(defaultVaultState);
+            router.push('/loadFile');
+        })
+    }
 
     useEffect(()=>{
         if(vault === undefined || vault.filePath===""){
@@ -84,9 +122,9 @@ export default function Settings() {
     },[preference])
 
     return (
-    <div className='flex gap-5 w-scren h-screen overflow-hidden bg-base-200 p-2 text-neutral'> 
+    <div className='flex gap-5 w-scren h-screen overflow-hidden bg-base-200 text-neutral'> 
         <Sidebar />
-        <div className='flex flex-col w-full h-full gap-2'>            
+        <div className='flex flex-col w-full h-full gap-2 p-2'>            
             <div className='flex flex-col w-full h-full overflow-y-auto '>
                 <div className='flex flex-col w-full h-fit'>
                     <div className='flex flex-col text-xl justify-center w-full text-title'>
@@ -102,17 +140,17 @@ export default function Settings() {
                         <ToggleSwitch value={preference.requireStrongMasterPassword} setValue={()=>{handleChangeBooleanPreference('requireStrongMasterPassword')}} />
                     </div>
                 </div>
-                <div id='preferences' className='flex w-full h-fit flex-col gap-2'>
+                <div id='preferences' className='flex w-full h-fit flex-col gap-5'>
                     <div className='flex flex-col text-xl justify-center w-full text-title'>
                         Preferences
                     </div>
-                    <div className='flex w-full h-full  rounded-lg flex-wrap p-2 gap-5 justify-between'>    
+                    <div className='flex w-full h-full rounded-lg flex-wrap gap-5 justify-between'>    
                         {
                             Object.keys(preferenceInputMapper).map((key)=>
                             {
                                 const inputSettings = preferenceInputMapper[key];
                                 return (
-                                    <div key={key} className='flex flex-col md:w-1/3 xl:w-[44.7vw] border-2 shrink-0 border-base-300 p-2 bg-base-100 rounded-lg gap-2'>
+                                    <div key={key} className='flex flex-col w-full md:w-[45%] xl:w-[32%] border-2 shrink-0 border-base-300 p-2 bg-base-100 rounded-lg gap-2'>
                                         <div className='flex flex-col'>
                                             <label className='xl:text-subheading text-normal'>{inputSettings.label}</label>
                                             <i className='text-subnotes'>minimum: {inputSettings.min}, maximum: {inputSettings.max}</i>
@@ -124,7 +162,7 @@ export default function Settings() {
                             )
                         }
                     </div>
-                    <div className='flex flex-row gap-1 rounded-lg w-full h-fit p-2'>
+                    <div className='flex flex-row gap-5 rounded-lg w-full h-fit p-2'>
                         
                         <div className='flex flex-col w-full h-fit bg-base-100 border-2 rounded-lg p-2 border-base-300 text-normal'>
                             <div className='text-subheading'>
@@ -171,11 +209,70 @@ export default function Settings() {
                     </div>
                     
                 </div>
+            {(vault.filePath && vault.isUnlocked) && 
+                <div>
+                    <div className='flex w-full h-fit gap-2 flex-col'>
+                        <div className='flex w-fit h-fit text-title'>Danger Zone</div>
+                        <button onClick={()=>{setnewPassModal(true)}} className='flex w-fit h-8 border-error border-2 rounded-md hover:bg-error items-center justify-center px-2 text-error-content'>Change master password</button>
+                        <button onClick={()=>{setdeleteVaultModal(true)}} className='flex w-fit h-8 border-error border-2 rounded-md hover:bg-error items-center justify-center px-2 text-error-content'>Delete vault</button>    
+                    </div>
+                    {
+                        newPassModal && 
+                        <div className='flex w-screen h-screen absolute top-0 left-0 z-10 backdrop-blur-sm items-center justify-center'>
+                            <div className='flex flex-col gap-5 w-1/3 h-1/2 bg-base-100 shadow-md rounded-lg p-2'>
+                                <div className='flex w-full h-fit text-subheading'>Change Master Password</div>
+                                {preference.requireStrongMasterPassword && <span className='flex text-subnotes gap-1 relative'>Use a strong master password.
+                                    <Image src={"/images/info.svg"} alt='i' width={0} height={0} className='flex w-4 h-auto aspect-square peer'/>
+                                    <span className='peer invisible peer-hover:visible absolute hover:visible bg-white top-5 shadow-lg rounded-lg px-2 py-1 border-base-200 border-2'>Use at least 12 seemingly random characters, including numbers,upper and lower cases of letters and special characters.</span>
+                                </span>}
+                                <div className='flex flex-col w-full h-full gap-5'>
+                                    <div className='flex flex-col w-full h-fit text-normal'>
+                                        <label className='flex text-nowrap'>New Password</label>
+                                        <input type="password" id='newPass' onChange={(e)=>{setNewPass(e.target.value)}} className='flex border-2 border-base-300 rounded-lg w-full h-8 outline-none focus:border-primary' />
+                                    </div>
+
+                                    <div className='flex flex-col w-full h-fit text-normal'>
+                                        <label className='flex text-nowrap'>Confirm new password</label>
+                                        <input type="password" id='confirmPass' onChange={(e)=>{setConfirmNewPass(e.target.value)}} className='flex border-2 border-base-300 rounded-lg w-full h-8 outline-none focus:border-primary' />
+                                    </div>
+                                </div>
+                                <div className='flex w-full h-8 justify-between shrink-0'>
+                                    <button onClick={()=>{setnewPassModal(false); setNewPass(""); setConfirmNewPass("")}} className='flex w-fit h-full bg-base-300 hover:bg-base-darken cursor-pointer  rounded-lg px-4 items-center justify-center'>Cancel</button>
+                                    <button onClick={handleUpdateMasterPassword} className='flex w-fit h-full bg-primary text-primary-content  cursor-pointer hover:bg-primary-darken rounded-lg px-4 items-center justify-center'>Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    {
+                        deleteVaultModal && 
+                        <div className='flex w-screen h-screen absolute top-0 left-0 z-10 backdrop-blur-sm items-center justify-center'>
+                            <div className='flex absolute w-1/2 h-1/3 flex-col bg-base-100 rounded-lg shadow-md p-2'>
+                                
+                                <div className='flex w-full h-full gap-2 flex-col '>
+                                    <div className='flex text-subheading text-error'>
+                                        Delete vault        
+                                    </div>
+                                    <div className='flex w-fit text-normal '>
+                                        To confirm the deletion of the vault, please type out &apos;delete&apos;
+                                    </div>
+                                    <input onChange={(e)=>{setDeleteConfirmationText(e.target.value)}} type="text" className='border-2 h-8 border-base-300 flex w-full rounded-md outline-none focus:border-primary transition-all duration-300 px-0.5'/>
+                                </div>
+                                <div className="flex w-full h-fit justify-between">
+                                    <button onClick={()=>{setdeleteVaultModal(false); setDeleteConfirmationText("")}} className='flex w-40 items-center justify-center h-8 bg-base-300 rounded-lg'>Cancel</button>
+                                    <button onClick={handleDeleteVault} className='flex w-40 items-center justify-center h-8  bg-error hover:bg-error-darken rounded-lg'>delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                
+                </div>
+                }
             </div>
+            
             {/* {!hasUnsavedChanges &&   <div className='flex w-full bg-base-100 rounded-lg h-12 flex-row-reverse items-center'>
                 <button onClick={handleSave} className='flex cursor-pointer border-2 border-base-content rounded-lg items-center justify-center px-5 h-8 text-normal'>Save Changes</button>
             </div>} */}
-
         </div>
     </div>
   )
