@@ -76,8 +76,7 @@ app.on('before-quit',(e)=>{
 async function gracefulShutdown(source: string) {
   try {
     console.log(`[shutdown] source=${source}`);
-    
-    await vaultService.closeVault();
+    vaultService.closeVault();
   } catch (err) {
     console.error('[shutdown] error', err);
   } finally {
