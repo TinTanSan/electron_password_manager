@@ -2,7 +2,7 @@ import { app, dialog, ipcMain } from 'electron';
 import fs, { unlinkSync } from 'fs';
 import path, { resolve } from 'path'
 import { IPCResponse } from '../interfaces/IPCCHannelInterface';
-
+import os from 'os';
 
 const data_path = app.getPath('userData');
 const handleAddRecent = (filePath:string)=>{
@@ -113,12 +113,45 @@ ipcMain.handle('fileDialog:open', async():Promise<IPCResponse<{fileContents:stri
   }
   
 })  
+type FileType = {
+  fileName:string;
+  filePath:string;
+  isDir:boolean
+}
+ipcMain.handle('file:get', async (_, filePath:string):Promise<IPCResponse<Array<FileType>>>=>{
+  if (!fs.existsSync(filePath)){
+    return {
+      status: "CLIENT_ERROR",
+      message:"Filepath does not exist",
+      response: []
+    }
+  }
+  const isDir = fs.statSync(filePath).isDirectory();
+  if (isDir){
+    return {
+      status:"OK",
+      response: fs.readdirSync(filePath, {withFileTypes:true}).map((x)=>({fileName:x.name, isDir:x.isDirectory(), filePath:path.join(x.parentPath, x.name)}))
+    }
+  }
+  return {
+    status:"CLIENT_ERROR",
+    message:"filepath was not a directory, use file:open instead",
+    response:[],
+  }
+})
 
 ipcMain.handle('file:delete', async (_,filePath:string):Promise<IPCResponse<string>>=>{
   unlinkSync(filePath);
   return {
     status:"OK",
     response:"deleted vault"
+  }
+})
+
+ipcMain.handle('file:homeDir', ():IPCResponse<string>=>{
+  return {
+    status:"OK",
+    response:os.homedir(),
   }
 })
 
