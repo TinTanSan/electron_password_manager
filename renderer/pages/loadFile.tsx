@@ -8,8 +8,10 @@ import { IPCResponse, isStrongPassword } from '@utils/commons'
 import Image from 'next/image'
 import { PreferenceContext } from '@contexts/preferencesContext';
 import Link from 'next/link';
+import FilePicker from '@components/filePicker';
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
+    const [showFileBrowser, setShowFileBrowser] = useState(false);
     const navigate = useRouter()
     const [recent, setRecent] = useState<Array<string>>([]);
     const [password, setPassword] = useState("");
@@ -250,7 +252,7 @@ export default function LoadFile() {
   return (
     (vault === undefined || !vault.filePath) ? 
     <div className='flex flex-col h-screen w-screen items-center bg-base-200 gap-20 text-base-content p-5'>
-
+        {showFileBrowser && <FilePicker setShowFilePicker={setShowFileBrowser} />}
         <div className='flex flex-col w-full h-2/3 gap-2 justify-start overflow-y-auto  bg-base-100 rounded-lg border-2 border-base-300'>
             <div className='flex w-full h-fit items-center text-xl justify-center'>Recently opened vaults</div>
             <div className='flex flex-col w-full h-fit gap-2 p-2 items-center'>
@@ -296,7 +298,7 @@ export default function LoadFile() {
                 To load an existing vault click Load vault, otherwise create a new vault using the create vault button.
             </div>
             <div className='grid grid-flow-row-dense lg:grid-flow-col-dense  gap-5 row-span-1 justify-center'>
-                <button onClick={()=>{handleOpenFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
+                <button onClick={()=>{setShowFileBrowser(prev=>!prev)}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
                     load Vault
                 </button>
                 <button onClick={()=>{handleCreateFile()}} className='flex justify-center items-center bg-primary hover:bg-primary-darken text-primary-content w-32 h-10 rounded-lg transition-all duration-700 hover:rounded-xl'>
