@@ -49,7 +49,6 @@ class VaultService extends EventEmitter{
             },
             entryGroups : []
         }
-        this.syncService = new SyncService(this.vault.filePath);
         this.vaultInitialised = true;
     }
 
@@ -99,7 +98,7 @@ class VaultService extends EventEmitter{
         if (this.vault !== undefined && this.vault.isUnlocked){
             return "VAULT_ALREADY_OPEN"
         }
-
+        this.syncService = new SyncService(filePath);
         const {status, fileContents} = openFile(filePath);
         if (status === "OK"){
             this.setInitialVaultState(filePath, fileContents);
@@ -113,20 +112,26 @@ class VaultService extends EventEmitter{
     closeVault(){
         console.log("vault closing")
         try{
-            if (this.vaultInitialised && this.vault.isUnlocked){
-                const content = this.serialiseVault();
-                this.vault.kek = {
-                    kek: this.vault.kek.kek.fill(0),
-                    passHash: "",
-                    salt: this.vault.kek.salt.fill(0)
+            if (this.vault){
+                if (this.vaultInitialised && this.vault.isUnlocked){
+                    const content = this.serialiseVault();
+                    this.vault.kek = {
+                        kek: this.vault.kek.kek.fill(0),
+                        passHash: "",
+                        salt: this.vault.kek.salt.fill(0)
+                    }
+                    this.vault.isUnlocked = false;
+                    this.syncService.stopSyncLoop(content);
+                }else{
+                    this.syncService.stopSyncLoop();
+                    console.log('no vault to close')
                 }
-                this.vault.isUnlocked = false;
-                this.syncService.stopSyncLoop(content);
-            }else{
-                this.syncService.stopSyncLoop();
+                this.vault = undefined;
+                console.log('vault closing finalised')
             }
-
-            this.vault = undefined;
+            else{
+                console.log('vault not opened')
+            }
             
         }catch(error){
             console.log("error occured whilst flushing sync buffer when locking the vault", error);
@@ -238,9 +243,7 @@ class VaultService extends EventEmitter{
     getAllGroups(){
         return this.vault.entryGroups;
     }
-
-   
-
+    
     getPaginatedEntries(pageNumber:number){
         const pageLen = preferenceStore.get('entriesPerPage');
         return Array.from(this.entryService.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
