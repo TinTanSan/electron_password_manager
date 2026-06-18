@@ -1,4 +1,5 @@
-import { createWriteStream, writeFile, writeFileSync, WriteStream } from "fs";
+import { createWriteStream, existsSync, writeFile, writeFileSync, WriteStream } from "fs";
+import { readFile } from "fs/promises";
 
 
 export class FailedSyncError extends Error{
@@ -56,11 +57,20 @@ export class SyncService{
             });
         }
     }
+    
     stopSyncLoop(toWrite?:Buffer){
         if (this.writeTimeout){
             clearTimeout(this.writeTimeout);
             this.writeTimeout = undefined;
         }
         if (toWrite !== undefined || this.writeBuffer.length > 0) writeFileSync(this.filePath, toWrite??this.writeBuffer);
+    }
+
+    async openFile(filePath:string):Promise<Buffer>{
+        if (!existsSync(filePath)){
+            throw new Error("file does not exist");
+        }
+        return await readFile(filePath);
+
     }
 }
