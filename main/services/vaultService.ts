@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import { ARGON_SALT_LENGTH, decrypt, encrypt} from "../crypto/commons";
 import { preferenceStore } from "../helpers/store/preferencesStore";
 import {   KEKParts, makeNewKEK } from "../crypto/keyFunctions";
-import { openFile } from "../ipcHandlers/fileIPCHandlers";
+import { openFile, openFileSync } from "../helpers/fsFunctions";
 import { parsers } from "../helpers/serialisation/parsers";
 import { serialisers } from "../helpers/serialisation/serialisers";
 import { SyncService } from "./SyncService";
@@ -99,13 +99,12 @@ class VaultService extends EventEmitter{
             return "VAULT_ALREADY_OPEN"
         }
         this.syncService = new SyncService(filePath);
-        const {status, fileContents} = openFile(filePath);
-        if (status === "OK"){
+        try {
+            const fileContents = openFileSync(filePath);
             this.setInitialVaultState(filePath, fileContents);
-            return "OK";
-        }else{
-            console.error("could not find vault")
-            return "VAULT_NOT_FOUND";
+            return "OK";    
+        } catch (error) {
+            return "FILE_NOT_FOUND"
         }
     }
 
