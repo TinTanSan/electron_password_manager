@@ -53,7 +53,7 @@ export const createNextronWindow = async () => {
 createNextronWindow()
 
 app.whenReady().then(()=>{
-  import('./ipcHandlers/VaultIPCHandlers');
+  import('./ipcHandlers/vaultIPCHandlers');
   import('./ipcHandlers/fileIPCHandlers');
   import('./ipcHandlers/GroupIPCHandlers');
   import('./ipcHandlers/EntryIPCHandlers');
