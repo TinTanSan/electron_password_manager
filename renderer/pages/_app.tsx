@@ -9,6 +9,7 @@ import {BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 import { PreferenceContext, preferenceDefaults, PreferenceType } from '@contexts/preferencesContext';
+import { shortcutManager } from 'shortcuts/shortcutManager';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [vault, setVault] = useState<Vault>({...defaultVaultState});
@@ -29,18 +30,18 @@ function MyApp({ Component, pageProps }: AppProps) {
   // REMEMBER to uncomment the resetTimeout, it is currently commented due to inconvenience of vault locking whilst developing
   const handleActivity =()=>{
     if (!vault.isUnlocked) return;
-    // resetTimeout();
+    resetTimeout();
   }
 
   
   useEffect(()=>{
     // ensure that even if the user only logs in, if they go inactive, then we don't want the vault to stay unlocked
-    if (vault && vault.isUnlocked){ 
+    if (vault && vault.isUnlocked && process.env.NODE_ENV !== 'development'){ 
       handleActivity()
+      window.addEventListener('mousemove', handleActivity);
+      window.addEventListener('keydown', handleActivity);
+      window.addEventListener('click', handleActivity);
     }
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('click', handleActivity);
     return () => {
       if (activityTimeOut.current) {
         clearTimeout(activityTimeOut.current);
@@ -86,6 +87,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     document.documentElement.style.setProperty('--text-title', preference.fontSize.toString()+'px');
   },[preference])
 
+  useEffect(()=>{
+    window.addEventListener('keydown',shortcutManager.handleKeyEvent);
+  },[])
 
   return (
     <VaultContext.Provider value={{vault, setVault}}>
