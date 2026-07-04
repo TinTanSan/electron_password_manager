@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { VaultContext } from '../contexts/vaultContext'
 import { BannerContext } from '../contexts/bannerContext';
 import { addBanner } from '../interfaces/Banner';
@@ -6,6 +6,8 @@ import FancyInput from './fancyInput';
 import NewEntryForm from './NewEntryForm';
 import SearchBar, { SearchSettings } from './searchBar';
 import { Vault } from '../interfaces/Vault';
+import { registerShortcut } from 'shortcuts/shortcutManager';
+import { useShortcuts } from 'shortcuts/useShortcuts';
 
 type props = {
     search:string,
@@ -17,9 +19,18 @@ type props = {
 export default function Navbar({search, setSearch, searchSettings, setSearchSettings}:props) {
     const {vault,setVault} = useContext(VaultContext);
     const bannerContext = useContext(BannerContext);
+    // const {register} = useShortcuts();
     const [showEntryForm, setShowEntryForm] = useState(false)
-
-
+    // const handleShowEntryForm = ()=>{
+    //     setShowEntryForm(true);
+    // }
+    useEffect(()=>{
+        console.log('run')
+        registerShortcut('NEW_ENTRY', ()=>{
+            console.log('n', showEntryForm)
+            setShowEntryForm(true);
+        }, 'Cmd+N')
+    },[])
     return (
         <div className='flex flex-row w-full h-12 items-center justify-between p-1 px-3 gap-5'>
             {showEntryForm && <NewEntryForm setShowForm={setShowEntryForm}/>}
