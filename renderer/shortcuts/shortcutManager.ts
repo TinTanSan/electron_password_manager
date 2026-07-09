@@ -1,6 +1,7 @@
 
 type ShortcutAction =
   | 'NEW_ENTRY'
+  | 'NEW_FILE'
   | 'SAVE'
   | 'OPEN_FILE'
   | 'FOCUS_SEARCH'
@@ -51,7 +52,6 @@ class ShortcutManager {
   handleKeyEvent = (event: KeyboardEvent): void => {
     const combo = this.getKeyCombo(event);
     for (const shortcut of this.shortcuts.values()) {
-      console.log(shortcut.keyCombo === combo, combo, shortcut.keyCombo)
       if (shortcut.keyCombo === combo && shortcut.handler) {
         console.log('run combo')
         event.preventDefault();
@@ -82,7 +82,8 @@ class ShortcutManager {
   /** Get default key combo for an action */
   private getDefaultKeyCombo(action: ShortcutAction): string {
     const defaults: Record<ShortcutAction, string> = {
-      NEW_ENTRY: 'Cmd+Shift+N',
+      NEW_ENTRY: 'Cmd+N',
+      NEW_FILE: 'Cmd+Shift+N',
       SAVE: 'Cmd+S',
       OPEN_FILE: 'Cmd+O',
       FOCUS_SEARCH: 'Cmd+F',
@@ -102,8 +103,9 @@ class ShortcutManager {
 // Export a singleton instance for easy import
 export const shortcutManager = new ShortcutManager([
   { action: 'NEW_ENTRY', handler: () => console.log('New Entry'), keyCombo: '' },
+  { action: 'NEW_FILE', handler: () => console.log('New File'), keyCombo: '' },
   { action: 'SAVE', handler: () => console.log('Save'), keyCombo: '' },
-  { action: 'OPEN_FILE', handler: () => console.log('Open File'), keyCombo: '' },
+  { action: 'OPEN_FILE', handler: () => console.log('Open File'), keyCombo: 'Cmd+O' },
   { action: 'FOCUS_SEARCH', handler: () => console.log('Focus Search'), keyCombo: '' },
   { action: 'TOGGLE_SIDEBAR', handler: () => console.log('Toggle Sidebar'), keyCombo: '' },
   { action: 'SHOW_PREFERENCES', handler: () => console.log('Show Preferences'), keyCombo: '' },

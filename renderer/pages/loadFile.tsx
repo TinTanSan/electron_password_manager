@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { PreferenceContext } from '@contexts/preferencesContext';
 import Link from 'next/link';
 import FilePicker from '@components/filePicker';
+import { registerShortcut, unregisterShortcut } from 'shortcuts/shortcutManager';
 export default function LoadFile() {
     const {vault, setVault} = useContext(VaultContext);
     const [showFileBrowser, setShowFileBrowser] = useState(false);
@@ -29,6 +30,7 @@ export default function LoadFile() {
     const ref = useRef(null);
     // when using a file dialog to create a file
     const handleCreateFile = ()=>{
+        console.log('creat file run')
         window.fileIPC.openCreateFile().then((ipcResponse)=>{
             if (ipcResponse.status === 'OK'){
                 window.vaultIPC.openVault(ipcResponse.response).then((response)=>{
@@ -207,6 +209,12 @@ export default function LoadFile() {
             document.removeEventListener("keydown", handler);
         };
     }, [vault]);
+    useEffect(()=>{
+        registerShortcut('OPEN_FILE', handleOpenFile, 'Cmd+O')
+        // since we don't need this shortcut at the moment we can trim it from the list
+        unregisterShortcut('NEW_ENTRY')
+        registerShortcut('NEW_FILE', handleCreateFile, 'Cmd+N')
+    },[])
 
     const handleCancelOpenVault = ()=>{
         setVault({...defaultVaultState});
