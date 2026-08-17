@@ -9,7 +9,7 @@ import {BannerDetails } from '../interfaces/Banner'
 import Notifications from '../components/notifications'
 import { useRouter } from 'next/router'
 import { PreferenceContext, preferenceDefaults, PreferenceType } from '@contexts/preferencesContext';
-import { shortcutManager } from 'shortcuts/shortcutManager';
+import { registerShortcut, shortcutManager } from 'shortcuts/shortcutManager';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [vault, setVault] = useState<Vault>({...defaultVaultState});
@@ -89,6 +89,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(()=>{
     window.addEventListener('keydown',shortcutManager.handleKeyEvent);
+    registerShortcut('CLOSE', ()=>{document.close()}, 'Cmd+Q')
   },[])
 
   return (
