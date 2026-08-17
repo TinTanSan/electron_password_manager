@@ -12,17 +12,19 @@ import { IPCResponse } from "../interfaces/IPCCHannelInterface";
 import { EntryService } from "./EntryService";
 
 
-class VaultService extends EventEmitter{
+export class VaultService extends EventEmitter{
     vault:Vault | undefined = undefined;
     vaultInitialised: boolean = false;
 
     syncService:SyncService | undefined = undefined;
     entryService: EntryService;
 
-    constructor(){
+    constructor(filePath?:string, fileContents?:Buffer){
         super();
         this.entryService =  new EntryService();
-        
+        if (filePath){
+            this.setInitialVaultState(filePath, fileContents);
+        }
     }
 
     private onEntryUpdate = (uuid: string) => {
