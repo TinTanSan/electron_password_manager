@@ -80,7 +80,7 @@ export default function HomePage() {
         <title>{vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length-4) + " Vault"}</title>    
         <Sidebar />
         {/* main section */}
-        <div className='flex w-full h-full flex-col gap-3 py-2'>
+        <div className='flex w-full h-full flex-col gap-3 py-2 overflow-hidden'>
           <Navbar search={searchFilter} setSearch={setSearchFilter} setSearchSettings={setSearchSettings} searchSettings={searchSettings}  />
           {
             (entriesWithSamePass.length > 0 && !dismissEntriesWithSamePassWarning) && 
@@ -91,7 +91,7 @@ export default function HomePage() {
           }
           
           <div className='flex flex-col gap-2 w-full h-full overflow-y-auto p-2'>
-            {vault.entries.map((entry:Entry, i:number)=>
+             {vault.entries.map((entry:Entry, i:number)=>
               <div className='flex w-full h-fit items-start gap-2' key={i}>
                 {(!dismissEntriesWithSamePassWarning) && 
                   <div className='flex h-full items-start py-4'>
