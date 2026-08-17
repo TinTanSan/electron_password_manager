@@ -1,4 +1,4 @@
-const { createDefaultPreset } = require("ts-jest");
+const { createDefaultPreset, pathsToModuleNameMapper } = require("ts-jest");
 
 const tsJestTransformCfg = createDefaultPreset().transform;
 
@@ -8,4 +8,8 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  moduleNameMapper: {
+    // Maps '@/' to the 'src' directory
+    '^#main/(.*)$': '<rootDir>/main/$1'
+  }
 };

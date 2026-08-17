@@ -1,5 +1,5 @@
 
-import {parsers} from '../parsers'
+import {parsers} from '#main/helpers/serialisation/parsers'
 
 test('base64Buff turns base 64 strings into normal buffers', ()=>{
     const testStr = "hello";
