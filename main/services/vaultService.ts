@@ -262,35 +262,12 @@ export class VaultService extends EventEmitter{
             };
         }
         const pageLen = preferenceStore.get('entriesPerPage');
-        const searchResults = this.entryService.searchEntries(title, username, notes);
-         const paginatedUUIDs = searchResults.entries.slice(page * pageLen, page * pageLen + pageLen);
+        const {entries, numEntries} = this.entryService.searchEntries(title, username, notes);
+         const paginatedUUIDs = entries.slice(page * pageLen, page * pageLen + pageLen);
         return paginatedUUIDs.map((uuid:string)=>this.entryService.getEntry(uuid))        
     }
 
-    async getEntriesWithSamePass():Promise<Array<string>>{
-        // early return 
-        if (this.vault.entries.size === 0){
-            return  []
-        }
-        // store previously encountered hashes in the map
-        let encounteredPasswordHashes = new Map<string, string>();
-        let collisions = new Set<string>();
-        let entriesIterator = this.vault.entries.entries();
-        let entryVal = entriesIterator.next();
-
-        while (!entryVal.done){
-            const [uuid, entry]:[string, Entry]=entryVal.value;
-            const passHash = entry.passHash.toString('base64');
-            if (encounteredPasswordHashes.has(passHash)){
-                collisions.add(uuid);
-                collisions.add(encounteredPasswordHashes.get(passHash));
-            }else{
-                encounteredPasswordHashes.set(passHash, uuid);
-            }
-            entryVal = entriesIterator.next();
-        }
-        return Array.from(collisions);
-    }
+    getEntriesWithSamePass = async ():Promise<Array<string>> => (await this.entryService.getEntriesWithSamePass())
     
     serialiseVault(){
         const fc = this.vault.fileContents;
@@ -307,33 +284,22 @@ export class VaultService extends EventEmitter{
         const content = this.serialiseVault();
         this.syncService.updateBuffer(content);
         this.vault.fileContents = content
-    }
+    } 
     async updateEntry<K extends keyof Entry>(uuid: string,fieldToUpdate:K, newValue:Entry[K]):Promise<IPCResponse<Entry>>{
-        let entry = this.vault.entries.get(uuid);
-        let isFieldInEntry = false;
-        for(let field in entry){
-            if (field === fieldToUpdate){
-                isFieldInEntry = true;
-                break;
-            }
-        }
-        if (!isFieldInEntry){
-            return {
-                status: "CLIENT_ERROR",
-                message:"field `"+fieldToUpdate+"` not found in entry",
-                response: undefined
-            };
-        }
-        entry[fieldToUpdate] = newValue;
+        const res = this.entryService.updateEntry(uuid, fieldToUpdate, newValue);
         const now = new Date();
-        entry.metadata.lastEditDate = now;
+        
         this.vault.vaultMetadata.lastEditDate = now;
         this.sync()
-        return {
+        return res ? {
             status: "OK",
             message:"entry updated",
-            response: entry
-        };
+            response: this.entryService.getEntry(uuid)
+        } : {
+            status:"INTERNAL_ERROR",
+            message:"unable to update Entry",
+            response: undefined
+        }
     }
 
     async updateVault<K extends keyof Vault>(fieldToUpdate:K, newValue:Vault[K]){
