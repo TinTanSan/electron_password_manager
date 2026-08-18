@@ -23,6 +23,7 @@ export default function FilePicker({setShowFilePicker}:props) {
     useEffect(()=>{
         if (filePath.endsWith(".vlt")){
             window.vaultIPC.openVault(filePath).then(()=>{
+                window.fileIPC.addRecent(filePath);
                 setVault(prev=>({...prev, filePath:filePath}));
             });
             return;
