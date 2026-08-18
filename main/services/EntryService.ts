@@ -40,8 +40,6 @@ export class EntryService extends EventEmitter{
             return false;
         }
         entry[fieldToUpdate] = newVal;
-        const now = new Date();
-        entry.metadata.lastEditDate = now;
         this.notifyUpdate(uuid);
         return true;
     }
@@ -358,5 +356,30 @@ export class EntryService extends EventEmitter{
         }finally{
             dek.fill(0);
         }
+    }
+
+    async getEntriesWithSamePass():Promise<Array<string>>{
+        // early return 
+        if (this.entries.size === 0){
+            return  []
+        }
+        // store previously encountered hashes in the map
+        let encounteredPasswordHashes = new Map<string, string>();
+        let collisions = new Set<string>();
+        let entriesIterator = this.entries.entries();
+        let entryVal = entriesIterator.next();
+
+        while (!entryVal.done){
+            const [uuid, entry]:[string, Entry]=entryVal.value;
+            const passHash = entry.passHash.toString('base64');
+            if (encounteredPasswordHashes.has(passHash)){
+                collisions.add(uuid);
+                collisions.add(encounteredPasswordHashes.get(passHash));
+            }else{
+                encounteredPasswordHashes.set(passHash, uuid);
+            }
+            entryVal = entriesIterator.next();
+        }
+        return Array.from(collisions);
     }
 }
