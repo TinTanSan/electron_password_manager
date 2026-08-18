@@ -13,7 +13,7 @@ ipcMain.handle('vault:open', (_,filePath:string):IPCResponse<string>=>{
             return {
                 status:"CLIENT_ERROR",
                 response,
-                message:response ==="VAULT_NOT_FOUND" ? "Client error, vault not found. " : "Client error, vault is already open" 
+                message:response ==="FILE_NOT_FOUND" ? "Client error, vault not found. " : "Client error, vault is already open" 
             }
         }
         return {status: "OK", response:vaultService.vault.fileContents.length >0? "PASS_SET":"SET_PASS"};
