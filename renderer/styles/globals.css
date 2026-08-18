@@ -1,11 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import 'tailwindcss';
 @theme {
+  --text-xl: var(32px);
+  --text-4xl: calc(var(--text-xl) * 2.25);
+  --text-3xl: calc(var(--text-xl) * 2);
+  --text-2xl: calc(var(--text-xl) * 1.5);
 
-  --text-title: var(32px);
-  --text-subheading: calc(var(--text-title) * 0.75);
-  --text-normal: calc(var(--text-title) * 0.5);
-  --text-subnotes: calc(var(--text-title) * 0.4);
+  --text-lg: calc(var(--text-xl) * 0.75);
+  --text-md: calc(var(--text-xl) * 0.5);
+  --text-sm: calc(var(--text-xl) * 0.4);
+  --text-xs: calc(var(--text-xl) * 0.3);
+  --text-2xs: calc(var(--text-xl) * 0.25);
+  --text-3xs: calc(var(--text-xl) * 0.2);
+
 
   --color-base-100: oklch(100% 0 0);
   --color-base-200: oklch(97.466% 0.011 259.822);
@@ -48,8 +55,6 @@
   --animate-slide-in: slide-in ease-in 0.25s;
   --animate-modal-open: modal-open ease-in 0.25s;
   --animate-modal-close: modal-close ease-in 0.25s;
-  --text-md: 1rem;
-  --text-md--line-height: 1.5rem;
 }
 
 @keyframes shrink {

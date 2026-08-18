@@ -84,7 +84,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [vault.filePath])
 
   useEffect(()=>{
-    document.documentElement.style.setProperty('--text-title', preference.fontSize.toString()+'px');
+    document.documentElement.style.setProperty('--text-xl', preference.fontSize.toString()+'px');
   },[preference])
 
   useEffect(()=>{
