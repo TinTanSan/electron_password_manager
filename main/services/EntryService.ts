@@ -47,7 +47,7 @@ export class EntryService extends EventEmitter{
     searchEntries(title:string, username:string, notes:string){
         // if we got the same exact params as the last search, serve the requested page of results 
         if(title === this.searchedTitle && username == this.searchedUsername && notes === this.searchedNotes){
-            return {entries: this.searchResults, numEntries: this.searchResults.length}
+            return this.searchResults;
         }
         // new search query
         if (title) this.searchedTitle = title;
@@ -57,12 +57,12 @@ export class EntryService extends EventEmitter{
         let filteredEntries = [];
         this.entries.forEach((entry, uuid)=>{
             if(title && entry.title.toLowerCase().includes(title.toLowerCase())) filteredEntries.push(uuid)
-            if(username && entry.username.toLowerCase().includes(username.toLowerCase())) filteredEntries.push(uuid)
-            if(notes && entry.notes.toLowerCase().includes(notes.toLowerCase())) filteredEntries.push(uuid)
+            else if(username && entry.username.toLowerCase().includes(username.toLowerCase())) filteredEntries.push(uuid)
+            else if(notes && entry.notes.toLowerCase().includes(notes.toLowerCase())) filteredEntries.push(uuid)
         })
         this.searchResults = filteredEntries;
         
-        return {entries: filteredEntries, numEntries: filteredEntries.length}
+        return filteredEntries
     }
 
     getEntry(uuid:string): Entry | undefined{
