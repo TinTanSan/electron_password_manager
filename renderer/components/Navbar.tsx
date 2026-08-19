@@ -19,7 +19,7 @@ export default function Navbar({search, setSearch, searchSettings, setSearchSett
     const [showEntryForm, setShowEntryForm] = useState(false)
     useEffect(()=>{
         registerShortcut('NEW_ENTRY', ()=>{
-            console.log('n', showEntryForm)
+            
             setShowEntryForm(true);
         }, 'Cmd+N')
     },[])
