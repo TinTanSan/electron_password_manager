@@ -89,7 +89,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(()=>{
     window.addEventListener('keydown',shortcutManager.handleKeyEvent);
-    registerShortcut('CLOSE', ()=>{document.close()}, 'Cmd+Q')
+    registerShortcut('QUIT', ()=>{
+      window.close()
+    }, 'Cmd+Q')
   },[])
 
   return (
