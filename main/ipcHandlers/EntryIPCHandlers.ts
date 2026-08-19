@@ -12,7 +12,12 @@ ipcMain.handle('entry:getEntry', async(_, uuid)=>entryService.getEntry(uuid))
 
 ipcMain.handle('entry:addEntry', async (_,entry)=>entryService.addEntry(entry, vaultService.vault.kek))
 
-ipcMain.handle('vault:searchEntries', (_,title:string, username:string, notes:string)=>vaultService.searchEntries(title, username, notes))
+ipcMain.handle('vault:searchEntries', async (_,title:string, username:string, notes:string): Promise<IPCResponse<Array<Entry>>>=>{
+    return {
+        status:"OK",
+        response: vaultService.searchEntries(title, username, notes)
+    }
+})
 
 ipcMain.handle('entry:addExtraField', async (_, uuid:string, extraField:{name:string, data:Buffer, isProtected:boolean} ):Promise<IPCResponse<boolean>>=>{
     
