@@ -1,5 +1,5 @@
 'use client'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { MutableRefObject, useContext, useEffect, useRef, useState } from 'react'
 import {useRouter} from 'next/navigation';
 import { VaultContext } from '@contexts/vaultContext';
 import Navbar from '@components/Navbar';
@@ -8,6 +8,7 @@ import {SearchSettings} from '@components/searchBar';
 import EntryComponent from '@components/Entry/EntryComponent';
 import Image from 'next/image';
 import Sidebar from '@components/Sidebar';
+import { IPCResponse } from '@utils/commons';
 
 
 export default function HomePage() {
@@ -36,19 +37,29 @@ export default function HomePage() {
     window.vaultIPC.getNumEntries().then((x)=>{setNumEntries(x)})
     document.title = vault.filePath.substring(vault.filePath.lastIndexOf("/")+1, vault.filePath.length - 4) + " vault"
   },[])
-
+  const searchTimeout:MutableRefObject<NodeJS.Timeout> = useRef(undefined);
   useEffect(()=>{
     if(!searchFilter){
       window.vaultIPC.getPaginatedEntries(0).then((response)=>{
         setVault(prev=>({...prev,entries:response}));
       })
-    }else{
-      const title = searchSettings.searchTitle? searchFilter : "";
-      const username = searchSettings.searchUsername? searchFilter : "";
-      const notes = searchSettings.searchNotes? searchFilter : "";
-      window.vaultIPC.searchEntries(title,username, notes).then((response)=>{
-        setVault(prev=>({...prev,response}));
-      })
+    }else{  
+      if (searchTimeout.current !== undefined){
+        clearTimeout(searchTimeout.current);
+        searchTimeout.current = undefined;
+      }
+      searchTimeout.current = setTimeout(() => {
+          const title = searchSettings.searchTitle? searchFilter : "";
+          const username = searchSettings.searchUsername? searchFilter : "";
+          const notes = searchSettings.searchNotes? searchFilter : "";
+          
+          window.vaultIPC.searchEntries(title,username, notes).then(({response}:IPCResponse<Array<Entry>>)=>{
+            setVault(prev=>({...prev,entries:response}));
+            setNumEntries(response.length)
+          }) 
+      }, 500);
+       
+      
     }
       
   }, [searchFilter, searchSettings])
