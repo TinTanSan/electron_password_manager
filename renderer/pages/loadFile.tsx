@@ -213,7 +213,7 @@ export default function LoadFile() {
         registerShortcut('OPEN_FILE', handleOpenFile, 'Cmd+O')
         // since we don't need this shortcut at the moment we can trim it from the list
         unregisterShortcut('NEW_ENTRY')
-        registerShortcut('NEW_FILE', handleCreateFile, 'Cmd+N')
+        registerShortcut('NEW_FILE', handleCreateFile, 'Cmd+Shift+N')
     },[])
 
     const handleCancelOpenVault = ()=>{
