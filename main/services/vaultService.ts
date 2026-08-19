@@ -245,26 +245,23 @@ export class VaultService extends EventEmitter{
         return this.vault.entryGroups;
     }
     
-    getPaginatedEntries(pageNumber:number){
+    getPaginatedEntries(pageNumber:number, entriesArray:Array<Entry> = undefined){
         const pageLen = preferenceStore.get('entriesPerPage');
-        return Array.from(this.entryService.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
+        return Array.from(entriesArray??this.entryService.entries.values()).slice(pageNumber*pageLen, pageNumber*pageLen + pageLen)
     }
 
 
-    searchEntries(title:string, username:string, notes:string, page:number = 0){
+    searchEntries(title:string, username:string, notes:string, page:number = 0):Array<Entry>{
         if (!title && !username && !notes) {
             if (page === 0) {
                 console.warn("Please try not to call searchEntries without having any search params present, instead use getPaginatedEntries");
             }
-            return {
-                entries: this.getPaginatedEntries(page),
-                numEntries: this.entryService.getNumEntries()
-            };
+            this.getPaginatedEntries(page)
         }
         const pageLen = preferenceStore.get('entriesPerPage');
-        const {entries, numEntries} = this.entryService.searchEntries(title, username, notes);
-         const paginatedUUIDs = entries.slice(page * pageLen, page * pageLen + pageLen);
-        return paginatedUUIDs.map((uuid:string)=>this.entryService.getEntry(uuid))        
+        const entries = this.entryService.searchEntries(title, username, notes);
+        const paginatedUUIDs = entries.slice(page * pageLen, page * pageLen + pageLen);
+        return paginatedUUIDs.map((uuid:string)=>this.entryService.getEntry(uuid))
     }
 
     getEntriesWithSamePass = async ():Promise<Array<string>> => (await this.entryService.getEntriesWithSamePass())
