@@ -1,4 +1,3 @@
-
 type ShortcutAction =
   | 'NEW_ENTRY'
   | 'NEW_FILE'
@@ -22,71 +21,125 @@ interface Shortcut {
 
 class ShortcutManager {
   private shortcuts = new Map<string, Shortcut>(); // keyed by action
-  private keydownHandler;
+  
+  // Track high-resolution timestamps
+  private lastExecutedTime = 0; 
+  private isProcessing = false;
+  
+  // Batch processing queue
+  private eventBatch: { combo: string; event: KeyboardEvent }[] = [];
+  private batchTimeout: ReturnType<typeof setTimeout> | null = null;
+  
+  // Configuration thresholds
+  private readonly DEBOUNCE_MS = 50; // Window to catch simultaneous modifier chords
+  private readonly THROTTLE_MS = 150; // Guard window between distinct successful actions
+
   constructor(private defaultShortcuts: Shortcut[]) {
-    this.defaultShortcuts.forEach(def => this.register(def.action, def.handler));
+    this.defaultShortcuts.forEach(def => this.register(def.action, def.handler, def.keyCombo));
   }
 
-  /** Register a new shortcut */
   register(action: ShortcutAction, handler: () => void, keyCombo?: string): void {
-    const combo = keyCombo ?? this.getDefaultKeyCombo(action);
+    this.unregister(action);
+    const combo = keyCombo && keyCombo !== '' ? keyCombo : this.getDefaultKeyCombo(action);
     const shortcut: Shortcut = { action, keyCombo: combo, handler };
     this.shortcuts.set(action, shortcut);
-    // Add global keydown listener if not already present
-    // window.addEventListener('keydown', this.handleKeyEvent);
   }
 
-  /** Remap an existing shortcut */
   remap(action: ShortcutAction, newKeyCombo: string): void {
     const existing = this.shortcuts.get(action);
     if (!existing) return;
     this.shortcuts.set(action, { ...existing, keyCombo: newKeyCombo });
   }
 
-  /** Unregister a shortcut */
   unregister(action: ShortcutAction): void {
     this.shortcuts.delete(action);
   }
 
-  /** Handle keydown events */
+  /** Main entry point for keyboard events */
   handleKeyEvent = (event: KeyboardEvent): void => {
-    const combo = this.getKeyCombo(event);
-    for (const shortcut of this.shortcuts.values()) {
-      if (shortcut.keyCombo === combo && shortcut.handler) {
-        console.log('run combo')
-        event.preventDefault();
-        shortcut.handler();
-        break;
-      }
+    const now = performance.now();
+    
+    // 1. Throttle completely distinct macro spams
+    if (now - this.lastExecutedTime < this.THROTTLE_MS || this.isProcessing) {
+      return;
     }
+
+    const combo = this.getKeyCombo(event);
+    console.log(combo)
+    // 2. Queue the event into our current evaluation window
+    this.eventBatch.push({ combo, event });
+
+    // 3. Reset the micro-window timer
+    if (this.batchTimeout) clearTimeout(this.batchTimeout);
+    
+    this.batchTimeout = setTimeout(() => {
+      this.processLatestBatch();
+    }, this.DEBOUNCE_MS);
   };
 
-  /** Convert a KeyboardEvent into a string key combo */
+  /** Processes gathered combos to find the best match */
+  private processLatestBatch(): void {
+    this.isProcessing = true;
+    
+    try {
+      if (this.eventBatch.length === 0) return;
+
+      let bestMatch: Shortcut | null = null;
+      let matchedEvent: KeyboardEvent | null = null;
+
+      // Sort combos by complexity (number of modifiers) so complex combinations take precedence
+      // This stops 'Cmd+N' from accidentally swallowing 'Cmd+Shift+N'
+      const sortedBatch = [...this.eventBatch].sort((a, b) => b.combo.length - a.combo.length);
+
+      for (const item of sortedBatch) {
+        for (const shortcut of this.shortcuts.values()) {
+          if (shortcut.keyCombo === item.combo && shortcut.handler) {
+            bestMatch = shortcut;
+            matchedEvent = item.event;
+            break; 
+          }
+        }
+        if (bestMatch) break; // Found our highest priority winner
+      }
+
+      // Execute the winner
+      if (bestMatch && matchedEvent) {
+        matchedEvent.preventDefault();
+        bestMatch.handler();
+        this.lastExecutedTime = performance.now();
+      }
+    } finally {
+      // Clean state for the next sequence
+      this.eventBatch = [];
+      this.batchTimeout = null;
+      this.isProcessing = false;
+    }
+  }
+
   private getKeyCombo(event: KeyboardEvent): string {
     const parts: string[] = [];
 
     if (event.metaKey) parts.push('Cmd');
-    else if (event.ctrlKey) parts.push('Ctrl');
-
-    if (event.shiftKey) parts.push('Shift');
+    if (event.ctrlKey) parts.push('Ctrl');
     if (event.altKey) parts.push('Alt');
-
-    // Add the key name, normalising for printable keys
-    const key = event.key;
-    const normalizedKey = key.length === 1 ? key.toUpperCase() : key;
-    parts.push(normalizedKey);
-
+    if (event.shiftKey) parts.push('Shift');
+    
+    const key = event.key; 
+    if (key !== "Shift" && key !== "Alt" && key !== "Meta" && key !== "Control") {
+      const normalizedKey = key.length === 1 ? key.toUpperCase() : key;
+      parts.push(normalizedKey);
+    }
+    
     return parts.join('+');
   }
 
-  /** Get default key combo for an action */
   private getDefaultKeyCombo(action: ShortcutAction): string {
     const defaults: Record<ShortcutAction, string> = {
       NEW_ENTRY: 'Cmd+N',
       NEW_FILE: 'Cmd+Shift+N',
       SAVE: 'Cmd+S',
       OPEN_FILE: 'Cmd+O',
-      FOCUS_SEARCH: 'Cmd+F',
+      FOCUS_SEARCH: 'Cmd+K',
       TOGGLE_SIDEBAR: 'Cmd+B',
       SHOW_PREFERENCES: 'Cmd+,',
       REDO: 'Cmd+Shift+Z',
@@ -100,24 +153,23 @@ class ShortcutManager {
   }
 }
 
-// Export a singleton instance for easy import
+// Export a singleton instance safely passing standard defaults
 export const shortcutManager = new ShortcutManager([
-  { action: 'NEW_ENTRY', handler: () => console.log('New Entry'), keyCombo: '' },
-  { action: 'NEW_FILE', handler: () => console.log('New File'), keyCombo: '' },
-  { action: 'SAVE', handler: () => console.log('Save'), keyCombo: '' },
+  { action: 'NEW_ENTRY', handler: () => console.log('New Entry'), keyCombo: 'Cmd+N' },
+  { action: 'NEW_FILE', handler: () => console.log('New File'), keyCombo: 'Cmd+Shift+N' },
+  { action: 'SAVE', handler: () => console.log('Save'), keyCombo: 'Cmd+S' },
   { action: 'OPEN_FILE', handler: () => console.log('Open File'), keyCombo: 'Cmd+O' },
-  { action: 'FOCUS_SEARCH', handler: () => console.log('Focus Search'), keyCombo: '' },
-  { action: 'TOGGLE_SIDEBAR', handler: () => console.log('Toggle Sidebar'), keyCombo: '' },
-  { action: 'SHOW_PREFERENCES', handler: () => console.log('Show Preferences'), keyCombo: '' },
-  { action: 'REDO', handler: () => console.log('Redo'), keyCombo: '' },
-  { action: 'UNDO', handler: () => console.log('Undo'), keyCombo: '' },
-  { action: 'CLOSE', handler: () => console.log('Close'), keyCombo: '' },
-  { action: 'MINIMIZE', handler: () => console.log('Minimize'), keyCombo: '' },
-  { action: 'MAXIMIZE', handler: () => console.log('Maximize'), keyCombo: '' },
-  { action: 'QUIT', handler: () => console.log('Quit'), keyCombo: '' },
+  { action: 'FOCUS_SEARCH', handler: () => console.log('Focus Search'), keyCombo: 'Cmd+K' },
+  { action: 'TOGGLE_SIDEBAR', handler: () => console.log('Toggle Sidebar'), keyCombo: 'Cmd+B' },
+  { action: 'SHOW_PREFERENCES', handler: () => console.log('Show Preferences'), keyCombo: 'Cmd+,' },
+  { action: 'REDO', handler: () => console.log('Redo'), keyCombo: 'Cmd+Shift+Z' },
+  { action: 'UNDO', handler: () => console.log('Undo'), keyCombo: 'Cmd+Z' },
+  { action: 'CLOSE', handler: () => console.log('Close'), keyCombo: 'Cmd+W' },
+  { action: 'MINIMIZE', handler: () => console.log('Minimize'), keyCombo: 'Cmd+M' },
+  { action: 'MAXIMIZE', handler: () => console.log('Maximize'), keyCombo: 'Cmd+Shift+F' },
+  { action: 'QUIT', handler: () => console.log('Quit'), keyCombo: 'Cmd+Q' },
 ]);
 
-// External registration helpers
 export const registerShortcut = (action: ShortcutAction, handler: () => void, keyCombo?: string) => {
   shortcutManager.register(action, handler, keyCombo);
 };
