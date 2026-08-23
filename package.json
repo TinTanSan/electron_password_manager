@@ -23,6 +23,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^20.11.16",
     "@types/react": "^18.2.52",
+    "@types/zxcvbn": "^4.4.5",
     "autoprefixer": "^10.4.19",
     "electron": "^34.0.0",
     "electron-builder": "^24.13.3",
