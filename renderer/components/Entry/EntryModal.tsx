@@ -1,9 +1,9 @@
 import React, { FormEvent, useContext, useEffect, useMemo, useState } from 'react'
 import { VaultContext } from '@contexts/vaultContext';
-import { Entry, ExtraField } from '@interfaces/Entry';
+import { Entry } from '@interfaces/Entry';
 import { BannerContext } from '@contexts/bannerContext';
 import { addBanner } from '@interfaces/Banner';
-import { asciiSafeSpecialChars, cmpEntry, digits, lowerCaseLetters, upperCaseLetters } from '@utils/commons';
+import { cmpEntry } from '@utils/commons';
 import Image from 'next/image';
 import zxcvbn from 'zxcvbn';
 import ExtraFieldsTab from './ExtraFieldsTab';
@@ -46,18 +46,8 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const {preference} = useContext(PreferenceContext);
     const [showPass, setShowPass] = useState(false);
     const [entryUpdated, setEntryUpdated] = useState(false);
-    
-    const vaultEntry = useMemo(()=>{
-        if (entryUpdated){
-            let ent = vault.entries.find(x=>x.metadata.uuid === uuid);
-            ent.extraFields = ent.extraFields.map(x=>({...x, data:Buffer.from(x.data)}));
-            setEntryUpdated(false);
-            return ent;
-        }
-    }, [entryUpdated]);
-    
     const [entry, setEntry] = useState<Entry | undefined>(vault.entries.find(x=>x.metadata.uuid === uuid));
-    const isEqual = cmpEntry(vaultEntry, entry);
+    
 
     // entryPass will be used when changing the password to update it
     const [entryPass, setEntryPass] = useState("");
@@ -69,6 +59,17 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     const [groupSearch, setGroupSearch] = useState(() => {return vault.entryGroups.find(g => g.entries.includes(uuid))?.groupName ?? "";});
     
     const [tab, setTab] = useState(0);
+    
+
+    const vaultEntry = useMemo(()=>{
+        if (entryUpdated){
+            let ent = vault.entries.find(x=>x.metadata.uuid === uuid);
+            ent.extraFields = ent.extraFields.map(x=>({...x, data:Buffer.from(x.data)}));
+            setEntryUpdated(false);
+            return ent;
+        }
+    }, [entryUpdated]);
+    const isEqual = cmpEntry(vaultEntry, entry);
     
     const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
         if (e.target.id === 'password'){
@@ -87,14 +88,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
             return;
         }
         setEntry(prev=>({...prev, [e.target.id]: e.target.value}));
-    }
-
-    const handleCopy = ()=>{
-        navigator.clipboard.writeText(entryPass.toString());
-        addBanner(setBanners, 'password copied successfully', 'success')
-        setTimeout(() => {
-            window.clipBoardIPC.clearClipboard();
-        }, preference.clearClipboardTime ?? 5000);
     }
 
     const handleConfirm = (e:FormEvent)=>{
@@ -142,8 +135,6 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         
     }
 
-    
-    
     const handleMakeFavourite = ()=>{
         window.entryIPC.updateEntryField(uuid, 'isFavourite', !entry.isFavourite).then((response)=>{
             if (response.status === "OK"){
@@ -197,9 +188,14 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                 closeModal();
             }
         }
-
-        
     };
+    const handleCopy = ()=>{
+        navigator.clipboard.writeText(entryPass.toString());
+        addBanner(setBanners, 'password copied successfully', 'success')
+        setTimeout(() => {
+            window.clipBoardIPC.clearClipboard();
+        }, preference.clearClipboardTime ?? 5000);
+    }
 
     const copyHandler = (e:KeyboardEvent)=>{
         var key = e.key; // keyCode detection
@@ -207,9 +203,21 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
         var cmd_h = e.metaKey// ⌘ detection
         
         if ( key.toLowerCase() === 'c' && ctrl || key.toLowerCase() === 'c' && cmd_h ) {
-            e.preventDefault();
             
-            handleCopy()            
+            if (document.getElementById('password') === document.activeElement){
+                console.log('passcopy')
+                e.preventDefault();
+                handleCopy()
+            }else{
+                console.log(window.getSelection().toString())
+
+                navigator.clipboard.writeText(window.getSelection().toString()).then(()=>{
+                    console.log("written to clipboard")
+                    navigator.clipboard.readText().then(()=>{console.log(console.log())})
+                })
+                
+            }
+            
         }
     }
     
@@ -262,7 +270,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
 
     useEffect(() => {
         document.addEventListener("keydown", (escapeHandler), false);
-        addEventListener("keydown", (copyHandler), false);
+        document.addEventListener("keydown", (copyHandler), false);
         return () => {
             document.removeEventListener("keydown", escapeHandler, false);
             removeEventListener("keydown", (copyHandler), false);
@@ -271,7 +279,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     }, []);
 
     useEffect(()=>{
-        const pscore = zxcvbn(entryPass);
+        const pscore = zxcvbn(entryPass.slice(0,100));
         setpasswordScore({score:pscore.score, feedback:pscore.feedback.warning});
     },[entryPass]);
 
@@ -292,10 +300,10 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
     },[entry.password])
 
     return (
-        <div className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
+        <div id='entry-modal' className='flex flex-col w-screen gap-2 py-2 px-1 h-screen top-0 left-0 justify-center z-10 items-end backdrop-brightness-50 absolute' onClick={closeModal}>
             <div className='flex flex-col text-base-content w-[40%] min-w-96 h-full bg-base-100 rounded-xl z-10 overflow-hidden ' onClick={(e)=>{e.stopPropagation()}}>
-                <div className='flex w-full h-10 justify-end shrink-0 px-2'>
-                    <div className='flex w-full justify-center text-2xl  text-base-content font-bold'>
+                <div className='flex w-full h-12 justify-end items-center shrink-0 px-2 gap-2'>
+                    <div className='block w-full h-fit  text-center items-center text-lg px-1 overflow-hidden text-ellipsis grow-0 text-base-content font-semibold'>
                         {entry.title}
                         {/* {!areEqual && <span className='flex w-fit h-full items-center text-[0.75rem]'>[unsaved]</span>} */}
                     </div>
@@ -343,7 +351,7 @@ export default function EntryModal({setShowModal, uuid, hasCollidingPassword}:pr
                                         <input title='change username' type="text" id='username' value={entry.username} onChange={handleChange} className='flex w-full border-2 border-base-300 outline-none focus:border-primary rounded-lg h-7 px-1 bg-white '/>
                                     </div>
                                     {/* Password */}
-                                    <div className='flex flex-col gap-1 w-full'>
+                                    <div  className='flex flex-col gap-1 w-full'>
                                         <div className='flex flex-col'>
                                             <label>Password</label>
                                             <div title='change password' className='flex gap-1 w-full h-7 px-1 bg-white border-2 border-base-300 focus-within:border-primary rounded-lg items-center'>
