@@ -65,7 +65,7 @@ class ShortcutManager {
     }
 
     const combo = this.getKeyCombo(event);
-    console.log(combo)
+
     // 2. Queue the event into our current evaluation window
     this.eventBatch.push({ combo, event });
 
@@ -142,7 +142,7 @@ class ShortcutManager {
       FOCUS_SEARCH: 'Cmd+K',
       TOGGLE_SIDEBAR: 'Cmd+B',
       SHOW_PREFERENCES: 'Cmd+,',
-      REDO: 'Cmd+Shift+Z',
+      REDO: 'Cmd+Y',
       UNDO: 'Cmd+Z',
       CLOSE: 'Cmd+W',
       MINIMIZE: 'Cmd+M',
