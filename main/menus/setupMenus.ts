@@ -1,5 +1,6 @@
 import { BrowserWindow, Menu, MenuItem } from "electron"
 import { createNextronWindow } from "../background";
+import { vaultService } from "#main/services/vaultService";
 
 
 const handleGlobOpenVault = ()=>{
@@ -8,13 +9,6 @@ const handleGlobOpenVault = ()=>{
   console.log('vault:open handler called')
   win.webContents.send('vault:open')
 }
-const handleCloseWindow = ()=>{
-  const win = BrowserWindow.getFocusedWindow();
-  win.webContents.send("vault:close")
-  // if (!win) return;
-  // win.close();
-}
-
 const handleCreateVaultOrWindow = ()=>{
   const windows = BrowserWindow.getAllWindows();
   if (windows.length > 0){
@@ -24,6 +18,9 @@ const handleCreateVaultOrWindow = ()=>{
   }
 }
 
+const handleCreateNewEntry =() =>{
+  console.log("creating new entry")
+}
 
 export const setupMenus = ()=>{
   const menu = new Menu()
@@ -40,24 +37,36 @@ export const setupMenus = ()=>{
       accelerator: 'CommandOrControl+O'
     },
     {
-      label:"Close window",
-      click:  handleCloseWindow,
-      accelerator: 'CommandOrControl+W'
-    },
-    {
       label:"New Vault",
       click : handleCreateVaultOrWindow,
       accelerator: 'CommandOrControl+Shift+N'
     }
   ])
+  const checkIsUnlocked = ()=>{
+    console.log(vaultService.vault)
+    return (vaultService.vault !== undefined && vaultService.vault.isUnlocked)
+  }
 
   const editSubmenu = Menu.buildFromTemplate([
     {label:
         'Create new Entry',
-        accelerator: 'Command+N'
+        accelerator: 'Command+N',
+        enabled: checkIsUnlocked(),
+        click: handleCreateNewEntry
     }
     ])
-  menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
 
+  const devMenu = Menu.buildFromTemplate([
+    {
+      label:'Open dev tools',
+      accelerator:'Command+Ctrl+I',
+      role: 'toggleDevTools'
+    }
+  ])
+  menu.append(new MenuItem({ label: 'File', submenu:fileSubmenu }))
+  menu.append(new MenuItem({ label: 'Edit', submenu:editSubmenu }))
+  menu.append(new MenuItem({ label: 'Dev', submenu:devMenu }))
+  // Menu.on("",()=>{})
   Menu.setApplicationMenu(menu)
+  
 }
